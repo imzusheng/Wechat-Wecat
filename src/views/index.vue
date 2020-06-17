@@ -1,8 +1,8 @@
 <template>
   <div class="wrap">
     <indexNav :class="{'wrap_slide_left' : bgFade}"/>
-    <mainPanel class="mainPanel" :class="{'wrap_scale' : bgFade}" @sendMsg="sendMsg"/>
-    <friendInfo class="friendInfo"/>
+    <mainPanel class="mainPanel" :class="{'wrap_scale' : bgFade}" v-if="this.$store.state.chatObj.length > 0" @sendMsg="sendMsg"/>
+    <friendInfo class="friendInfo" :class="{'wrap_slide_left' : bgFade}" v-if="this.$store.state.chatObj.length > 0"/>
     <catsBg :bgFade="bgFade"/>
   </div>
 </template>
@@ -76,6 +76,7 @@ export default {
 
 <style scoped>
   .wrap {
+    min-height: 480px;
     height: 100vh;
     width: 100vw;
     position: relative;
@@ -140,6 +141,7 @@ export default {
     box-shadow: -4px 4px 20px #cecece,
     4px -4px 20px #ffffff;
     z-index: 2;
+    position: relative;
   }
 
   @media screen and (max-width: 1200px) {

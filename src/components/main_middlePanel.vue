@@ -1,7 +1,7 @@
 <template>
   <div class="mainPanel_wrap">
     <!--    聊天对象名字-->
-    <div class="mainPanel_name">
+    <div class="mainPanel_name" @click="faceListActive = false">
       <figure><img src="../assets/ginger-cat/ginger-cat-715.png"></figure>
       <div class="chatObj">
         <div class="chatObjName">{{chatObj}}</div>
@@ -9,11 +9,12 @@
       </div>
     </div>
     <!--    聊天记录信息面板-->
-    <div class="mainPanel_msgContent" ref="msgContentBox">
+    <div class="mainPanel_msgContent" ref="msgContentBox" @click="faceListActive = false">
       <div class="msgContent" ref="msgContent">
         <div v-for="(item, i) in $store.state.friends[chatObj]"
              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}" :key="i">
           <div :class="{My_Msg : item.say === 'me', You_Msg : item.say === 'you'}">{{item.msg}}</div>
+          <div class="msgTime" v-if="$store.state.timeSwitch">{{item.time}}</div>
         </div>
       </div>
     </div>
@@ -146,6 +147,7 @@ export default {
       return `${date.getFullYear()}年${month}月${day}日 ${h}:${m}:${s}`
     },
     sendMsg () {
+      this.faceListActive = false
       const input = this.$refs.textBox.innerText.replace(/\n$/, '') // 匹配结尾的回车符号并替换
       const replaceSpace = input.replace(/\s+/g, '')
       if (replaceSpace.length === 0) {
@@ -214,7 +216,8 @@ export default {
     position: relative;
     z-index: 3;
     box-sizing: border-box;
-    padding-left: calc(var(--nameContent-height) / 2);
+    /*padding-left: calc(var(--nameContent-height) / 2);*/
+    padding-left: 10px;
     display: flex;
   }
 
@@ -261,7 +264,7 @@ export default {
     width: var(--inputContent-width);
     background-color: rgba(255, 255, 255, 1);
     box-shadow: 2px -2px 22px rgba(210, 210, 210, .9),
-    -2px -2px 22px #ffffff;
+    20px -2px 22px #ffffff;
     position: relative;
     overflow: hidden;
     z-index: 3;
@@ -386,6 +389,7 @@ export default {
     -webkit-justify-content: flex-end;
     justify-content: flex-end;
     align-items: start;
+    position: relative;
   }
 
   .You_MsgContent {
@@ -397,6 +401,23 @@ export default {
     -webkit-justify-content: flex-start;
     justify-content: flex-start;
     align-items: start;
+    position: relative;
+  }
+
+  .You_MsgContent .msgTime{
+    position: absolute;
+    left: 20px;
+    bottom: -24px;
+    font-size: 12px;
+    color: rgba(100, 100, 100, .8);
+  }
+
+  .My_MsgContent .msgTime{
+    position: absolute;
+    right: 20px;
+    bottom: -24px;
+    font-size: 12px;
+    color: rgba(100, 100, 100, .8);
   }
 
   .My_Msg, .You_Msg {

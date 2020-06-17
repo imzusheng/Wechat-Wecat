@@ -37,7 +37,6 @@ async function navSearch (MsgObj, wss, _that) {
   Query.UID = {
     $regex: reg
   } // 模糊查询条件
-  console.log(Query)
   const result = await db.likeFind('user', Query)
   const resultArr = []
   result.forEach(value => {
@@ -45,7 +44,8 @@ async function navSearch (MsgObj, wss, _that) {
   })
   _that.send(JSON.stringify({
     uid: MsgObj.uid,
-    resultArr: resultArr
+    resultArr: resultArr,
+    type: 'navSearch'
   }))
 }
 

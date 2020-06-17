@@ -1,13 +1,26 @@
 <template>
   <div class="nav">
+    <div class="navSetting" :class="{navSetting_FadeIn: navSettingActive, navSetting_FadeOut: !navSettingActive}">
+      <div class="settingTitle">设置</div>
+      <ul class="settingItems">
+        <li class="info_item">个人信息</li>
+        <li @click="$store.state.timeSwitch = !$store.state.timeSwitch">显示消息时间
+          <div class="timeSwitch" :class="{timeSwitchOn : $store.state.timeSwitch}">
+            <div class="switchBtn"></div>
+          </div>
+        </li>
+        <li class="exit" @click="exit()">退出登录</li>
+      </ul>
+    </div>
     <div class="top_bar">
       <div class="logo">
         <figure></figure>
       </div>
-      <button class="addFriend">
-        <span></span>
-        <span></span>
-        <span></span>
+      <button class="addFriend" :class="{'addFriendActive': btnActive}"
+              @click="btnActive = !btnActive; navSettingActive = !navSettingActive">
+        <span class="add_1"></span>
+        <span class="add_2"></span>
+        <span class="add_3"></span>
       </button>
     </div>
     <div class="search">
@@ -84,7 +97,9 @@ export default {
       groupList: [],
       searchContent: '',
       searchActive: false,
-      searchTips: '输入内容以查找'
+      searchTips: '输入内容以查找',
+      btnActive: false,
+      navSettingActive: false
     }
   },
   mounted () {
@@ -95,6 +110,11 @@ export default {
     this.getData('group')
   },
   methods: {
+    exit () {
+      window.sessionStorage.removeItem('uid')
+      window.sessionStorage.removeItem('token')
+      this.$router.replace('login')
+    },
     searchChange () {
       clearTimeout(this.timer)
       const _that = this
@@ -108,11 +128,12 @@ export default {
             msg: _that.searchContent,
             type: 'navSearch'
           }, _that.wsMsgGHandler)
-        }, 500)
+        }, 100)
       }
     },
     wsMsgGHandler (data) {
-      this.$store.commit('navSearch', data)
+      this.$store.commit('wsMsgGHandler', data)
+      // this.$store.commit('navSearch', data)
     },
     /**
      * @param type // 请求分组内数据的类型 chatHistory / contact / group
@@ -172,7 +193,6 @@ export default {
 <style scoped>
   .nav {
     min-width: 280px;
-    min-height: 480px;
     width: calc(22% - var(--common-margin));
     height: calc(100% - var(--common-margin) * 2);
     margin: var(--common-margin) 0 var(--common-margin) var(--common-margin);
@@ -180,6 +200,160 @@ export default {
     z-index: 2;
     border-radius: var(--common-radius);
     background: rgba(180, 190, 200, .6);
+    overflow: hidden;
+  }
+
+  .navSetting {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    left: 0;
+    background: #F7F9FA;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+
+  .navSetting_FadeIn {
+    animation: navSetting_FadeIn .5s forwards;
+  }
+
+  .navSetting_FadeOut {
+    animation: navSetting_FadeOut .3s forwards;
+  }
+
+  @keyframes navSetting_FadeIn {
+    0% {
+      opacity: 1;
+      transform: translateY(-100%);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0%);
+    }
+  }
+
+  @keyframes navSetting_FadeOut {
+    0% {
+      opacity: 1;
+      transform: translateY(0%);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(-100%);
+    }
+  }
+
+  .settingTitle {
+    height: 90px;
+    width: 100%;
+    line-height: 90px;
+    box-sizing: border-box;
+    padding-left: 30px;
+    font-size: 24px;
+    position: relative;
+  }
+
+  .settingTitle::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    height: 0;
+    width: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-bottom: 1px solid #cccccc;
+  }
+
+  .settingItems {
+    height: calc(100% - 90px);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .settingItems li:not(:last-child) {
+    width: 100%;
+    height: 50px;
+    line-height: 50px;
+    font-size: 14px;
+    color: #444444;
+    position: relative;
+    padding: 0 30px;
+    box-sizing: border-box;
+  }
+
+  .settingItems li {
+    cursor: pointer;
+    position: relative;
+  }
+
+  .settingItems li:not(:last-child):after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 80%;
+    transform: translateX(-50%);
+    border-bottom: 1px solid rgba(100, 100, 100, .2);
+  }
+
+  .settingItems li:not(:last-child):hover {
+    background: rgba(180, 180, 180, .1);
+  }
+
+  .info_item:before {
+    content: '';
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: rotate(45deg) translate(0, -50%);
+    height: 8px;
+    width: 8px;
+    border-right: 2px solid rgba(100, 100, 100, .2);
+    border-top: 2px solid rgba(100, 100, 100, .2);
+  }
+
+  .timeSwitch {
+    height: 22px;
+    width: 40px;
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translate(0, -50%);
+    background: #CCCCCC;
+    border-radius: 100px;
+    transition: all .2s;
+  }
+
+  .timeSwitchOn {
+    background: #65C564;
+  }
+
+  .timeSwitchOn .switchBtn {
+    transform: translateX(100%);
+  }
+
+  .switchBtn {
+    transition: all .2s;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0 2px;
+    background: #FFFFFF;
+    border-radius: 50%;
+  }
+
+  .exit {
+    width: 60%;
+    bottom: 30px;
+    left: 50%;
+    text-align: center;
+    background: rgba(221, 0, 27, .7);
+    box-sizing: border-box;
+    padding: 10px 0;
+    color: #ffffff;
+    border-radius: 5px;
+    transform: translateX(-50%);
+    position: absolute !important;
   }
 
   .top_bar {
@@ -204,7 +378,7 @@ export default {
     background-size: 100%;
   }
 
-  .top_bar button {
+  .top_bar .addFriend {
     height: 20px;
     width: 30px;
     border-radius: 50%;
@@ -216,29 +390,56 @@ export default {
     top: 50%;
     right: calc(var(--logo-height) / 5);
     position: absolute;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 1001 !important;
   }
 
-  .top_bar button span {
+  .addFriend:hover {
+    will-change: contents;
+  }
+
+  .top_bar .addFriend span {
     display: block;
     height: 4px;
     width: 24px;
     position: absolute;
     left: 50%;
-    background: #3B3B3B;
+    background: #555555;
     border-radius: 2px;
     transform: translate(-50%, -50%);
+    transition: all .3s;
   }
 
-  .top_bar button span:nth-of-type(1) {
+  .addFriend .add_1 {
     top: 0%;
   }
 
-  .top_bar button span:nth-of-type(2) {
+  .addFriend .add_2 {
     top: 50%;
   }
 
-  .top_bar button span:nth-of-type(2) {
+  .addFriend .add_3 {
     top: 100%;
+  }
+
+  .addFriendActive .add_1 {
+    top: 0;
+    left: 25% !important;
+    transform: rotate(45deg) translateX(6%) !important;
+    transform-origin: left;
+  }
+
+  .addFriendActive .add_2 {
+    top: 50%;
+    opacity: 0;
+  }
+
+  .addFriendActive .add_3 {
+    top: 100%;
+    left: 25% !important;
+    transform: rotate(-45deg) translateX(10%) !important;
+    transform-origin: left;
   }
 
   .search {

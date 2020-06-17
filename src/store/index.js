@@ -13,7 +13,8 @@ export default new Vuex.Store({
     unReadMsg: {}, // 保存未读消息的数量 {用户名：未读数量}
     ws: {},
     maxMsg: 50,
-    searchResult: []
+    searchResult: [],
+    timeSwitch: true
   },
   mutations: {
     // 搜索用户
@@ -82,6 +83,7 @@ export default new Vuex.Store({
     // 收到消息时的处理
     wsMsgGHandler (state, data) {
       const msgObj = JSON.parse(data.data)
+      if (msgObj.type === 'navSearch') return this.commit('navSearch', data)
       this.commit('chatRecordAdd', {
         chat: {
           msg: msgObj.msg,

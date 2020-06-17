@@ -4,8 +4,8 @@
       <input type="radio" name="chatListRadio" :data-friend-name="item.chatObj">
       <div class="chatListContent">
         <figure>
-          <img src="../assets/ginger-cat/ginger-cat-715.png">
-          <span class="unReadMsg" :style="{display: $store.state.unReadMsg[item.chatObj] > 0 ? 'block' : 'none'}">{{$store.state.unReadMsg[item.chatObj]}}</span>
+          <img src="../assets/ginger-cat/ginger-cat-715.png" draggable="false"/>
+          <span class="unReadMsg" v-if="$store.state.unReadMsg[item.chatObj] > 0">{{$store.state.unReadMsg[item.chatObj]}}</span>
         </figure>
         <div class="group">
           <div class="friName">{{item.chatObj}}</div>
@@ -23,8 +23,7 @@ export default {
   name: 'chatHistory',
   data () {
     return {
-      chatObj: '',
-      unReadMsg: ''
+      chatObj: ''
     }
   },
   methods: {
