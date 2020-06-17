@@ -1,28 +1,23 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router/router'
+import store from './store'
+// import './plugins/element.js'
 
+import axios from 'axios'
+axios.defaults.baseURL = 'http://localhost:3000/api'
+axios.defaults.headers['Content-Type'] = 'application/json'
+axios.interceptors.request.use(config => {
+  config.headers.Authorization = window.sessionStorage.getItem('token')
+  return config
+})
+
+Vue.prototype.$axios = axios
 Vue.config.productionTip = false
+Vue.config.devtools = true
 
-// eslint-disable-next-line no-new
 new Vue({
   router,
+  store,
   render: h => h(App)
 }).$mount('#app')
-
-/*
-import Vue from 'vue/dist/vue.esm.js'
-new Vue({
-  el: '#app',
-  template: `
-    <App/>
-  `,
-  router,
-  components: {
-    App
-  }
-})
-// Vue的两种形式
-// compiler（模板）模式和runtime模式（运行时）
-// 运行时模式无法直接使用模板 template
- */

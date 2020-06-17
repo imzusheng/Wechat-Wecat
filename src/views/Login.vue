@@ -1,167 +1,206 @@
 <template>
-  <div id="login" @keydown.enter='sendData' @keydown.delete="del"
-       :style="{'pointer-events': axiosStatus ? 'none' : 'all'}">
-    <div class="login_container">
-      <LoadingLine v-if="axiosStatus"></LoadingLine>
-      <div class="logo_container">
-        <figure class="logo"></figure>
-      </div>
-      <div class="login_container_mask" :style="{opacity: axiosStatus ? 0.5 : 1}">
-        <div class="login_form_uid" :style="{transform: uidStatus ? 'translateX(-100%)' : 'translateX(0)'}">
-          <div class="title">
-            <p>登录</p>
-            <p>使用您的 weCat 账号</p>
+  <div
+    id="login"
+    :style="{'pointer-events': login.axiosStatus || login.pwdStatus? 'none' : 'all'}"
+    @keydown.enter='sendData'>
+    <transition name="fade">
+      <div class="login_container"
+           v-if="!login.pwdStatus">
+        <LoadingLine v-show="login.axiosStatus"/>
+        <catTitle/>
+        <div class="login_container_mask"
+             :style="{transform: login.uidStatus ? 'translateX(-50%)' : 'translateX(0%)' ,opacity: login.axiosStatus || login.pwdStatus? 0.5 : 1}">
+          <div class="login_form_uid">
+            <div class="title">
+              <p>登录</p>
+              <p>使用您的 weCat 账号</p>
+            </div>
+            <!-- 登录表单ID/密码输入框  -->
+            <div class="login_uid_container">
+              <input
+                type="text"
+                id="login_uid"
+                name="uid"
+                autocomplete="off"
+                ref="inputUID"
+                :disabled="login.axiosStatus || login.uidStatus"
+                v-model="uid"
+                @focus="pwdFocus"
+                @blur="pwdBlur">
+              <div class="uid_border"
+                   :class="{'border_notActive' : !uid || login.tipsActive, 'border_Active' : uid  || login.tipsActive, 'border_error' : login.errStatus}"></div>
+              <span class="login_uid_tips"
+                    :class="{'tips_notActive' : !uid || login.tipsActive, 'tips_Active' : uid || login.tipsActive, 'font_error' : login.errStatus}">电子邮箱或用户名</span>
+              <span class="login_uid_tips_bg"
+                    :style="{visibility : login.tipsActive || uid ? 'visible' : 'hidden'}"></span>
+            </div>
+            <div class="errInfo" v-if="login.errStatus">{{login.errInfo}}</div>
+            <!--  end 登录表单ID/密码输入框  -->
+            <div class="login_forget">
+              <a href="#">忘记账号或密码？</a>
+            </div>
+            <div class="login_create">
+              <a href="#/sign">创建账号</a>
+            </div>
+            <div class="login_next">
+              <button @click='sendData'>下一步</button>
+            </div>
           </div>
-          <!-- 登录表单ID/密码输入框  -->
-          <div class="login_uid_container">
-            <input
-              type="text"
-              id="login_uid"
-              name="uid"
-              autocomplete="off"
-              ref="inputUID"
-              :disabled="axiosStatus"
-              v-model="uid"
-              @focus="tipsActive = true"
-              @blur="tipsActive = false">
-            <div class="uid_border"
-                 :class="{border_notActive : !uid || tipsActive, border_Active : uid || tipsActive, border_error : errStatus}"></div>
-            <span class="login_uid_tips"
-                  :class="{tips_notActive : !uid || tipsActive, tips_Active : uid || tipsActive, font_error : errStatus}">电子邮箱或用户名</span>
-            <span class="login_uid_tips_bg" :style="{visibility : tipsActive || uid ? 'visible' : 'hidden'}"></span>
-          </div>
-          <div class="errInfo">{{errInfo}}</div>
-          <!--  end 登录表单ID/密码输入框  -->
-          <div class="login_forget">
-            <a href="#">忘记账号或密码？</a>
-          </div>
-          <div class="login_create">
-            <a href="#">创建账号</a>
-          </div>
-          <div class="login_next">
-            <button @click='sendData'>下一步</button>
+          <div class="login_form_pwd">
+            <div class="title">
+              <p>欢迎</p>
+              <p @click="returnUid">{{uid}}</p>
+            </div>
+            <div class="login_pwd_container">
+              <input
+                type="password"
+                id="login_pwd"
+                name="pwd"
+                autocomplete="off"
+                ref="inputPWD"
+                v-model="login.pwd"
+                :disabled="login.axiosStatus"
+                @focus="pwdFocus"
+                @blur="pwdBlur">
+              <div class="pwd_border"
+                   :class="{'border_notActive' : !login.pwd || login.tipsActive, 'border_Active' : login.pwd || login.tipsActive, 'border_error' : login.errStatus}"></div>
+              <span class="login_pwd_tips"
+                    :class="{'tips_notActive' : !login.pwd || login.tipsActive, 'tips_Active' : login.pwd || login.tipsActive, 'font_error' : login.errStatus}">输入您的密码</span>
+              <span class="login_pwd_tips_bg"
+                    :style="{'visibility' : login.tipsActive || login.pwd ? 'visible' : 'hidden'}"></span>
+            </div>
+            <div class="errInfo">{{login.errInfo}}</div>
+            <div class="login_forget">
+              <a href="#">忘记密码？</a>
+            </div>
+            <div class="login_next_pwd">
+              <button @click='sendData'>登录</button>
+            </div>
           </div>
         </div>
-        <div class="login_form_pwd" :style="{transform: uidStatus ? 'translateX(0%)' : 'translateX(100%)'}">
-          <div class="title">
-            <p>欢迎</p>
-            <p>{{uid}}</p>
-          </div>
-          <div class="login_pwd_container">
-            <input
-              type="password"
-              id="login_pwd"
-              name="pwd"
-              autocomplete="off"
-              ref="inputPWD"
-              :disabled="axiosStatus"
-              v-model="pwd"
-              @focus="tipsActive = true"
-              @blur="tipsActive = false">
-            <div class="pwd_border"
-                 :class="{border_notActive : !pwd || tipsActive, border_Active : pwd || tipsActive, border_error : errStatus}"></div>
-            <span class="login_pwd_tips"
-                  :class="{tips_notActive : !pwd || tipsActive, tips_Active : pwd || tipsActive, font_error : errStatus}">输入您的密码</span>
-            <span class="login_pwd_tips_bg" :style="{visibility : tipsActive || pwd ? 'visible' : 'hidden'}"></span>
-          </div>
-          <div class="errInfo">{{errInfo}}</div>
-          <div class="login_forget">
-            <a href="#">忘记账号或密码？</a>
-          </div>
-          <div class="login_next_pwd">
-            <button @click='sendData'>登录</button>
-          </div>
-        </div>
       </div>
-    </div>
-    <ul class="login_cats">
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-    </ul>
+    </transition>
+    <catsBg/>
   </div>
 </template>
 
 <script>
+import LoadingLine from '../components/login_loading_line'
+import catsBg from '../components/login_cats_bg'
+import catTitle from '../components/login_cat_title'
 import axios from 'axios'
-import LoadingLine from '../components/loading_line'
-
-axios.defaults.headers['Content-Type'] = 'application/json'
 
 export default {
   name: 'login',
-  components: { LoadingLine },
+  components: {
+    LoadingLine, // 加载动画模板
+    catsBg, // 背景
+    catTitle // 标题logo
+  },
   data () {
     return {
       uid: '',
-      pwd: '',
-      type: '', // 验证类型
-      uidStatus: false, // 账号验证状态
-      pwdStatus: false, // 密码验证状态
-      axiosStatus: false, // 发送请求状态
-      tipsActive: false, // 输入框内提示内容状态（电子邮箱或用户名是否缩小）
-      errStatus: false, // 服务器返回错误时为true
-      errInfo: ''
+      login: {
+        pwd: '',
+        type: '', // 验证类型
+        uidStatus: false, // 账号验证状态
+        pwdStatus: false, // 密码验证状态
+        axiosStatus: false, // 发送请求状态
+        tipsActive: false, // 输入框内提示内容状态（电子邮箱或用户名是否缩小）
+        errStatus: false, // 服务器返回错误时为true
+        errInfo: ''
+      }
     }
   },
-  mounted () {
-  },
   methods: {
-    del () { // 当输入框中的内容被删除完时，红色框框的错误提示取消
-      if (this.uid.length <= 1) {
-        this.errStatus = false
-        this.errInfo = ''
-      } else if (this.uidStatus && this.uid.length > 1 && this.pwd.length <= 1) {
-        this.errStatus = false
-        this.errInfo = ''
-      }
-    },
+    /**
+     * 发送请求验证账号密码
+     * 回调函数 dataHandler()
+     */
     sendData () {
-      this.axiosStatus = true
-      this.pwd ? this.type = 'pwd' : this.type = 'uid'
-      const Url = 'http://localhost:3000/api/login'
+      this.login.axiosStatus = true
+      this.login.uidStatus ? this.login.type = 'pwd' : this.login.type = 'uid'
       axios({
         method: 'post',
-        url: Url,
+        url: '/login',
         data: {
           uid: this.uid,
-          pwd: this.pwd,
-          type: this.type
+          pwd: this.login.pwd,
+          type: this.login.type
         }
       }).then(data => this.dataHandler(data)).catch(err => this.dataHandler(err.response))
     },
+    /**
+     * @param data  //服务器返回数据
+     */
     dataHandler (data) {
-      console.log(data)
+      const response = data.data
       const _that = this
       this.loadingTimer = setTimeout(() => {
-        _that.axiosStatus = false // 请求结束
-        if (data.status === 200) {
-          data.data.type === 'uid' ? _that.uidStatus = true : _that.pwdStatus = true
-        } else if (data.status === 401) {
-          _that.errStatus = true
-          _that.errInfo = data.data
-        }
-        // 异步让input获取焦点
-        setTimeout(() => {
-          _that.pwd ? _that.$refs.inputPWD.focus() : _that.$refs.inputUID.focus()
-        }, 0)
+        _that.login.axiosStatus = false // 请求结束
         clearTimeout(_that.loadingTimer)
-      }, 2000)
+        if (response.type === 'err') return _that.loginErr(response, _that)
+        _that.loginSuc(response, _that)
+      }, 1200)
+    },
+    /**
+     * @param response
+     * @param _that
+     */
+    loginSuc (response, _that) {
+      _that.login[`${response.type}Status`] = true
+      if (response.type === 'uid') {
+        // ID验证成功，密码输入框获得焦点
+        setTimeout(() => _that.$refs.inputPWD.focus(), 300)
+      } else if (response.type === 'pwd') {
+        // 修改全局uid为登录用户
+        _that.$store.commit('uidChange', _that.uid)
+        // 保存服务器传回token、uid到sessionStorage
+        sessionStorage.setItem('token', response.token)
+        sessionStorage.setItem('uid', _that.uid)
+        // 路由跳转到home，500ms为动画时间
+        setTimeout(() => _that.$router.push('home'), 500)
+      }
+    },
+    loginErr (response, _that) {
+      // 报错
+      _that.login.errStatus = true
+      _that.login.errInfo = response.msg
+      // 异步让input获取焦点
+      setTimeout(() => {
+        if (!_that.login.pwd) _that.$refs.inputUID.focus()
+      }, 0)
+    },
+    returnUid () { // 返回到上一步
+      this.login.uidStatus = false
+    },
+    pwdFocus () {
+      this.login.tipsActive = true
+    },
+    pwdBlur () {
+      this.login.tipsActive = false
+    }
+  },
+  watch: {
+    uid (newVal, oldVal) {
+      if (oldVal.length - newVal.length !== 0) {
+        this.login.errStatus = false
+        this.login.errInfo = ''
+      }
     }
   }
 }
 </script>
 
-<style scoped>
+<style>
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+
+  .fade-enter, .fade-leave-to {
+    opacity: 0;
+  }
+
   #login {
     height: 100vh;
     width: 100vw;
@@ -172,17 +211,19 @@ export default {
     /*--common-color: #95e1d3;*/
     --common-color: #1A73E8;
     --error-color: #F25022;
+    --loginCont-height: 580px;
   }
 
   .login_container {
     height: 520px;
-    width: 580px;
+    width: var(--loginCont-height);
     min-width: 580px;
     min-height: 530px;
     border-radius: 20px;
     position: relative;
     padding-top: 50px;
     z-index: 2;
+    overflow: hidden;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6));
     box-shadow: 10px 10px 30px rgb(235, 235, 235),
     -10px -10px 30px rgba(235, 235, 235, 0.3);
@@ -199,30 +240,12 @@ export default {
     transform: translateX(-50%);
   }
 
-  .logo_container {
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-  }
-
-  .logo_container:hover {
-    will-change: contents;
-  }
-
-  .logo_container .logo {
-    width: 200px;
-    height: 100px;
-    background: url("../assets/logo.svg") no-repeat 50%;
-    background-size: 100%;
-  }
-
   .login_form_uid,
   .login_form_pwd {
     height: calc(530px - 100px - 30px);
-    width: 100%;
+    width: var(--loginCont-height);
     padding-top: 30px;
     position: absolute;
-    transition: transform .2s;
   }
 
   .title p {
@@ -247,6 +270,11 @@ export default {
     border-radius: 20px;
     margin-left: 50%;
     transform: translate(-50%);
+    cursor: pointer;
+  }
+
+  .login_form_pwd .title p:nth-of-type(2):hover {
+    border: 1px solid #333;
   }
 
   .login_uid_container,
@@ -260,11 +288,8 @@ export default {
   .login_container_mask {
     position: relative;
     height: 430px;
-    transition: all .4s;
-  }
-
-  .login_form_uid {
-    transform: translateX(0%);
+    width: calc(var(--loginCont-height) * 2);
+    transition: transform .4s;
   }
 
   .login_form_pwd {
@@ -405,224 +430,4 @@ export default {
     outline: none;
     background: var(--common-color);
   }
-
-  /* -- 猫背景 开始 -- */
-  .login_cats {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    --cat-width: 16px;
-    --cat-heigth: 10px;
-    overflow: hidden;
-    perspective: 1000px;
-  }
-
-  .login_cats li {
-    position: absolute;
-    border-radius: 5px;
-  }
-
-  .login_cats li:nth-of-type(1) {
-    height: calc(var(--cat-heigth) * 6);
-    width: calc(var(--cat-width) * 6);
-    background: #FDEEEC;
-    top: 5%;
-    left: 5%;
-    transform: rotateZ(8deg);
-    /*transform-style: preserve-3d;*/
-    box-shadow: 3px 3px 12px #d7cac9,
-    -3px -3px 12px #ffffff;
-  }
-
-  .login_cats li:nth-of-type(2) {
-    height: calc(var(--cat-heigth) * 9);
-    width: calc(var(--cat-width) * 9);
-    background: #FBF2E4;
-    top: 25%;
-    left: 4%;
-    transform: rotate(-8deg);
-    box-shadow: 8px 8px 16px #d5cec2,
-    -8px -8px 16px #ffffff;
-  }
-
-  .login_cats li:nth-of-type(3) {
-    height: calc(var(--cat-heigth) * 7);
-    width: calc(var(--cat-width) * 7);
-    background: #BFE2F4;
-    top: 9%;
-    left: 21%;
-    transform: rotate(-14deg);
-    box-shadow: 4px 4px 16px #a2c0cf,
-    -4px -4px 16px #dcffff;
-  }
-
-  .login_cats li:nth-of-type(4) {
-    height: calc(var(--cat-heigth) * 10);
-    width: calc(var(--cat-width) * 10);
-    background: #BFE2F4;
-    top: 48%;
-    left: 6%;
-    transform: rotate(2deg);
-    box-shadow: 10px 0px 16px #a2c0cf,
-    -4px -4px 16px #dcffff;
-  }
-
-  .login_cats li:nth-of-type(5) {
-    height: calc(var(--cat-width) * 8);
-    width: calc(var(--cat-heigth) * 10);
-    background: #FDEEEC;
-    top: 70%;
-    left: 8%;
-    transform: rotate(-6deg);
-    box-shadow: 10px -6px 16px #d7cac9,
-    -8px 8px 16px #ffffff;
-  }
-
-  .login_cats li:nth-of-type(6) {
-    height: calc(var(--cat-heigth) * 10);
-    width: calc(var(--cat-width) * 10);
-    background: #DCDDE4;
-    top: 80%;
-    left: 22%;
-    transform: rotate(8deg);
-    box-shadow: 8px -8px 16px #bbbcc2,
-    -8px 8px 16px #fdfeff;
-  }
-
-  .login_cats li:nth-of-type(7) {
-    height: calc(var(--cat-width) * 8);
-    width: calc(var(--cat-heigth) * 10);
-    background: #FBF2E4;
-    top: 78%;
-    left: 69%;
-    transform: rotate(-8deg);
-    box-shadow: -8px -8px 16px #d5cec2,
-    8px 8px 16px #ffffff;
-  }
-
-  .login_cats li:nth-of-type(8) {
-    height: calc(var(--cat-width) * 10);
-    width: calc(var(--cat-heigth) * 11);
-    background: #DCDDE4;
-    top: 70%;
-    left: 86%;
-    transform: rotate(10deg);
-    box-shadow: -8px -8px 16px #bbbcc2,
-    8px 8px 16px #fdfeff;
-  }
-
-  .login_cats li:nth-of-type(9) {
-    height: calc(var(--cat-heigth) * 10);
-    width: calc(var(--cat-width) * 10);
-    background: #BFE2F4;
-    top: 47%;
-    left: 80%;
-    transform: rotate(-16deg);
-    box-shadow: -8px -8px 16px #a2c0cf,
-    8px 8px 16px #dcffff;
-  }
-
-  .login_cats li:nth-of-type(10) {
-    height: calc(var(--cat-heigth) * 6);
-    width: calc(var(--cat-width) * 6);
-    background: #BFE2F4;
-    top: 5%;
-    left: 86%;
-    transform: rotate(6deg);
-    box-shadow: -8px 8px 16px #a2c0cf,
-    8px -8px 16px #dcffff;
-  }
-
-  .login_cats li:nth-of-type(11) {
-    height: calc(var(--cat-heigth) * 7);
-    width: calc(var(--cat-width) * 7);
-    background: #FBF2E4;
-    top: 7%;
-    left: 70%;
-    transform: rotate(-6deg);
-    box-shadow: -8px 8px 16px #d5cec2,
-    8px -8px 16px #ffffff;
-  }
-
-  .login_cats li:nth-of-type(12) {
-    height: calc(var(--cat-heigth) * 7);
-    width: calc(var(--cat-width) * 7);
-    background: #FDEEEC;
-    top: 25%;
-    left: 83%;
-    transform: rotate(-10deg);
-    box-shadow: -8px 8px 16px #d7cac9,
-    8px -8px 16px #ffffff;
-  }
-
-  .login_cats li::after {
-    content: '';
-    position: absolute;
-    height: 100%;
-    width: 100%;
-  }
-
-  .login_cats li:nth-of-type(1)::after {
-    background: url("../assets/ginger-cat/ginger-cat-715.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  .login_cats li:nth-of-type(2)::after {
-    background: url("../assets/ginger-cat/ginger-cat-750.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  .login_cats li:nth-of-type(3)::after {
-    background: url("../assets/ginger-cat/ginger-cat-722.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  .login_cats li:nth-of-type(4)::after {
-    background: url("../assets/ginger-cat/ginger-cat-730.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  .login_cats li:nth-of-type(5)::after {
-    background: url("../assets/ginger-cat/ginger-cat-729.png") no-repeat 50%;
-    background-size: 140%;
-  }
-
-  .login_cats li:nth-of-type(6)::after {
-    background: url("../assets/ginger-cat/ginger-cat-732.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  .login_cats li:nth-of-type(7)::after {
-    background: url("../assets/ginger-cat/ginger-cat-733.png") no-repeat 50%;
-    background-size: 100%;
-  }
-
-  .login_cats li:nth-of-type(8)::after {
-    background: url("../assets/ginger-cat/ginger-cat-735.png") no-repeat 50%;
-    background-size: 100%;
-  }
-
-  .login_cats li:nth-of-type(9)::after {
-    background: url("../assets/ginger-cat/ginger-cat-734.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  .login_cats li:nth-of-type(10)::after {
-    background: url("../assets/ginger-cat/ginger-cat-738.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  .login_cats li:nth-of-type(11)::after {
-    background: url("../assets/ginger-cat/ginger-cat-740.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  .login_cats li:nth-of-type(12)::after {
-    background: url("../assets/ginger-cat/ginger-cat-749.png") no-repeat 50%;
-    background-size: 80%;
-  }
-
-  /* -- 猫背景 end -- */
 </style>
