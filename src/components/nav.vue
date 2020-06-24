@@ -4,7 +4,11 @@
       <div class="settingTitle">设置</div>
       <ul class="settingItems">
         <li class="info_item">个人信息</li>
-        <li @click="$store.state.timeSwitch = !$store.state.timeSwitch">显示消息时间
+        <li class="info_item">
+          <router-link to="admin" class="admin_item">管理员</router-link>
+        </li>
+        <li @click="$store.state.timeSwitch = !$store.state.timeSwitch">
+          显示消息时间
           <div class="timeSwitch" :class="{timeSwitchOn : $store.state.timeSwitch}">
             <div class="switchBtn"></div>
           </div>
@@ -252,6 +256,7 @@ export default {
     padding-left: 30px;
     font-size: 24px;
     position: relative;
+    background: #F7F9FA;
   }
 
   .settingTitle::after {
@@ -311,6 +316,13 @@ export default {
     width: 8px;
     border-right: 2px solid rgba(100, 100, 100, .2);
     border-top: 2px solid rgba(100, 100, 100, .2);
+  }
+
+  .admin_item{
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: #444444;
   }
 
   .timeSwitch {

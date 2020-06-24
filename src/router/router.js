@@ -3,6 +3,10 @@ import VueRouter from 'vue-router'
 import Login from '../views/Login'
 import Sign from '../views/sign'
 import Home from '../views/index'
+import Forget from '../views/forget'
+import store from '../store/index'
+import Admin from '../views/admin'
+import emailCheck from '../views/emailCheck'
 
 Vue.use(VueRouter)
 
@@ -14,14 +18,17 @@ VueRouter.prototype.push = function push (location) {
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: Home
+    redirect: '/login'
   },
   {
     path: '/home',
     name: 'home',
-    // redirect: '/home/chatHistory',
     component: Home
+  },
+  {
+    path: '/admin',
+    bane: 'name',
+    component: Admin
   },
   {
     path: '/login',
@@ -32,6 +39,16 @@ const routes = [
         path: '/sign',
         name: 'sign',
         component: Sign
+      },
+      {
+        path: '/forget',
+        name: 'forget',
+        component: Forget
+      },
+      {
+        path: '/emailCheck',
+        name: 'emailCheck',
+        component: emailCheck
       }
     ]
   }
@@ -43,7 +60,15 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (['/login', '/sign'].includes(to.path)) return next()
+  if (['/login'].includes(to.path)) {
+    return next()
+  } else if (['/sign', '/forget', '/emailCheck'].includes(to.path)) { // 防止直接通过url进入注册页面
+    if (store.state.sign || store.state.forget || store.state.emailCheck) {
+      return next()
+    } else {
+      return next('/login')
+    }
+  }
   const token = window.sessionStorage.getItem('token')
   if (!token) return next('/login')
   next()

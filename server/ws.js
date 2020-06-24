@@ -58,7 +58,7 @@ async function clearUnReadMsg (MsgObj, wss, _that) {
   chat.forEach(value => {
     if (value) value.status = true
   })
-  db.update('chatRecord', {
+  db.clearUnReadMsg('chatRecord', {
     Query,
     chat
   })
@@ -112,7 +112,7 @@ async function chat (MsgObj, wss, _that) {
     msg: MsgObj.msg,
     status: sendStatus
   }
-  db.insert('chatRecord', {
+  db.insertChatRecord('chatRecord', {
     myQuery,
     myChat,
     youQuery,

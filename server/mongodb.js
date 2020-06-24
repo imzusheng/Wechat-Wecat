@@ -21,6 +21,12 @@ module.exports = class MongoDB {
     }))
   }
 
+  /**
+   * 模糊查询 用于菜单栏等搜索
+   * @param collectionName  // 集合名
+   * @param queryData // 查询条件
+   * @returns {Promise<unknown>}
+   */
   likeFind (collectionName, queryData) {
     const _that = this
     return new Promise((resolve, reject) => {
@@ -33,6 +39,7 @@ module.exports = class MongoDB {
     })
   }
 
+  // 通用查询
   find (collectionName, queryData) {
     const _that = this
     return new Promise((resolve, reject) => {
@@ -45,7 +52,24 @@ module.exports = class MongoDB {
     })
   }
 
-  insert (collectionName, queryData) {
+  insertOneData (collectionName, queryData) {
+    const _that = this
+    return new Promise((resolve, reject) => {
+      this.connectDB().then(() => {
+        _that.db.collection(collectionName).insertOne(queryData, err => {
+          if (err) throw err
+          resolve()
+        })
+      })
+    })
+  }
+
+  /**
+   * 用于websocket服务保存聊天记录
+   * @param collectionName
+   * @param queryData
+   */
+  insertChatRecord (collectionName, queryData) {
     const _that = this
     this.connectDB().then(() => {
       _that.db.collection('chatRecord').updateOne(queryData.myQuery, { $push: { chat: queryData.myChat } })
@@ -53,7 +77,12 @@ module.exports = class MongoDB {
     })
   }
 
-  update (collectionName, queryData) {
+  /**
+   * 用于websocket服务清理未读消息
+   * @param collectionName
+   * @param queryData
+   */
+  clearUnReadMsg (collectionName, queryData) {
     console.log(queryData.chat)
     const _that = this
     try {

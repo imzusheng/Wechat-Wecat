@@ -7,6 +7,7 @@ const MongoDB = require('./mongodb.js')
 const db = new MongoDB()
 const JsonWebToken = require('./jwt')
 const jwt = new JsonWebToken()
+const sendEmail = require('./EmailServer')
 const Config = require('./config')
 require('./ws')(Config.wsServerPort)
 app.listen(Config.serverPort, console.log('server running at http://localhost:3000'))
@@ -32,12 +33,12 @@ app.use(async (ctx, next) => {
   }
 })
 
-/* eslint-disable */
+/* eslint-disable */  // 不加这句话会给气死
 router.post('/api/login', async (ctx, next) => {
   ctx.status = 200
   const data = ctx.request.body
   const queryData = {}
-  queryData['UID'] = data.uid
+  queryData['email'] = data.uid
   data.type === 'pwd' ? queryData['UPASS'] = data.pwd : '' // 当验证密码时，查询条件加上密码
   let result = await db.find('user', queryData)  // 查询数据
   if (result.length > 0) {  // 当查询到匹配的数据则验证成功
@@ -63,11 +64,76 @@ router.post('/api/login', async (ctx, next) => {
   }
 })
 
-router.get('/api/chatHistory', async (ctx, next) => {
+router.post('/api/signSuc', async (ctx) => {
+  ctx.status = 200
+  const data = ctx.request.body
+  // 注册时间
+  let date = new Date()
+  let formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+  // 用户信息写入
+  const queryData = {}
+  queryData.firstName = data.firstName
+  queryData.lastName = data.lastName
+  queryData.pwd = data.pwd
+  queryData.email = data.email
+  queryData.avatar = data.avatar
+  queryData.access = 'user'
+  queryData.time = formatTime
+  await db.insertOneData('user', queryData)
+  let result = await db.find('user', queryData)  // 查询数据
+  if (result.length === 1) {
+    ctx.body = {
+      uid: data.uid,
+      emial: data.email,
+      type: 'success'
+    }
+  }
+})
+
+router.post('/api/sign', async (ctx) => {
+  ctx.status = 200
+  const data = ctx.request.body
+  if (data.type === 'Resend') { // 重新发送验证码
+    sendEmail({
+      obj: data.email,
+      code: code
+    })
+    ctx.body = {
+      code: code,
+      type: 'code'
+    }
+    return
+  }
+  const queryData = {}
+  queryData.email = data.email
+  let result = await db.find('user', queryData)  // 查询数据
+  if (result.length !== 0) { // 能查询到用户说明邮箱已经注册过了
+    ctx.body = {
+      uid: data.uid,
+      email: data.email,
+      msg: '邮箱已被注册',
+      type: 'error'
+    }
+  } else {
+    let date = new Date()
+    let code = date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString()
+    sendEmail({
+      obj: data.email,
+      code: code
+    })
+    ctx.body = {
+      uid: data.uid,
+      code: code,
+      type: 'code'
+    }
+  }
+})
+
+router.get('/api/chatHistory', async (ctx) => {
   let queryData = {}
   queryData.userID = ctx.query.uid
   let result = await db.find('chatRecord', queryData)  // 查询数据
- let resultArr = []
+  let resultArr = []
   result.forEach((value) => {
     resultArr.push({
       chatObj: value.chatObj,
@@ -81,13 +147,13 @@ router.get('/api/chatHistory', async (ctx, next) => {
   }
 })
 
-router.get('/api/contact', async (ctx, next) => {
+router.get('/api/contact', async (ctx) => {
   // token有效，执行查询好友列表
   let queryData = {}
   queryData.UID = ctx.query.uid
   let result = await db.find('friend', queryData)  // 查询数据
   let resultArr = []
-  result.forEach((value) => {
+  result.forEach(value => {
     resultArr.push(value.Friend)
   })
   ctx.body = {
@@ -98,7 +164,7 @@ router.get('/api/contact', async (ctx, next) => {
   }
 })
 
-router.get('/api/chatRecord', async (ctx, next) => {
+router.get('/api/chatRecord', async (ctx) => {
   let queryData = {}
   queryData.userID = ctx.query.uid
   queryData.chatObj = ctx.query.chatObj

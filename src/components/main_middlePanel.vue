@@ -263,7 +263,8 @@ export default {
     min-height: var(--inputContent-height);
     width: var(--inputContent-width);
     background-color: rgba(255, 255, 255, 1);
-    box-shadow: 2px -2px 22px rgba(210, 210, 210, .9),
+    background: linear-gradient(to right, #F7F9FA, #ffffff);
+    box-shadow: 20px -2px 22px rgba(210, 210, 210, .9),
     20px -2px 22px #ffffff;
     position: relative;
     overflow: hidden;
@@ -283,7 +284,7 @@ export default {
     box-sizing: border-box;
     border-radius: 12px;
     border: none;
-    background: #F7F9FA;
+    background: rgba(200, 200, 200, .15);
     line-height: 24px;
     color: #444444;
     outline: none;

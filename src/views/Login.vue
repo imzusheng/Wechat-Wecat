@@ -1,16 +1,19 @@
 <template>
   <div
     id="login"
-    :style="{'pointer-events': login.axiosStatus || login.pwdStatus? 'none' : 'all'}"
-    @keydown.enter='sendData'>
+    :style="{'pointer-events': login.axiosStatus || login.pwdStatus? 'none' : 'all'}">
     <transition name="fade">
       <div class="login_container"
            v-if="!login.pwdStatus">
-        <LoadingLine v-show="login.axiosStatus"/>
+        <LoadingLine v-if="login.axiosStatus"/>
         <catTitle/>
         <div class="login_container_mask"
-             :style="{transform: login.uidStatus ? 'translateX(-50%)' : 'translateX(0%)' ,opacity: login.axiosStatus || login.pwdStatus? 0.5 : 1}">
-          <div class="login_form_uid">
+             :style="{transform: $store.state.sign === true || $store.state.forget === true ? 'translateX(0%)' : (login.uidStatus ? 'translateX(-66.66%)' : 'translateX(-33.33%)'),
+             opacity: login.axiosStatus || login.pwdStatus? 0.5 : 1}">
+          <div class="common_from">
+            <router-view @axiosStatusChange="axiosStatusChange"/>
+          </div>
+          <div class="login_form_uid" @keydown.enter='sendData'>
             <div class="title">
               <p>登录</p>
               <p>使用您的 weCat 账号</p>
@@ -37,10 +40,10 @@
             <div class="errInfo" v-if="login.errStatus">{{login.errInfo}}</div>
             <!--  end 登录表单ID/密码输入框  -->
             <div class="login_forget">
-              <a href="#">忘记账号或密码？</a>
+              <span @click="$store.commit('setForget'); $router.replace('forget')">忘记账号或密码？</span>
             </div>
             <div class="login_create">
-              <a href="#/sign">创建账号</a>
+              <span @click="$store.commit('setSign'); $router.replace('sign')">创建账号</span>
             </div>
             <div class="login_next">
               <button @click='sendData'>下一步</button>
@@ -58,16 +61,16 @@
                 name="pwd"
                 autocomplete="off"
                 ref="inputPWD"
-                v-model="login.pwd"
+                v-model="pwd"
                 :disabled="login.axiosStatus"
                 @focus="pwdFocus"
                 @blur="pwdBlur">
               <div class="pwd_border"
-                   :class="{'border_notActive' : !login.pwd || login.tipsActive, 'border_Active' : login.pwd || login.tipsActive, 'border_error' : login.errStatus}"></div>
+                   :class="{'border_notActive' : !pwd || login.tipsActive, 'border_Active' : pwd || login.tipsActive, 'border_error' : login.errStatus}"></div>
               <span class="login_pwd_tips"
-                    :class="{'tips_notActive' : !login.pwd || login.tipsActive, 'tips_Active' : login.pwd || login.tipsActive, 'font_error' : login.errStatus}">输入您的密码</span>
+                    :class="{'tips_notActive' : !pwd || login.tipsActive, 'tips_Active' : pwd || login.tipsActive, 'font_error' : login.errStatus}">输入您的密码</span>
               <span class="login_pwd_tips_bg"
-                    :style="{'visibility' : login.tipsActive || login.pwd ? 'visible' : 'hidden'}"></span>
+                    :style="{'visibility' : login.tipsActive || pwd ? 'visible' : 'hidden'}"></span>
             </div>
             <div class="errInfo">{{login.errInfo}}</div>
             <div class="login_forget">
@@ -100,8 +103,8 @@ export default {
   data () {
     return {
       uid: '',
+      pwd: '',
       login: {
-        pwd: '',
         type: '', // 验证类型
         uidStatus: false, // 账号验证状态
         pwdStatus: false, // 密码验证状态
@@ -112,7 +115,13 @@ export default {
       }
     }
   },
+  mounted () {
+    this.$store.commit('restore')
+  },
   methods: {
+    axiosStatusChange (status) {
+      this.login.axiosStatus = status
+    },
     /**
      * 发送请求验证账号密码
      * 回调函数 dataHandler()
@@ -125,7 +134,7 @@ export default {
         url: '/login',
         data: {
           uid: this.uid,
-          pwd: this.login.pwd,
+          pwd: this.pwd,
           type: this.login.type
         }
       }).then(data => this.dataHandler(data)).catch(err => this.dataHandler(err.response))
@@ -168,21 +177,32 @@ export default {
       _that.login.errInfo = response.msg
       // 异步让input获取焦点
       setTimeout(() => {
-        if (!_that.login.pwd) _that.$refs.inputUID.focus()
+        if (!_that.pwd) _that.$refs.inputUID.focus()
       }, 0)
     },
     returnUid () { // 返回到上一步
       this.login.uidStatus = false
+      this.login.errStatus = false
+      this.login.errInfo = ''
+      this.pwd = ''
     },
     pwdFocus () {
       this.login.tipsActive = true
     },
     pwdBlur () {
       this.login.tipsActive = false
+      this.login.errStatus = false
+      this.login.errInfo = ''
     }
   },
   watch: {
     uid (newVal, oldVal) {
+      if (oldVal.length - newVal.length !== 0) {
+        this.login.errStatus = false
+        this.login.errInfo = ''
+      }
+    },
+    pwd (newVal, oldVal) {
       if (oldVal.length - newVal.length !== 0) {
         this.login.errStatus = false
         this.login.errInfo = ''
@@ -193,6 +213,10 @@ export default {
 </script>
 
 <style>
+  input:hover {
+    will-change: auto;
+  }
+
   .fade-enter-active, .fade-leave-active {
     transition: opacity .5s;
   }
@@ -210,7 +234,7 @@ export default {
     align-items: center;
     /*--common-color: #95e1d3;*/
     --common-color: #1A73E8;
-    --error-color: #F25022;
+    --error-color: #f25022;
     --loginCont-height: 580px;
   }
 
@@ -246,6 +270,25 @@ export default {
     width: var(--loginCont-height);
     padding-top: 30px;
     position: absolute;
+  }
+
+  .common_from {
+    height: calc(530px - 100px - 30px);
+    width: var(--loginCont-height);
+    padding-top: 20px;
+    position: absolute;
+  }
+
+  .login_form_uid {
+    transform: translateX(100%);
+  }
+
+  .login_form_pwd {
+    transform: translateX(200%);
+  }
+
+  .common_from {
+    transform: translateX(0%);
   }
 
   .title p {
@@ -288,12 +331,8 @@ export default {
   .login_container_mask {
     position: relative;
     height: 430px;
-    width: calc(var(--loginCont-height) * 2);
+    width: calc(var(--loginCont-height) * 3);
     transition: transform .4s;
-  }
-
-  .login_form_pwd {
-    transform: translateX(100%);
   }
 
   .uid_border,
@@ -350,7 +389,7 @@ export default {
     width: 100%;
     color: #888888;
     box-sizing: border-box;
-    transition: padding .2s, font-size .2s;
+    transition: padding .15s, font-size .15s;
     z-index: 2;
   }
 
@@ -394,10 +433,11 @@ export default {
   .login_forget,
   .login_create {
     text-align: center;
+    cursor: pointer;
   }
 
-  .login_forget a,
-  .login_create a {
+  .login_forget span,
+  .login_create span {
     display: inline-block;
     text-align: center;
     color: var(--common-color);
@@ -423,7 +463,7 @@ export default {
   .login_next_pwd button {
     height: 36px;
     width: 100px;
-    border: 1px solid #ccc;
+    border: none;
     border-radius: 20px;
     color: #ffffff;
     cursor: pointer;
