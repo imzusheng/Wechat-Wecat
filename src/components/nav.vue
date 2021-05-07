@@ -119,6 +119,7 @@ export default {
     this.getData('chatHistory')
     this.getData('contact')
     this.getData('group')
+    this.getData('friendApply')
   },
   methods: {
     addFriend (e) {
@@ -187,9 +188,10 @@ export default {
           this.$store.commit('chatRecordChange', data.data.resultArr)
         } else if (data.data.type === 'contact') {
           this.contactList = data.data.resultArr
-          this.$store.state.applyList = JSON.parse(data.data.apply)
         } else if (data.data.type === 'group') {
           this.groupList = data.data.resultArr
+        } else if (data.data.type === 'friendApply') {
+          this.$store.state.applyList = data.data.friendList
         }
       }
     },

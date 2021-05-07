@@ -27,13 +27,13 @@ export default {
   },
   methods: {
     sendData (flag) {
-      this.$store.state.applyList.shift() // 处理完一个请求后删除请求列表数组的第一个，处理下一个请求
+      this.$store.state.applyList.shift() /** 处理完一个请求后删除请求列表数组的第一个，处理下一个请求 */
       const date = new Date()
       const formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
       this.$store.state.ws.sendMsg({
         uid: window.sessionStorage.getItem('uid'),
         friend: this.email,
-        status: flag, // 通过状态
+        flag: flag, // 通过状态
         time: formatTime,
         type: 'addFriendReply'
       }, this.wsMsgGHandler)
@@ -45,9 +45,10 @@ export default {
   watch: {
     '$store.state.applyList.length': function () {
       if (this.$store.state.applyList.length >= 1) {
-        this.avatar = this.$store.state.applyList[0].avatar
-        this.nickName = this.$store.state.applyList[0].nickName
-        this.email = this.$store.state.applyList[0].email
+        const obj = this.$store.state.applyList[0].from
+        this.avatar = obj.avatar
+        this.nickName = obj.nickName
+        this.email = obj.email
         this.applyMsg = this.$store.state.applyList[0].applyMsg
       }
     }

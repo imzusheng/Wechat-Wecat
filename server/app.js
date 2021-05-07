@@ -188,30 +188,32 @@ router.get('/api/chatHistory', async (ctx) => {
 })
 
 router.get('/api/contact', async (ctx) => {
-  // token有效，执行查询好友列表
+  /** token有效，执行查询好友列表 */
   let queryData = {}
   queryData.UID = ctx.query.uid
   let friendResult = await db.find('friend', queryData)  // 查询数据
-  let onlineArr = [], apply = []
-  friendResult.forEach(value => {
-    value.status ? onlineArr.push(value.Friend) : apply.push(value.Friend) // status为true时为已经添加的好友，false是待通过状态
-  })
-  // 下面friendApply是未通过的好友申请列表，获取发起申请方的所有信息
-  let arr = []  //检索的条件，
-  apply.forEach(value => arr.push(value))
-  queryData = {}
-  queryData.email = { '$in': arr }  //一个字段多个条件的查询
-  let friendApply = await db.find('user', queryData)
-  let applyMsg = await db.find('friend', { UID: { '$in': arr } })
-  friendApply.forEach((value, key) => value.applyMsg = applyMsg[key].applyMsg)  //把applyMsg插入到friendApply对象中
+  let onlineArr = []
+  friendResult.forEach(value => onlineArr.push(value.Friend))
   ctx.body = {
     uid: ctx.query.uid,
     chatObj: ctx.query.chatObj,
     type: 'contact',
-    resultArr: onlineArr,
-    apply: JSON.stringify(friendApply)
+    resultArr: onlineArr
   }
 })
+
+router.get('/api/friendApply', async (ctx) => {
+  let friendResult = await db.find('friendApply', {
+    'to.email': ctx.query.uid,
+    status: false
+  })
+  ctx.body = {
+    friendList: friendResult,
+    type: 'friendApply'
+  }
+})
+
+
 
 router.get('/api/chatRecord', async (ctx) => {
   let queryData = {}

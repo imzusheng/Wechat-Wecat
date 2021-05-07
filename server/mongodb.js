@@ -91,6 +91,18 @@ module.exports = class MongoDB {
     })
   }
 
+  updateOne (collectionName, queryData, newData) {
+    const _that = this
+    return new Promise((resolve, reject) => {
+      this.connectDB().then(() => {
+        _that.db.collection(collectionName).updateOne(queryData, newData, err => {
+          if (err) throw err
+          resolve()
+        })
+      })
+    })
+  }
+
   /**
    * 用于websocket服务保存聊天记录
    * @param collectionName

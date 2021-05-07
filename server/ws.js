@@ -7,8 +7,8 @@ module.exports = (port) => {
     port: port
   })
   console.log(`WebSocketServer listen at ws://localhost:${port}`)
-  // wss.clients为 set集合，转换为数组便于操作
   let clientsArr = []
+  /** wss.clients为 set集合，转换为数组便于操作 */
   wss.on('connection', async (ws) => {
     ws.on('close', () => {
       // 有客户端离线时，更新在线客户端
@@ -99,6 +99,7 @@ function online (MsgObj, wss, _that) {
       userIDStatus = false
     }
   })
+  /** userIDStatus为false则用户没有重复在线 */
   if (userIDStatus) {
     _that.userID = MsgObj.uid
   }
@@ -204,38 +205,13 @@ async function addFriend (MsgObj, wss, _that) {
       sendStatus = true
     }
   })
-  if (!sendStatus) { // 对方不在线时，请求保存到数据库
-    const result = await db.find('friend', { // 查询是否已经发送过请求
-      UID: MsgObj.from.email,
-      Friend: MsgObj.to.email
-    })
-    if (!result.length) {
-      const queryData = [{
-        UID: MsgObj.from.email,
-        Friend: MsgObj.to.email,
-        status: MsgObj.status,
-        applyMsg: MsgObj.applyMsg,
-        num: 1
-      }, {
-        UID: MsgObj.to.email,
-        Friend: MsgObj.from.email,
-        status: MsgObj.status,
-        applyMsg: MsgObj.applyMsg,
-        num: 1
-      }]
-      await db.insertManyData('friend', queryData)
-      _that.send(JSON.stringify({
-        Msg: '已发送请求',
-        type: 'addFriend',
-        error: false
-      }))
-    } else {
-      _that.send(JSON.stringify({
-        Msg: '请勿重复添加',
-        type: 'addFriend',
-        error: true
-      }))
-    }
+  if (!sendStatus) {
+    await db.insertOneData('friendApply', MsgObj)
+    _that.send(JSON.stringify({
+      Msg: '已发送请求',
+      type: 'addFriend',
+      error: false
+    }))
   }
 }
 
@@ -247,15 +223,26 @@ async function addFriend (MsgObj, wss, _that) {
  * @returns {Promise<void>}
  */
 async function addFriendReply (MsgObj, wss, _that) {
-  if (MsgObj.status) {
-    await db.myUpdateOne('friend', {
+  if (MsgObj.flag) { /** 同意好友申请的操作 */
+    /** 防止重复写入好友关系 */
+    const result = await db.find('friend', {
       UID: MsgObj.uid,
       Friend: MsgObj.friend
-    }, true, 1)
-    await db.myUpdateOne('friend', {
-      UID: MsgObj.friend,
-      Friend: MsgObj.uid
-    }, true, 1)
+    })
+    if (result.length === 0) {
+      await db.insertManyData('friend', [
+        {
+          UID: MsgObj.uid,
+          Friend: MsgObj.friend,
+          time: MsgObj.time
+        }, {
+          UID: MsgObj.friend,
+          Friend: MsgObj.uid,
+          time: MsgObj.time
+        }
+      ])
+    }
+    /** 同意好友申请后，假装成系统发送一条消息给双方 */
     const date = new Date()
     const formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
     const agreeMsg = {
@@ -265,20 +252,17 @@ async function addFriendReply (MsgObj, wss, _that) {
       uid2: MsgObj.friend,
       type: 'agree'
     }
-    await this.chat(agreeMsg, wss, _that, 'agree') // 同意好友申请后，假装成系统发送一条消息给双方
-  } else {
-    const result = await db.find('friend', {
-      UID: MsgObj.uid,
-      Friend: MsgObj.friend
-    })
-    const num = Number(result[0].num) + 1
-    await db.myUpdateOne('friend', {
-      UID: MsgObj.uid,
-      Friend: MsgObj.friend
-    }, false, num)
-    await db.myUpdateOne('friend', {
-      UID: MsgObj.friend,
-      Friend: MsgObj.uid
-    }, false, num)
+    await this.chat(agreeMsg, wss, _that, 'agree')
+    console.log(MsgObj)
+
+    /** 数据库好友申请表状态改为status: true */
+    db.updateOne('friendApply', {
+      'to.email': MsgObj.uid,
+      'from.email': MsgObj.friend
+    }, {
+      $set: {
+        status: true
+      }
+    }).then()
   }
 }
