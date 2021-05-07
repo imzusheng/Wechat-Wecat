@@ -3,7 +3,6 @@ import Vuex from 'vuex'
 import { WsServer } from '../assets/js/wsServer'
 
 Vue.use(Vuex)
-
 export default new Vuex.Store({
   state: {
     // wsAddress: 'wss://zusheng.club/wsServer',
