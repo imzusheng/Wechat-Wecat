@@ -6,7 +6,19 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    uid: '', // 用户名
+    // wsAddress: 'wss://zusheng.club/wsServer',
+    wsAddress: 'ws://localhost:4000',
+    login: {
+      uidDisabled: false, // id输入框状态
+      pwdDisabled: false, // 密码输入框状态
+      email: '',
+      avatar: '',
+      nickName: '',
+      applyMsg: ''
+    },
+    uid: window.sessionStorage.getItem('uid'), // 用户名
+    apply: [], // 好友申请
+    applyList: [],
     chatObj: '', // 聊天对象
     friends: [], // 返回的好友数组
     refs: {},
@@ -19,6 +31,7 @@ export default new Vuex.Store({
     forget: false, // 标记页面跳转到了注册页
     emailCheck: false,
     signPage: { // 注册页相关
+      forgetEmail: '', // 忘记密码时输入的邮箱，被迫写在了这里
       avatarSrc: '', // 头像链接
       emailCode: '', // 邮箱验证码
       emailCheck: '', // 用户输入的验证码
@@ -40,10 +53,24 @@ export default new Vuex.Store({
       emailErrInfo: '您需要验证此电子邮件地址属于您',
       regEmail: new RegExp('^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$'), // 注册页中检查邮件地址正则表达式
       pwdStrong: new RegExp('^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{8,10}$'), // 强密码验证
-      pwdCommon: new RegExp('^[a-zA-Z]\\w{5,17}$') // 一般密码
-    }
+      pwdCommon: new RegExp('^[a-zA-Z]\\w{5,17}') // 一般密码
+    },
+    friendInfo: '',
+    addFriState: false
   },
   mutations: {
+    setAddFriend (state, friendInfo) {
+      state.friendInfo = friendInfo
+    },
+    // sign and forget 锁定输入框
+    goSign (state) {
+      state.login.uidDisabled = true
+      state.login.pwdDisabled = true
+    },
+    goLogin (state) {
+      state.login.uidDisabled = false
+      state.login.pwdDisabled = false
+    },
     setAvatar (state, src) {
       state.signPage.avatarSrc = src
     },
@@ -55,7 +82,7 @@ export default new Vuex.Store({
       state.signPage.emailCode = code
     },
     // 检查注册信息
-    checkData (state, args) {
+    checkData (state, args) { // args为回调函数
       if (state.signPage.firstName && state.signPage.lastName && state.signPage.email && state.signPage.pwd) {
         args(state.signPage.firstName, state.signPage.lastName, state.signPage.pwd, state.signPage.email, true)
       } else {
@@ -166,16 +193,18 @@ export default new Vuex.Store({
       state.searchResult = ''
     },
     // 更新未读消息
-    unReadMsg (state, unReadMsgObj) {
-      if (state.unReadMsg[unReadMsgObj] >= 0) {
-        state.unReadMsg[unReadMsgObj] += 1
+    unReadMsg (state, chatObj) {
+      if (!state.unReadMsg[chatObj]) {
+        state.unReadMsg[chatObj] = 1
       } else {
-        state.unReadMsg[unReadMsgObj] = 1
+        state.unReadMsg[chatObj]++
       }
     },
     // 清除未读消息
-    clearUnRead (state, unReadMsgObj) {
-      Vue.set(state.unReadMsg, unReadMsgObj, 0)
+    clearUnRead (state, chatObj) {
+      state.unReadMsg[chatObj] = 0
+      state.unReadMsg = JSON.parse(JSON.stringify(state.unReadMsg)) // 可以触发更新，不然nav_chatHistory中的未读消息数量不会消除
+      // Vue.set(state.unReadMsg, chatObj, 0)
     },
     // 获取服务器聊天记录，并更新store的未读消息列表
     chatRecordChange (state, playLoad) {
@@ -192,8 +221,11 @@ export default new Vuex.Store({
       })
     },
     // 更新全局uid
-    uidChange (state, playLoad) {
-      state.uid = playLoad
+    loginSuc (state, response) {
+      state.login.avatar = response.avatar
+      state.login.email = response.email
+      state.login.nickName = response.nickName
+      state.uid = response.email
     },
     // 更新全局聊天对象
     chatObjChange (state, playLoad) {
@@ -201,16 +233,23 @@ export default new Vuex.Store({
     },
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {
-      if (playLoad.uid) {
-        state.friends[playLoad.uid].splice(0, state.friends[playLoad.uid].length - state.maxMsg) // 限制聊天记录的长度
-        state.friends[playLoad.uid].push(playLoad.chat)
-      } else {
-        state.friends[state.chatObj].splice(0, state.friends[state.chatObj].length - state.maxMsg) // 限制聊天记录的长度
+      if (playLoad.type === 'addFriend') return // 通过好友时的信息
+      if (playLoad.type === 'agree') {
+        state.friends[state.chatObj] = []
         state.friends[state.chatObj].push(playLoad.chat)
+      } else if (playLoad.type === 'send') {
+        // state.friends[state.chatObj] = state.friends[state.chatObj] ? state.friends[state.chatObj] : []
+        if (!state.friends[state.chatObj]) Vue.set(state.friends, state.chatObj, []) // 后期为对象添加属性时要用此方法，不然无法实时渲染(没有get(),set())
+        state.friends[state.chatObj].splice(0, state.friends[state.chatObj].length - state.maxMsg)
+        state.friends[state.chatObj].push(playLoad.chat)
+      } else {
+        state.friends[playLoad.uid].splice(0, state.friends[playLoad.uid].length - state.maxMsg)
+        state.friends[playLoad.uid].push(playLoad.chat)
       }
     },
     // 滚动条自动到底底部
     scrollRec (state, refs) {
+      if (!state.chatObj) return
       if (refs) {
         state.refs = refs
       } else {
@@ -221,19 +260,27 @@ export default new Vuex.Store({
     },
     // 建立WebSocket连接
     linkWsServer (state, args) {
-      state.ws = new WsServer('ws://localhost:4000', args.uid, args.cb)
+      state.ws = new WsServer(state.wsAddress, args.uid, args.cb)
     },
     // 收到消息时的处理
     wsMsgGHandler (state, data) {
       const msgObj = JSON.parse(data.data)
-      if (msgObj.type === 'navSearch') return this.commit('navSearch', data)
+      if (msgObj.type === 'navSearch') {
+        return this.commit('navSearch', data)
+      } else if (msgObj.type === 'agree') {
+        msgObj.uid = msgObj.uid1
+        msgObj.chatObj = msgObj.uid2
+      }
+      console.log(msgObj)
       this.commit('chatRecordAdd', {
         chat: {
           msg: msgObj.msg,
           say: 'you',
           time: msgObj.time
         },
-        uid: msgObj.uid
+        type: msgObj.type,
+        uid: msgObj.uid,
+        chatObj: msgObj.chatObj
       })
       // 重置滚动条到底部
       this.commit('scrollRec')

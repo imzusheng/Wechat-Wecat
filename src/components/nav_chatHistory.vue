@@ -4,7 +4,7 @@
       <input type="radio" name="chatListRadio" :data-friend-name="item.chatObj">
       <div class="chatListContent">
         <figure>
-          <img src="../assets/ginger-cat/ginger-cat-715.png" draggable="false"/>
+          <img src="../assets/ginger-cat/ginger-cat-715.png" draggable="false" alt=""/>
           <span class="unReadMsg" v-if="$store.state.unReadMsg[item.chatObj] > 0">{{$store.state.unReadMsg[item.chatObj]}}</span>
         </figure>
         <div class="group">
@@ -34,6 +34,7 @@ export default {
         // 收到或发送消息时，滚动条自动到达底部
         this.$store.commit('scrollRec')
         if (this.$store.state.unReadMsg[this.chatObj] > 0) {
+          console.log('执行清除')
           // 选中该好友时，清除该好友的未读消息列表
           this.$store.commit('clearUnRead', this.chatObj)
           // 清除服务器未读消息列表
@@ -47,6 +48,10 @@ export default {
         type: 'clearUnReadMsg',
         uid: window.sessionStorage.getItem('uid') || this.$store.state.uid
       }, data => this.$store.commit('wsMsgGHandler', data))
+    }
+  },
+  watch: {
+    '$store.state.unReadMsg': () => {
     }
   }
 }

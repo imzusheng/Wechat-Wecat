@@ -47,16 +47,16 @@ body, html {
 .logo {
     height: 70px;
     width: 70px;
-/*    background: url("../images/logo2.png") no-repeat 50%;
-    background-size: 100%;
-    mask-image: url("../images/logo2_mask.png");
-    mask-repeat: no-repeat;
-    mask-position: 50%;
-    mask-size: 80%;
-    -webkit-mask-image: url("../images/logo2_mask.png");
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: 50%;
-    -webkit-mask-size: 80%;*/
+    /*    background: url("../images/logo2.png") no-repeat 50%;
+        background-size: 100%;
+        mask-image: url("../images/logo2_mask.png");
+        mask-repeat: no-repeat;
+        mask-position: 50%;
+        mask-size: 80%;
+        -webkit-mask-image: url("../images/logo2_mask.png");
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: 50%;
+        -webkit-mask-size: 80%;*/
 }
 
 .logo + p {
@@ -197,7 +197,7 @@ body, html {
 
 .main_left {
     height: 400px;
-    padding: 0 20px 0px 0px;
+    padding: 0 20px 0 0;
     box-sizing: border-box;
     margin-bottom: 20px;
 }
@@ -211,7 +211,7 @@ body, html {
 }
 
 .main_right {
-    padding: 0 20px 0 0px;
+    padding: 0 20px 0 0;
     margin-bottom: 20px;
 }
 
@@ -224,7 +224,7 @@ body, html {
 }
 
 .input-group {
-    padding: 0 0px 0 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -249,7 +249,7 @@ th {
 
 @media screen and (max-width: 768px) {
     .nav_wrap {
-        padding: 20px 10px 0px 20px;
+        padding: 20px 10px 0 20px;
     }
 
     .nav_main {

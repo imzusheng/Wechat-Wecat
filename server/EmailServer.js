@@ -12,7 +12,7 @@ async function main (data) {
     }
   })
 
-  const info = await transporter.sendMail({
+  await transporter.sendMail({
     from: '"Wecat👻" <imzusheng@163.com>',
     to: data.obj,
     subject: `${data.code} 是您的 Wecat 验证码`,

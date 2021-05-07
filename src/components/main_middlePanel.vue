@@ -11,7 +11,7 @@
     <!--    聊天记录信息面板-->
     <div class="mainPanel_msgContent" ref="msgContentBox" @click="faceListActive = false">
       <div class="msgContent" ref="msgContent">
-        <div v-for="(item, i) in $store.state.friends[chatObj]"
+        <div v-for="(item, i) in friends"
              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}" :key="i">
           <div :class="{My_Msg : item.say === 'me', You_Msg : item.say === 'you'}">{{item.msg}}</div>
           <div class="msgTime" v-if="$store.state.timeSwitch">{{item.time}}</div>
@@ -164,7 +164,7 @@ export default {
           say: 'me',
           time: this.formatDate()
         },
-        uid: ''
+        type: 'send'
       })
       this.$refs.textBox.innerHTML = ''
       // 收到或发送消息时，滚动条自动到达底部
@@ -181,6 +181,11 @@ export default {
     chatObj: {
       get () {
         return this.$store.state.chatObj
+      }
+    },
+    friends: {
+      get () {
+        return this.$store.state.friends[this.chatObj]
       }
     }
   },
@@ -370,7 +375,7 @@ export default {
     font-size: 24px;
   }
 
-  .face-list li:hover, .face-list li:active{
+  .face-list li:hover, .face-list li:active {
     background: #ffffff;
   }
 
@@ -405,7 +410,7 @@ export default {
     position: relative;
   }
 
-  .You_MsgContent .msgTime{
+  .You_MsgContent .msgTime {
     position: absolute;
     left: 20px;
     bottom: -24px;
@@ -413,7 +418,7 @@ export default {
     color: rgba(100, 100, 100, .8);
   }
 
-  .My_MsgContent .msgTime{
+  .My_MsgContent .msgTime {
     position: absolute;
     right: 20px;
     bottom: -24px;

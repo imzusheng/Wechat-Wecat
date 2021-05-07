@@ -39,16 +39,19 @@ router.post('/api/login', async (ctx, next) => {
   const data = ctx.request.body
   const queryData = {}
   queryData['email'] = data.uid
-  data.type === 'pwd' ? queryData['UPASS'] = data.pwd : '' // 当验证密码时，查询条件加上密码
+  data.type === 'pwd' ? queryData['pwd'] = data.pwd : '' // 当验证密码时，查询条件加上密码
   let result = await db.find('user', queryData)  // 查询数据
   if (result.length > 0) {  // 当查询到匹配的数据则验证成功
-    const token = data.type === 'pwd' ? jwt.getToken(ctx.uid) : ''
+    const token = data.type === 'pwd' ? jwt.getToken(ctx.uid) : ''  // 当密码验证成功时，返回token给客户端
     const resultArr = [{
       msg: '验证成功',
       type: 'uid'
     }, {
       msg: '登录成功',
       token: token,
+      nickName: result[0].nickName,
+      email: result[0].email,
+      avatar: result[0].avatar,
       type: 'pwd'
     }]
     ctx.body = data.type === 'uid' ? resultArr[0] : resultArr[1]
@@ -72,8 +75,8 @@ router.post('/api/signSuc', async (ctx) => {
   let formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
   // 用户信息写入
   const queryData = {}
-  queryData.firstName = data.firstName
-  queryData.lastName = data.lastName
+  queryData.nickName = data.firstName
+  queryData.trueName = data.lastName
   queryData.pwd = data.pwd
   queryData.email = data.email
   queryData.avatar = data.avatar
@@ -86,6 +89,42 @@ router.post('/api/signSuc', async (ctx) => {
       uid: data.uid,
       emial: data.email,
       type: 'success'
+    }
+  }
+})
+
+router.post('/api/forget', async (ctx) => {
+  ctx.status = 200
+  const data = ctx.request.body
+  if (data.type === 'email') {
+    const queryData = {}
+    queryData.email = data.email
+    let result = await db.find('user', queryData)  // 查询数据
+    if (result.length > 0 && result[0].email === data.email) {  // 匹配到是已注册用户，则发送验证码
+      let date = new Date()
+      let code = date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString()
+      sendEmail({
+        obj: data.email,
+        code: code
+      })
+      ctx.body = {
+        code: code,
+        type: 'codeSuc'
+      }
+    } else {  // 数据库中不存在该用户
+      ctx.body = {
+        code: '',
+        type: 'codeErr',
+        msg: '不存在该用户，请重试'
+      }
+    }
+  } else if (data.type === 'newPwd') {
+    const queryData = {}
+    queryData.email = { email: data.email }
+    queryData.pwd = data.pwd
+    db.changePwd('user', queryData)
+    ctx.body = {
+      type: 'newPwd'
     }
   }
 })
@@ -112,12 +151,13 @@ router.post('/api/sign', async (ctx) => {
       uid: data.uid,
       email: data.email,
       msg: '邮箱已被注册',
-      type: 'error'
+      type: 'error',
+      error: '0'  //假装是错误代码，邮箱已经被注册
     }
   } else {
     let date = new Date()
-    let code = date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString()
-    sendEmail({
+    let code = date.getHours().toString() + date.getMinutes().toString() + date.getSeconds().toString() //利用时间组合成验证码
+    sendEmail({ //发送验证码
       obj: data.email,
       code: code
     })
@@ -151,16 +191,25 @@ router.get('/api/contact', async (ctx) => {
   // token有效，执行查询好友列表
   let queryData = {}
   queryData.UID = ctx.query.uid
-  let result = await db.find('friend', queryData)  // 查询数据
-  let resultArr = []
-  result.forEach(value => {
-    resultArr.push(value.Friend)
+  let friendResult = await db.find('friend', queryData)  // 查询数据
+  let onlineArr = [], apply = []
+  friendResult.forEach(value => {
+    value.status ? onlineArr.push(value.Friend) : apply.push(value.Friend) // status为true时为已经添加的好友，false是待通过状态
   })
+  // 下面friendApply是未通过的好友申请列表，获取发起申请方的所有信息
+  let arr = []  //检索的条件，
+  apply.forEach(value => arr.push(value))
+  queryData = {}
+  queryData.email = { '$in': arr }  //一个字段多个条件的查询
+  let friendApply = await db.find('user', queryData)
+  let applyMsg = await db.find('friend', { UID: { '$in': arr } })
+  friendApply.forEach((value, key) => value.applyMsg = applyMsg[key].applyMsg)  //把applyMsg插入到friendApply对象中
   ctx.body = {
     uid: ctx.query.uid,
     chatObj: ctx.query.chatObj,
     type: 'contact',
-    resultArr: resultArr
+    resultArr: onlineArr,
+    apply: JSON.stringify(friendApply)
   }
 })
 

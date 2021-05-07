@@ -1,6 +1,7 @@
 <template>
   <div class="nav">
-    <div class="navSetting" :class="{navSetting_FadeIn: navSettingActive, navSetting_FadeOut: !navSettingActive}">
+    <div class="navSetting"
+         :style="{transform: navSettingActive ? 'translateY(0%)' : 'translateY(-100%)', opacity: navSettingActive ? 1 : 0.2}">
       <div class="settingTitle">设置</div>
       <ul class="settingItems">
         <li class="info_item">个人信息</li>
@@ -39,11 +40,16 @@
              v-model="searchContent">
       <div class="search_list" v-if="searchActive">
         {{searchTips}}
-        <ul class="searchResult">
+        <ul class="searchResult" @click="addFriend">
           <li class="result_Title">全网搜索</li>
           <li v-for="(item, i) in $store.state.searchResult" :key="i">
-            <figure><img src="../assets/ginger-cat/ginger-cat-714.png"/></figure>
-            <div class="resultName">{{item}}</div>
+            <div class="searchResultMask" :data-email="item.email" :data-nickname="item.nickName"
+                 :data-avatar="item.avatar"></div>
+            <figure><img :src="item.avatar"></figure>
+            <div class="resultName">
+              <div>{{item.nickName}}</div>
+              <div>{{item.email}}</div>
+            </div>
           </li>
         </ul>
       </div>
@@ -114,6 +120,18 @@ export default {
     this.getData('group')
   },
   methods: {
+    addFriend (e) {
+      if (e.target.nodeName !== 'UL' && e.target.innerHTML !== this.$store.state.uid) {
+        if (!this.contactList.includes(e.target.dataset.email)) {
+          this.$store.commit('setAddFriend', {
+            email: e.target.dataset.email,
+            avatar: e.target.dataset.avatar,
+            nickName: e.target.dataset.nickname
+          })
+          this.$store.state.addFriState = true
+        }
+      }
+    },
     exit () {
       window.sessionStorage.removeItem('uid')
       window.sessionStorage.removeItem('token')
@@ -159,6 +177,7 @@ export default {
           this.$store.commit('chatRecordChange', data.data.resultArr)
         } else if (data.data.type === 'contact') {
           this.contactList = data.data.resultArr
+          this.$store.state.applyList = JSON.parse(data.data.apply)
         } else if (data.data.type === 'group') {
           this.groupList = data.data.resultArr
         }
@@ -203,7 +222,7 @@ export default {
     position: relative;
     z-index: 2;
     border-radius: var(--common-radius);
-    background: rgba(180, 190, 200, .6);
+    background: rgba(180, 190, 200, .3);
     overflow: hidden;
   }
 
@@ -214,38 +233,9 @@ export default {
     left: 0;
     background: #F7F9FA;
     z-index: 1000;
-    opacity: 0;
+    opacity: 1;
     transform: translateY(-100%);
-  }
-
-  .navSetting_FadeIn {
-    animation: navSetting_FadeIn .5s forwards;
-  }
-
-  .navSetting_FadeOut {
-    animation: navSetting_FadeOut .3s forwards;
-  }
-
-  @keyframes navSetting_FadeIn {
-    0% {
-      opacity: 1;
-      transform: translateY(-100%);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0%);
-    }
-  }
-
-  @keyframes navSetting_FadeOut {
-    0% {
-      opacity: 1;
-      transform: translateY(0%);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(-100%);
-    }
+    transition: all .4s;
   }
 
   .settingTitle {
@@ -318,7 +308,7 @@ export default {
     border-top: 2px solid rgba(100, 100, 100, .2);
   }
 
-  .admin_item{
+  .admin_item {
     display: block;
     width: 100%;
     height: 100%;
@@ -478,7 +468,7 @@ export default {
     border: none;
     outline: none;
     border-radius: 3px;
-    background: rgba(190, 190, 190, .6);
+    background: rgba(190, 190, 190, .3);
     padding-left: calc(18px + var(--logo-height) / 5);
     box-sizing: border-box;
   }
@@ -508,9 +498,11 @@ export default {
   .search_list .searchResult li {
     line-height: var(--search-li-height);
     height: var(--search-li-height);
-    --search-li-height: 40px;
+    --search-li-height: 60px;
     width: 100%;
     display: flex;
+    overflow: hidden;
+    position: relative;
   }
 
   .search_list .searchResult li:not(:first-child) {
@@ -522,7 +514,10 @@ export default {
   }
 
   .search_list .result_Title {
-    font-size: 13px;
+    height: 40px !important;
+    line-height: 40px !important;
+    font-size: 14px;
+    font-weight: 600;
     color: #444444;
     box-sizing: border-box;
     padding-left: 10px;
@@ -541,10 +536,27 @@ export default {
     width: calc(100% - var(--search-li-height));
     border-bottom: 1px solid rgba(0, 0, 0, .1);
     box-sizing: border-box;
-    padding-left: 20px;
+    padding-left: 13px;
     text-align: left;
     font-size: 14px;
     color: #444444;
+  }
+
+  .resultName div {
+    width: 100%;
+    height: calc(var(--search-li-height) / 2);
+    /*line-height: calc(var(--search-li-height) / 2);*/
+  }
+
+  .resultName div:nth-of-type(1) {
+    font-size: 18px;
+    line-height: 40px !important;
+  }
+
+  .resultName div:nth-of-type(2) {
+    font-size: 12px;
+    color: #888888;
+    line-height: 30px !important;
   }
 
   .search_list .searchResult li:last-child .resultName {
@@ -636,5 +648,12 @@ export default {
   .list_container_group {
     width: 33.3333%;
     height: 100%;
+  }
+
+  .searchResultMask {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 9999;
   }
 </style>

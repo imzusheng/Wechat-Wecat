@@ -11,10 +11,10 @@
     margin: 0;
     list-style: none;
     text-decoration: none;
-    scrollbar-width: thin!important;
+    scrollbar-width: thin !important;
   }
 
-  html,body{
+  html, body {
     height: 100vh;
     width: 100vw;
     overflow: hidden;
@@ -26,6 +26,18 @@
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* IE/Edge */
     user-select: none;
+  }
+
+  .fade-enter-active {
+    transition: all .4s;
+  }
+
+  .fade-leave-active {
+    transition: all .4s;
+  }
+
+  .fade-enter, .fade-leave-to {
+    opacity: 0;
   }
 
   /* 设置滚动条的样式 */

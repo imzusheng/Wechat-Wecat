@@ -10,11 +10,9 @@ module.exports = class MongoDB {
       if (_that.db) {
         resolve()
       } else {
-        console.log(_that.db)
         MongoClient.connect(Config.mongoUrl, { useUnifiedTopology: true }, (err, client) => {
           if (err) throw err
           _that.db = client.db(Config.dbName)
-          console.log('数据库连接成功')
           resolve()
         })
       }
@@ -64,6 +62,35 @@ module.exports = class MongoDB {
     })
   }
 
+  insertManyData (collectionName, queryData) {
+    const _that = this
+    return new Promise((resolve, reject) => {
+      this.connectDB().then(() => {
+        _that.db.collection(collectionName).insertMany(queryData, err => {
+          if (err) throw err
+          resolve()
+        })
+      })
+    })
+  }
+
+  myUpdateOne (collectionName, queryData, newData, num) {
+    const _that = this
+    return new Promise((resolve, reject) => {
+      this.connectDB().then(() => {
+        _that.db.collection(collectionName).updateOne(queryData, {
+          $set: {
+            status: newData,
+            num: num
+          }
+        }, err => {
+          if (err) throw err
+          resolve()
+        })
+      })
+    })
+  }
+
   /**
    * 用于websocket服务保存聊天记录
    * @param collectionName
@@ -83,11 +110,21 @@ module.exports = class MongoDB {
    * @param queryData
    */
   clearUnReadMsg (collectionName, queryData) {
-    console.log(queryData.chat)
     const _that = this
     try {
       this.connectDB().then(() => {
         _that.db.collection('chatRecord').updateOne(queryData.Query, { $set: { 'chat': queryData.chat } })
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  changePwd (collectionName, queryData) {
+    const _that = this
+    try {
+      this.connectDB().then(() => {
+        _that.db.collection('user').updateOne(queryData.email, { $set: { 'pwd': queryData.pwd } })
       })
     } catch (e) {
       console.error(e)

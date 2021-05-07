@@ -26,7 +26,7 @@
                 name="uid"
                 autocomplete="off"
                 ref="inputUID"
-                :disabled="login.axiosStatus || login.uidStatus"
+                :disabled="login.axiosStatus || login.uidStatus || $store.state.login.uidDisabled"
                 v-model="uid"
                 @focus="pwdFocus"
                 @blur="pwdBlur">
@@ -40,16 +40,16 @@
             <div class="errInfo" v-if="login.errStatus">{{login.errInfo}}</div>
             <!--  end 登录表单ID/密码输入框  -->
             <div class="login_forget">
-              <span @click="$store.commit('setForget'); $router.replace('forget')">忘记账号或密码？</span>
+              <span @click="goForget">忘记账号或密码？</span>
             </div>
             <div class="login_create">
-              <span @click="$store.commit('setSign'); $router.replace('sign')">创建账号</span>
+              <span @click="goSign">创建账号</span>
             </div>
             <div class="login_next">
               <button @click='sendData'>下一步</button>
             </div>
           </div>
-          <div class="login_form_pwd">
+          <div class="login_form_pwd" @keydown.enter='sendData'>
             <div class="title">
               <p>欢迎</p>
               <p @click="returnUid">{{uid}}</p>
@@ -62,7 +62,7 @@
                 autocomplete="off"
                 ref="inputPWD"
                 v-model="pwd"
-                :disabled="login.axiosStatus"
+                :disabled="login.axiosStatus || $store.state.login.pwdDisabled"
                 @focus="pwdFocus"
                 @blur="pwdBlur">
               <div class="pwd_border"
@@ -74,7 +74,7 @@
             </div>
             <div class="errInfo">{{login.errInfo}}</div>
             <div class="login_forget">
-              <a href="#">忘记密码？</a>
+              <a href="#" @click="goForget">忘记密码？</a>
             </div>
             <div class="login_next_pwd">
               <button @click='sendData'>登录</button>
@@ -115,10 +115,22 @@ export default {
       }
     }
   },
+  created () {
+  },
   mounted () {
     this.$store.commit('restore')
   },
   methods: {
+    goSign () { // 跳转到注册页
+      this.$store.commit('setSign')
+      this.$store.commit('goSign')
+      this.$router.replace('sign')
+    },
+    goForget () { // 忘记密码
+      this.$store.commit('setForget')
+      this.$store.commit('goSign')
+      this.$router.replace('forget')
+    },
     axiosStatusChange (status) {
       this.login.axiosStatus = status
     },
@@ -128,14 +140,14 @@ export default {
      */
     sendData () {
       this.login.axiosStatus = true
-      this.login.uidStatus ? this.login.type = 'pwd' : this.login.type = 'uid'
+      this.login.uidStatus ? this.login.type = 'pwd' : this.login.type = 'uid' // id验证通过则验证密码
       axios({
         method: 'post',
         url: '/login',
         data: {
           uid: this.uid,
           pwd: this.pwd,
-          type: this.login.type
+          type: this.login.type // 通过上面this.login.uidStatus的状态判断验证的类型：uid/pwd
         }
       }).then(data => this.dataHandler(data)).catch(err => this.dataHandler(err.response))
     },
@@ -143,8 +155,8 @@ export default {
      * @param data  //服务器返回数据
      */
     dataHandler (data) {
-      const response = data.data
-      const _that = this
+      const response = data.data // 提取数据
+      const _that = this // 暂存this
       this.loadingTimer = setTimeout(() => {
         _that.login.axiosStatus = false // 请求结束
         clearTimeout(_that.loadingTimer)
@@ -163,8 +175,12 @@ export default {
         setTimeout(() => _that.$refs.inputPWD.focus(), 300)
       } else if (response.type === 'pwd') {
         // 修改全局uid为登录用户
-        _that.$store.commit('uidChange', _that.uid)
+        _that.$store.commit('loginSuc', response)
         // 保存服务器传回token、uid到sessionStorage
+        console.log(response)
+        sessionStorage.setItem('nickName', response.nickName)
+        sessionStorage.setItem('email', response.email)
+        sessionStorage.setItem('avatar', response.avatar)
         sessionStorage.setItem('token', response.token)
         sessionStorage.setItem('uid', _that.uid)
         // 路由跳转到home，500ms为动画时间
@@ -177,7 +193,7 @@ export default {
       _that.login.errInfo = response.msg
       // 异步让input获取焦点
       setTimeout(() => {
-        if (!_that.pwd) _that.$refs.inputUID.focus()
+        if (!_that.pwd) _that.$refs.inputUID.focus() // 登录错误时自动让ID登录框获取焦点
       }, 0)
     },
     returnUid () { // 返回到上一步
@@ -186,6 +202,9 @@ export default {
       this.login.errInfo = ''
       this.pwd = ''
     },
+    /**
+     * 焦点及失焦的状态改变，执行相应的动画笑效果
+     */
     pwdFocus () {
       this.login.tipsActive = true
     },
@@ -196,6 +215,12 @@ export default {
     }
   },
   watch: {
+    // '$route' (to, from) {
+    //   const toDepth = to.path.split('/').length
+    //   const fromDepth = from.path.split('/').length
+    //   console.log(toDepth, fromDepth)
+    //   this.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left'
+    // },
     uid (newVal, oldVal) {
       if (oldVal.length - newVal.length !== 0) {
         this.login.errStatus = false
@@ -215,14 +240,6 @@ export default {
 <style>
   input:hover {
     will-change: auto;
-  }
-
-  .fade-enter-active, .fade-leave-active {
-    transition: opacity .5s;
-  }
-
-  .fade-enter, .fade-leave-to {
-    opacity: 0;
   }
 
   #login {
@@ -332,7 +349,7 @@ export default {
     position: relative;
     height: 430px;
     width: calc(var(--loginCont-height) * 3);
-    transition: transform .4s;
+    transition: transform .2s;
   }
 
   .uid_border,

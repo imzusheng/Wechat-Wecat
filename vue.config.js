@@ -1,4 +1,5 @@
 module.exports = {
+  publicPath: '/chat/',
   devServer: {
     proxy: {
       '/api': {

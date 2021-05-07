@@ -1,18 +1,23 @@
 <template>
   <div class="wrap">
+    <friendApply :style="{visibility: $store.state.addFriState?'visible':'hidden'}"/>
+    <handleApply :style="{visibility: $store.state.applyList.length?'visible':'hidden'}"/>
     <indexNav :class="{'wrap_slide_left' : bgFade}"/>
-    <mainPanel class="mainPanel" :class="{'wrap_scale' : bgFade}" v-if="this.$store.state.chatObj.length > 0" @sendMsg="sendMsg"/>
+    <mainPanel class="mainPanel" :class="{'wrap_scale' : bgFade}" v-if="this.$store.state.chatObj.length > 0"
+               @sendMsg="sendMsg"/>
     <friendInfo class="friendInfo" :class="{'wrap_slide_left' : bgFade}" v-if="this.$store.state.chatObj.length > 0"/>
     <catsBg :bgFade="bgFade"/>
   </div>
 </template>
 
 <script>
-// import { WsServer } from '../assets/js/wsServer'
+import { WsServer } from '../assets/js/wsServer'
 import catsBg from '../components/login_cats_bg'
 import indexNav from '../components/nav'
 import mainPanel from '../components/main_middlePanel'
 import friendInfo from '../components/main_friendInfo'
+import friendApply from '../components/friend_apply'
+import handleApply from '../components/handle_apply'
 
 export default {
   name: 'home',
@@ -20,7 +25,9 @@ export default {
     catsBg,
     mainPanel,
     friendInfo,
-    indexNav
+    indexNav,
+    friendApply,
+    handleApply
   },
   data () {
     return {
@@ -32,7 +39,7 @@ export default {
   mounted () {
     this.uid = window.sessionStorage.getItem('uid') || this.$store.state.uid
     this.bgFade = true
-    // this.ws = new WsServer('ws://localhost:4000', this.uid, this.wsMsgGHandler) // 建立WebSocket连接
+    this.ws = new WsServer(this.$store.state.wsAddress, this.uid, this.wsMsgGHandler) // 建立WebSocket连接
     this.$store.commit('linkWsServer', {
       uid: this.uid,
       cb: this.wsMsgGHandler
@@ -40,6 +47,7 @@ export default {
   },
   methods: {
     sendMsg (input, chatObj, msgType) {
+      console.log('index.vue_sendMsg-------发送消息')
       this.$store.state.ws.sendMsg({
         msg: input,
         chatObj: chatObj,
@@ -81,7 +89,7 @@ export default {
     width: 100vw;
     position: relative;
     display: flex;
-    overflow: auto;
+    /*overflow: auto;*/
     /*边框高度*/
     --common-margin: 0px;
     /*logo高度*/

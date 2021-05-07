@@ -27,7 +27,7 @@
           <ul :style="{transform: `translateX(${transX}px)`, width: `${ulW}px`}">
             <li v-for="(item, i) in imgSrcArr" :key="i">
               <!--              <figure><img :src="'/img/ginger-cat/'+item"/></figure>-->
-              <figure><img :src="item"/></figure>
+              <figure><img :src="item" alt=""/></figure>
             </li>
           </ul>
         </div>
@@ -75,6 +75,8 @@ export default {
   },
   methods: {
     returnLogin () {
+      // 重置一下刚刚输入的信息已经登录页的锁定
+      this.$store.commit('goLogin')
       this.$store.commit('setAvatar', this.imgSrcArr[this.transX / -150])
       axios({
         method: 'post',
@@ -115,12 +117,13 @@ export default {
       }).then(data => this.dataHandler(data)).catch(err => console.error(err.response))
     },
     dataHandler (data) {
+      console.log(data)
       if (data.data.type === 'success') {
         this.$store.commit('signInputRestore')
         this.$store.commit('restore')
         this.$router.replace('login')
       } else {
-        alert('注册失败，请检查网络')
+        alert('邮箱已被注册')
       }
     }
   }
