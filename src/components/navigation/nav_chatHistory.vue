@@ -4,7 +4,8 @@
       <input type="radio" name="chatListRadio" :data-friend-name="item.chatObj">
       <div class="chatListContent">
         <figure>
-          <img src="../../assets/ginger-cat/ginger-cat-715.png" draggable="false" alt=""/>
+<!--          ../../assets/ginger-cat/ginger-cat-715.png-->
+          <img :src="item.avatar" draggable="false" alt=""/>
           <span class="unReadMsg" v-if="$store.state.unReadMsg[item.chatObj] > 0">{{$store.state.unReadMsg[item.chatObj]}}</span>
         </figure>
         <div class="group">

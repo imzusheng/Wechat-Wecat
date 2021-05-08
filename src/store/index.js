@@ -8,11 +8,14 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     globe: {
+      chatObjAvatar: '',
       navigation: {
         historyList: [],
         contactList: [],
         groupList: []
       },
+      messageImgDisplay: false,
+      messageName: '',
       messageTips: false,
       messageContent: '',
       messageImgSrc: '',
@@ -268,6 +271,7 @@ export default new Vuex.Store({
       state.login.email = response.email
       state.login.nickName = response.nickName
       state.uid = response.email
+      state.globe.messageImgDisplay = true
       this.commit('showTips', {
         messageContent: response.msg,
         messageImgSrc: require('../assets/img/done.png'),
@@ -277,6 +281,9 @@ export default new Vuex.Store({
     // 更新全局聊天对象
     chatObjChange (state, playLoad) {
       state.chatObj = playLoad
+      state.globe.navigation.contactList.forEach(value => {
+        if (value.email === state.chatObj) state.globe.chatObjAvatar = value.avatar
+      })
     },
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {
@@ -323,12 +330,10 @@ export default new Vuex.Store({
       state.globe.messageImgSrc = args.messageImgSrc
       state.globe.messageTips = true
       state.globe.clock = setTimeout(() => {
-        this.state.globe.messageTips = false
+        state.globe.messageTips = false
       }, args.setTime)
     },
     wsMsgGHandler (state, data) {
-      this.commit('navInit')
-      console.log(state.globe.navigation)
       const msgObj = JSON.parse(data.data)
       console.log('Vuex > wsMsgGHandler()', msgObj)
       switch (msgObj.type) {
@@ -338,12 +343,15 @@ export default new Vuex.Store({
         case 'agree':
           msgObj.uid = msgObj.uid1
           msgObj.chatObj = msgObj.uid2
+          state.globe.messageImgDisplay = true
+          this.commit('navInit')
           return this.commit('showTips', {
             messageContent: msgObj.msg,
             messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
             setTime: 5000
           })
         case 'addFriend':
+          state.globe.messageImgDisplay = true
           return this.commit('showTips', {
             messageContent: msgObj.msg,
             messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
@@ -351,11 +359,13 @@ export default new Vuex.Store({
           })
       }
       /** 以下为msgObj.type = chat时 */
-      /*      this.commit('showTips', {
+      state.globe.messageImgDisplay = false
+      this.commit('showTips', {
         messageContent: msgObj.msg,
-        messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
+        messageImgSrc: '#',
         setTime: 3000
-      }) */
+      })
+      state.globe.messageName = msgObj.chatObj
       this.commit('chatRecordAdd', {
         chat: {
           msg: msgObj.msg,

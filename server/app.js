@@ -170,14 +170,36 @@ router.post('/api/sign', async (ctx) => {
 })
 
 router.get('/api/chatHistory', async (ctx) => {
-  let queryData = {}
-  queryData.userID = ctx.query.uid
-  let result = await db.find('chatRecord', queryData)  // 查询数据
-  let resultArr = []
-  result.forEach((value) => {
-    resultArr.push({
+  let
+    resultArr = [],
+    result = [],
+    chat = []
+  /** 从聊天记录中查询数据 */
+  result = await db.find('chatRecord', {
+    userID: ctx.query.uid
+  })
+  result.forEach(value => {
+    chat.push({
       chatObj: value.chatObj,
       chat: value.chat
+    })
+  })
+  /** 查询对应的用户信息 */
+  queryData = {}
+  queryData.$or = []
+  chat.forEach(value => queryData.$or.push({ 'email': value.chatObj }))
+  result = await db.likeFind('user', queryData)
+  /** 合并后发送 */
+  result.forEach((value, key) => {
+    resultArr.push({
+      chatObj: chat[key].chatObj,
+      chat: chat[key].chat,
+      nickName: value.nickName,
+      trueName: value.trueName,
+      email: value.email,
+      avatar: value.avatar,
+      access: value.access,
+      time: value.time
     })
   })
   ctx.body = {
@@ -188,17 +210,31 @@ router.get('/api/chatHistory', async (ctx) => {
 })
 
 router.get('/api/contact', async (ctx) => {
-  /** token有效，执行查询好友列表 */
-  let queryData = {}
-  queryData.UID = ctx.query.uid
-  let friendResult = await db.find('friend', queryData)  // 查询数据
-  let onlineArr = []
-  friendResult.forEach(value => onlineArr.push(value.Friend))
+  let
+    likeFindResult = [],
+    resultArr = []
+  let friendResult = await db.find('friend', {
+    UID: ctx.query.uid
+  })  // 查询数据
+
+  /** 查询对应的用户信息 */
+  queryData = {}
+  queryData.$or = []
+  friendResult.forEach(value => queryData.$or.push({ 'email': value.Friend }))
+  likeFindResult = await db.likeFind('user', queryData)
+  /** 合并后发送 */
+  likeFindResult.forEach((value, key) => {
+    resultArr.push({
+      email: value.email,
+      avatar: value.avatar
+    })
+  })
+
   ctx.body = {
     uid: ctx.query.uid,
     chatObj: ctx.query.chatObj,
     type: 'contact',
-    resultArr: onlineArr
+    resultArr: resultArr
   }
 })
 
@@ -212,8 +248,6 @@ router.get('/api/friendApply', async (ctx) => {
     type: 'friendApply'
   }
 })
-
-
 
 router.get('/api/chatRecord', async (ctx) => {
   let queryData = {}

@@ -66,7 +66,7 @@ export default {
   created () {
     let num = 713
     for (let i = 0; i <= this.imgSum; i++) {
-      this.imgSrcArr.push(`/img/ginger-cat/ginger-cat-${num}.png`)
+      this.imgSrcArr.push(require(`../assets/ginger-cat/ginger-cat-${num}.png`))
       num++
     }
   },

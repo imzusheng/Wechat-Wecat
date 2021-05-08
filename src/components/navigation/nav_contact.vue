@@ -1,8 +1,8 @@
 <template>
   <ul class="list" @click="selectFriend">
     <li v-for="(item, i) in $store.state.globe.navigation.contactList" :key="i">
-      <figure><img src="../../assets/ginger-cat/ginger-cat-715.png" draggable="false"/></figure>
-      <div class="friName">{{item}}</div>
+      <figure><img :src="item.avatar" alt="" draggable="false"/></figure>
+      <div class="friName">{{item.email}}</div>
     </li>
   </ul>
 </template>

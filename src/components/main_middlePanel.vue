@@ -2,7 +2,7 @@
   <div class="mainPanel_wrap">
     <!--    聊天对象名字-->
     <div class="mainPanel_name" @click="faceListActive = false">
-      <figure><img src="../assets/ginger-cat/ginger-cat-715.png"></figure>
+      <figure><img :src=$store.state.globe.chatObjAvatar alt=""></figure>
       <div class="chatObj">
         <div class="chatObjName">{{chatObj}}</div>
         <div class="chatObjNickName">{{chatObj}}</div>
