@@ -24,7 +24,7 @@ export default {
   .logo_container .logo {
     width: 200px;
     height: 100px;
-    background: url("../assets/img/logo.svg") no-repeat 50%;
+    background: url("../../assets/img/logo.svg") no-repeat 50%;
     background-size: 100%;
   }
 </style>

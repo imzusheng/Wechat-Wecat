@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import inputZs from '../components/input_zusheng'
+import inputZs from '../components/login/input_zusheng'
 import axios from 'axios'
 
 export default {

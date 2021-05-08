@@ -2,6 +2,7 @@
   <div class="wrap">
     <friendApply :style="{visibility: $store.state.addFriState?'visible':'hidden'}"/>
     <handleApply :style="{visibility: $store.state.applyList.length?'visible':'hidden'}"/>
+    <messageTips/>
     <indexNav :class="{'wrap_slide_left' : bgFade}"/>
     <mainPanel class="mainPanel" :class="{'wrap_scale' : bgFade}" v-if="this.$store.state.chatObj.length > 0"
                @sendMsg="sendMsg"/>
@@ -12,16 +13,18 @@
 
 <script>
 import { WsServer } from '../assets/js/wsServer'
-import catsBg from '../components/login_cats_bg'
-import indexNav from '../components/nav'
+import catsBg from '../components/login/login_cats_bg'
+import indexNav from '../components/navigation/nav'
 import mainPanel from '../components/main_middlePanel'
 import friendInfo from '../components/main_friendInfo'
-import friendApply from '../components/friend_apply'
-import handleApply from '../components/handle_apply'
+import friendApply from '../components/globe/friend_apply'
+import handleApply from '../components/globe/handle_apply'
+import messageTips from '@/components/globe/message_tips'
 
 export default {
   name: 'home',
   components: {
+    messageTips,
     catsBg,
     mainPanel,
     friendInfo,
@@ -108,6 +111,17 @@ export default {
     animation: wrap_slide_left .4s forwards;
   }
 
+  @keyframes wrap_slide_left {
+    0% {
+      opacity: 0;
+      transform: translateX(-10%);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0%);
+    }
+  }
+
   @keyframes wrap_scale {
     0% {
       opacity: 0;
@@ -118,17 +132,6 @@ export default {
       opacity: 1;
       transform: scale(1);
       transform-origin: center;
-    }
-  }
-
-  @keyframes wrap_slide_left {
-    0% {
-      opacity: 0;
-      transform: translateX(-10%);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0%);
     }
   }
 

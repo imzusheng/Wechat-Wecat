@@ -5,40 +5,58 @@
       id="inputText"
       name="inputText"
       autocomplete="off"
-      v-model="inputText"
-      @change="$emit('inputChange', inputText)"
+      v-model="G.inputText"
       @focus="inputFocus"
       @blur="inputBlur"/>
     <div class="input_Tips"
-         :class="{'input_Tips_active': inputActive || inputText, 'input_Tips_color': inputActive, 'input_Tips_err': inputObj.errStatus}">
-      {{inputObj.tips}}
+         :class="{'input_Tips_active': G.inputActive || G.inputText, 'input_Tips_color': G.inputActive, 'input_Tips_err': $store.state.signPage[typeStatus] && $store.state.signPage[typeStatus] !== '您需要验证此电子邮件地址属于您'}">
+      {{tips}}
     </div>
     <div class="input_Border"
-         :class="{'input_Border_active': inputActive, 'input_Border_err': inputObj.errStatus}"></div>
-    <div class="warning" v-if="inputObj.errStatus" :style="{color: inputObj.errStatus ? '#d93025' : '#1A73E8'}">
-      <span class="warning_img"></span>
-      {{inputObj.errInfo}}
+         :class="{'input_Border_active': G.inputActive, 'input_Border_err': $store.state.signPage[typeStatus] && $store.state.signPage[typeStatus] !== '您需要验证此电子邮件地址属于您'}"></div>
+    <div class="warning"
+         :style="{color: $store.state.signPage[typeStatus] && $store.state.signPage[typeStatus] !== '您需要验证此电子邮件地址属于您' ? '#d93025' : '#1A73E8'}">
+      <span class="warning_img"
+            v-if="$store.state.signPage[typeStatus] && $store.state.signPage[typeStatus] !== '您需要验证此电子邮件地址属于您'"></span>
+      {{$store.state.signPage[typeStatus]}}
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'inputCommon',
-  props: ['inputObj'],
+  name: 'inputZs',
+  /**
+   * tips 为输入框内提示
+   * type 为输入框的类型 uid / pwd / ...
+   * typeStatus 为错误时提示的内容
+   */
+  props: ['tips', 'type', 'typeStatus'],
   data () {
     return {
-      inputText: '',
-      inputActive: false
+      G: {
+        inputText: '',
+        inputActive: false,
+        warningStatus: false
+      }
     }
   },
   methods: {
     inputFocus () {
-      this.inputActive = true
+      this.G.inputActive = true
+      /*      if (this.$store.state.signPage[this.typeStatus] !== '您需要验证此电子邮件地址属于您') {
+        this.$store.commit('signInputRestore', {
+          type: this.type
+        })
+      } */
     },
     inputBlur () {
-      this.inputActive = false
+      this.G.inputActive = false
       // 每次失去焦点都会检查一次是否符合标准,并同步到store
+      this.$store.commit('signInputCheck', {
+        type: this.type,
+        data: this.G.inputText
+      })
     }
   }
 }
@@ -48,7 +66,7 @@ export default {
   .input_Container {
     --common-color: #1A73E8;
     --error-Color: #d93025;
-    --content-height: 70px;
+    --content-height: 60px;
     --active-Color: #1A73E8;
     height: var(--content-height);
     position: relative;
@@ -101,7 +119,7 @@ export default {
   .warning {
     position: absolute;
     left: 4px;
-    top: 76px;
+    top: 66px;
     color: var(--error-Color);
     font-size: 13px;
     display: flex;
@@ -114,7 +132,7 @@ export default {
     width: 18px;
     min-width: 18px;
     min-height: 18px;
-    background: url("../assets/img/warning.png") no-repeat 50%;
+    background: url("../../assets/img/warning.png") no-repeat 50%;
     background-size: 100% auto;
     margin-right: 8px;
   }

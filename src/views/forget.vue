@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import inputCommon from '../components/input_common'
+import inputCommon from '../components/login/input_common'
 import axios from 'axios'
 
 export default {

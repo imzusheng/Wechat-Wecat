@@ -1,10 +1,9 @@
 <template>
-  <h1>我是群组</h1>
+  <p>暂未开放</p>
 </template>
 
 <script>
 export default {
-  props: ['groupList'],
   name: 'group'
 }
 </script>

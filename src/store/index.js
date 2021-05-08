@@ -1,10 +1,24 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { WsServer } from '../assets/js/wsServer'
+import axios from 'axios'
 
 Vue.use(Vuex)
+
 export default new Vuex.Store({
   state: {
+    globe: {
+      navigation: {
+        historyList: [],
+        contactList: [],
+        groupList: []
+      },
+      messageTips: false,
+      messageContent: '',
+      messageImgSrc: '',
+      messageEventLoop: [],
+      clock: {}
+    },
     // wsAddress: 'wss://zusheng.club/wsServer',
     wsAddress: 'ws://localhost:4000',
     login: {
@@ -58,6 +72,35 @@ export default new Vuex.Store({
     addFriState: false
   },
   mutations: {
+    navInit (state) {
+      this.commit('getData', 'chatHistory')
+      this.commit('getData', 'contact')
+      this.commit('getData', 'group')
+      this.commit('getData', 'friendApply')
+    },
+    getData (state, type) {
+      axios({
+        method: 'get',
+        url: `/${type}`,
+        params: {
+          uid: state.uid,
+          chatObj: state.chatObj
+        }
+      }).then(data => {
+        if (data.config.method === 'get' && data.data !== 'OK') {
+          if (data.data.type === 'chatHistory') {
+            state.globe.navigation.historyList = data.data.resultArr
+            this.commit('chatRecordChange', data.data.resultArr)
+          } else if (data.data.type === 'contact') {
+            state.globe.navigation.contactList = data.data.resultArr
+          } else if (data.data.type === 'group') {
+            state.globe.navigation.groupList = data.data.resultArr
+          } else if (data.data.type === 'friendApply') {
+            state.applyList = data.data.friendList
+          }
+        }
+      })
+    },
     setAddFriend (state, friendInfo) {
       state.friendInfo = friendInfo
     },
@@ -159,7 +202,7 @@ export default new Vuex.Store({
       }
 
       function firstName () {
-        console.log('检查')
+        console.log('Vuex > firstName -- 检查')
         if (args.data) {
           state.signPage.firstName = args.data
           state.signPage.firstNameErrInfo = ''
@@ -225,6 +268,11 @@ export default new Vuex.Store({
       state.login.email = response.email
       state.login.nickName = response.nickName
       state.uid = response.email
+      this.commit('showTips', {
+        messageContent: response.msg,
+        messageImgSrc: require('../assets/img/done.png'),
+        setTime: 5000
+      })
     },
     // 更新全局聊天对象
     chatObjChange (state, playLoad) {
@@ -262,15 +310,52 @@ export default new Vuex.Store({
       state.ws = new WsServer(state.wsAddress, args.uid, args.cb)
     },
     // 收到消息时的处理
-    wsMsgGHandler (state, data) {
-      const msgObj = JSON.parse(data.data)
-      if (msgObj.type === 'navSearch') {
-        return this.commit('navSearch', data)
-      } else if (msgObj.type === 'agree') {
-        msgObj.uid = msgObj.uid1
-        msgObj.chatObj = msgObj.uid2
+    /**
+     * 显示顶部消息通知
+     * @param state
+     * @param args
+     */
+    showTips (state, args) {
+      if (this.state.globe.messageTips) {
+        clearTimeout(state.globe.clock)
       }
-      console.log(msgObj)
+      state.globe.messageContent = args.messageContent
+      state.globe.messageImgSrc = args.messageImgSrc
+      state.globe.messageTips = true
+      state.globe.clock = setTimeout(() => {
+        this.state.globe.messageTips = false
+      }, args.setTime)
+    },
+    wsMsgGHandler (state, data) {
+      this.commit('navInit')
+      console.log(state.globe.navigation)
+      const msgObj = JSON.parse(data.data)
+      console.log('Vuex > wsMsgGHandler()', msgObj)
+      switch (msgObj.type) {
+        case 'navSearch':
+          /** 搜索 */
+          return this.commit('navSearch', data)
+        case 'agree':
+          msgObj.uid = msgObj.uid1
+          msgObj.chatObj = msgObj.uid2
+          return this.commit('showTips', {
+            messageContent: msgObj.msg,
+            messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
+            setTime: 5000
+          })
+        case 'addFriend':
+          return this.commit('showTips', {
+            messageContent: msgObj.msg,
+            messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
+            setTime: 5000
+          })
+      }
+      /** 以下为msgObj.type = chat时 */
+      /*      this.commit('showTips', {
+        messageContent: msgObj.msg,
+        messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
+        setTime: 3000
+      }) */
       this.commit('chatRecordAdd', {
         chat: {
           msg: msgObj.msg,
@@ -311,6 +396,23 @@ export default new Vuex.Store({
       return state.friends
     }
   },
-  actions: {},
+  actions: {
+    /**
+     * 显示顶部消息通知
+     * @param state
+     * @param args
+     */
+    showTips (state, args) {
+      return new Promise(resolve => {
+        this.state.globe.messageContent = args.time
+        this.state.globe.messageImgSrc = args.messageImgSrc
+        this.state.globe.messageTips = true
+        state.globe.clock = setTimeout(() => {
+          this.state.globe.messageTips = false
+          resolve(true)
+        }, args.setTime)
+      })
+    }
+  },
   modules: {}
 })

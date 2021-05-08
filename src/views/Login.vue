@@ -37,7 +37,7 @@
               <span class="login_uid_tips_bg"
                     :style="{visibility : login.tipsActive || uid ? 'visible' : 'hidden'}"></span>
             </div>
-            <div class="errInfo" v-if="login.errStatus">{{login.errInfo}}</div>
+            <div class="errInfo" v-if="login.errStatus">{{ login.errInfo }}</div>
             <!--  end 登录表单ID/密码输入框  -->
             <div class="login_forget">
               <span @click="goForget">忘记账号或密码？</span>
@@ -52,7 +52,7 @@
           <div class="login_form_pwd" @keydown.enter='sendData'>
             <div class="title">
               <p>欢迎</p>
-              <p @click="returnUid">{{uid}}</p>
+              <p @click="returnUid">{{ uid }}</p>
             </div>
             <div class="login_pwd_container">
               <input
@@ -72,7 +72,7 @@
               <span class="login_pwd_tips_bg"
                     :style="{'visibility' : login.tipsActive || pwd ? 'visible' : 'hidden'}"></span>
             </div>
-            <div class="errInfo">{{login.errInfo}}</div>
+            <div class="errInfo">{{ login.errInfo }}</div>
             <div class="login_forget">
               <a href="#" @click="goForget">忘记密码？</a>
             </div>
@@ -88,9 +88,9 @@
 </template>
 
 <script>
-import LoadingLine from '../components/login_loading_line'
-import catsBg from '../components/login_cats_bg'
-import catTitle from '../components/login_cat_title'
+import LoadingLine from '../components/login/login_loading_line'
+import catsBg from '../components/login/login_cats_bg'
+import catTitle from '../components/login/login_cat_title'
 import axios from 'axios'
 
 export default {
@@ -177,7 +177,6 @@ export default {
         // 修改全局uid为登录用户
         _that.$store.commit('loginSuc', response)
         // 保存服务器传回token、uid到sessionStorage
-        console.log(response)
         sessionStorage.setItem('nickName', response.nickName)
         sessionStorage.setItem('email', response.email)
         sessionStorage.setItem('avatar', response.avatar)
@@ -238,253 +237,258 @@ export default {
 </script>
 
 <style>
-  input:hover {
-    will-change: auto;
-  }
+input:hover {
+  will-change: auto;
+}
 
-  #login {
-    height: 100vh;
-    width: 100vw;
-    background: #ffffff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /*--common-color: #95e1d3;*/
-    --common-color: #1A73E8;
-    --error-color: #f25022;
-    --loginCont-height: 580px;
-  }
+#login {
+  height: 100vh;
+  width: 100vw;
+  background: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /*--common-color: #95e1d3;*/
+  --common-color: #1A73E8;
+  --error-color: #f25022;
+  --loginCont-height: 580px;
+}
 
-  .login_container {
-    height: 520px;
-    width: var(--loginCont-height);
-    min-width: 580px;
-    min-height: 530px;
-    border-radius: 20px;
-    position: relative;
-    padding-top: 50px;
-    z-index: 2;
-    overflow: hidden;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6));
-    box-shadow: 10px 10px 30px rgb(235, 235, 235),
-    -10px -10px 30px rgba(235, 235, 235, 0.3);
-  }
+.login_container {
+  height: 520px;
+  width: var(--loginCont-height);
+  min-width: 580px;
+  min-height: 530px;
+  border-radius: 20px;
+  position: relative;
+  padding-top: 50px;
+  z-index: 2;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6));
+  box-shadow: 10px 10px 30px rgb(235, 235, 235),
+  -10px -10px 30px rgba(235, 235, 235, 0.3);
+}
 
-  .errInfo {
-    box-sizing: border-box;
-    padding: 4px 8px;
-    width: calc(32px * 10);
-    position: absolute;
-    margin-left: 50%;
-    color: var(--error-color);
-    font-size: 14px;
-    transform: translateX(-50%);
-  }
+.errInfo {
+  box-sizing: border-box;
+  padding: 4px 8px;
+  width: calc(32px * 10);
+  position: absolute;
+  margin-left: 50%;
+  color: var(--error-color);
+  font-size: 14px;
+  transform: translateX(-50%);
+}
 
-  .login_form_uid,
-  .login_form_pwd {
-    height: calc(530px - 100px - 30px);
-    width: var(--loginCont-height);
-    padding-top: 30px;
-    position: absolute;
-  }
+.login_form_uid,
+.login_form_pwd {
+  height: calc(530px - 100px - 30px);
+  width: var(--loginCont-height);
+  padding-top: 30px;
+  position: absolute;
+}
 
-  .common_from {
-    height: calc(530px - 100px - 30px);
-    width: var(--loginCont-height);
-    padding-top: 20px;
-    position: absolute;
-  }
+.common_from {
+  height: calc(530px - 100px - 30px);
+  width: var(--loginCont-height);
+  padding-top: 20px;
+  position: absolute;
+}
 
-  .login_form_uid {
-    transform: translateX(100%);
-  }
+.login_form_uid {
+  transform: translateX(100%);
+}
 
-  .login_form_pwd {
-    transform: translateX(200%);
-  }
+.login_form_pwd {
+  transform: translateX(200%);
+}
 
-  .common_from {
-    transform: translateX(0%);
-  }
+.common_from {
+  transform: translateX(0%);
+}
 
-  .title p {
-    text-align: center;
-  }
+.title p {
+  text-align: center;
+}
 
-  .title p:nth-of-type(1) {
-    font-size: 26px;
-    padding-bottom: 13px;
-  }
+.title p:nth-of-type(1) {
+  font-size: 26px;
+  padding-bottom: 13px;
+}
 
-  .login_form_uid .title p:nth-of-type(2) {
-    padding: 6px 20px;
-    font-size: 16px;
-  }
+.login_form_uid .title p:nth-of-type(2) {
+  padding: 6px 20px;
+  font-size: 16px;
+}
 
-  .login_form_pwd .title p:nth-of-type(2) {
-    font-size: 16px;
-    display: inline-block;
-    padding: 6px 20px;
-    border: 1px solid #ccc;
-    border-radius: 20px;
-    margin-left: 50%;
-    transform: translate(-50%);
-    cursor: pointer;
-  }
+.login_form_pwd .title p:nth-of-type(2) {
+  font-size: 16px;
+  display: inline-block;
+  padding: 6px 20px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  margin-left: 50%;
+  transform: translate(-50%);
+  cursor: pointer;
+}
 
-  .login_form_pwd .title p:nth-of-type(2):hover {
-    border: 1px solid #333;
-  }
+.login_form_pwd .title p:nth-of-type(2):hover {
+  border: 1px solid #333;
+}
 
-  .login_uid_container,
-  .login_pwd_container {
-    height: 80px;
-    width: calc(32px * 10);
-    margin: auto;
-    position: relative;
-  }
+.login_uid_container,
+.login_pwd_container {
+  height: 80px;
+  width: calc(32px * 10);
+  margin: auto;
+  position: relative;
+}
 
-  .login_container_mask {
-    position: relative;
-    height: 430px;
-    width: calc(var(--loginCont-height) * 3);
-    transition: transform .2s;
-  }
+.login_container_mask {
+  position: relative;
+  height: 430px;
+  width: calc(var(--loginCont-height) * 3);
+  transition: transform .2s;
+}
 
-  .uid_border,
-  .pwd_border {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: calc(32px * 10);
-    height: 58px;
-    border-radius: 4px;
-    box-sizing: border-box;
-    background: #ffffff;
-  }
+.uid_border,
+.pwd_border {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(32px * 10);
+  height: 58px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  background: #ffffff;
+}
 
-  .border_notActive {
-    border: 1px solid #ccc;
-  }
+.border_notActive {
+  border: 1px solid #ccc;
+}
 
-  .border_Active {
-    border: 2px solid var(--common-color);
-  }
+.border_Active {
+  border: 2px solid var(--common-color);
+}
 
-  .border_error {
-    border: 2px solid var(--error-color) !important;
-  }
+.border_error {
+  border: 2px solid var(--error-color) !important;
+}
 
-  .font_error {
-    color: var(--error-color) !important;
-  }
+.font_error {
+  color: var(--error-color) !important;
+}
 
-  #login_uid,
-  #login_pwd {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: calc(32px * 10);
-    height: 58px;
-    font-size: 18px;
-    color: #333333;
-    box-sizing: border-box;
-    border: none;
-    outline: none;
-    padding-left: 12px;
-    background: none;
-    z-index: 3;
-  }
+#login_uid,
+#login_pwd {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(32px * 10);
+  height: 58px;
+  font-size: 18px;
+  color: #333333;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  padding-left: 12px;
+  background: none;
+  z-index: 3;
+}
 
-  .login_uid_tips,
-  .login_pwd_tips {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 80px;
-    width: 100%;
-    color: #888888;
-    box-sizing: border-box;
-    transition: padding .15s, font-size .15s;
-    z-index: 2;
-  }
+/* 自动填充样式修改 */
+#login_uid:-webkit-autofill,
+#login_pwd:-webkit-autofill {
+}
 
-  .tips_notActive {
-    font-size: 15px;
-    padding: 40px 16px 0;
-  }
+.login_uid_tips,
+.login_pwd_tips {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 80px;
+  width: 100%;
+  color: #888888;
+  box-sizing: border-box;
+  transition: padding .15s, font-size .15s;
+  z-index: 2;
+}
 
-  .tips_Active {
-    padding: 12px 10px 0;
-    font-size: 14px;
-    color: var(--common-color);
-  }
+.tips_notActive {
+  font-size: 15px;
+  padding: 40px 16px 0;
+}
 
-  .login_uid_tips_bg {
-    background: #ffffff;
-    position: absolute;
-    height: 4px;
-    width: 120px;
-    top: 21px;
-    left: 5px;
-    z-index: 1;
-    visibility: hidden;
-  }
+.tips_Active {
+  padding: 12px 10px 0;
+  font-size: 14px;
+  color: var(--common-color);
+}
 
-  .login_pwd_tips_bg {
-    background: #ffffff;
-    position: absolute;
-    height: 4px;
-    width: 93px;
-    top: 21px;
-    left: 5px;
-    z-index: 1;
-    visibility: hidden;
-  }
+.login_uid_tips_bg {
+  background: #ffffff;
+  position: absolute;
+  height: 4px;
+  width: 120px;
+  top: 21px;
+  left: 5px;
+  z-index: 1;
+  visibility: hidden;
+}
 
-  .login_forget {
-    margin-top: 64px;
-  }
+.login_pwd_tips_bg {
+  background: #ffffff;
+  position: absolute;
+  height: 4px;
+  width: 93px;
+  top: 21px;
+  left: 5px;
+  z-index: 1;
+  visibility: hidden;
+}
 
-  .login_forget,
-  .login_create {
-    text-align: center;
-    cursor: pointer;
-  }
+.login_forget {
+  margin-top: 64px;
+}
 
-  .login_forget span,
-  .login_create span {
-    display: inline-block;
-    text-align: center;
-    color: var(--common-color);
-    font-size: 15px;
-    padding-bottom: 12px;
-  }
+.login_forget,
+.login_create {
+  text-align: center;
+  cursor: pointer;
+}
 
-  .login_next {
-    width: 320px;
-    text-align: center;
-    margin: auto;
-    padding-top: 20px;
-  }
+.login_forget span,
+.login_create span {
+  display: inline-block;
+  text-align: center;
+  color: var(--common-color);
+  font-size: 15px;
+  padding-bottom: 12px;
+}
 
-  .login_next_pwd {
-    width: 320px;
-    text-align: center;
-    margin: auto;
-    padding-top: 20px;
-  }
+.login_next {
+  width: 320px;
+  text-align: center;
+  margin: auto;
+  padding-top: 20px;
+}
 
-  .login_next button,
-  .login_next_pwd button {
-    height: 36px;
-    width: 100px;
-    border: none;
-    border-radius: 20px;
-    color: #ffffff;
-    cursor: pointer;
-    outline: none;
-    background: var(--common-color);
-  }
+.login_next_pwd {
+  width: 320px;
+  text-align: center;
+  margin: auto;
+  padding-top: 20px;
+}
+
+.login_next button,
+.login_next_pwd button {
+  height: 36px;
+  width: 100px;
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  cursor: pointer;
+  outline: none;
+  background: var(--common-color);
+}
 </style>

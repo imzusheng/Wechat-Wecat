@@ -1,10 +1,10 @@
 <template>
   <ul class="chatList" @click="selectFriend">
-    <li v-for="(item, i) in historyList" :key="i">
+    <li v-for="(item, i) in $store.state.globe.navigation.historyList" :key="i">
       <input type="radio" name="chatListRadio" :data-friend-name="item.chatObj">
       <div class="chatListContent">
         <figure>
-          <img src="../assets/ginger-cat/ginger-cat-715.png" draggable="false" alt=""/>
+          <img src="../../assets/ginger-cat/ginger-cat-715.png" draggable="false" alt=""/>
           <span class="unReadMsg" v-if="$store.state.unReadMsg[item.chatObj] > 0">{{$store.state.unReadMsg[item.chatObj]}}</span>
         </figure>
         <div class="group">
@@ -19,7 +19,6 @@
 <script>
 
 export default {
-  props: ['historyList'],
   name: 'chatHistory',
   data () {
     return {

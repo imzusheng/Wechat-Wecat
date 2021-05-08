@@ -28,6 +28,7 @@ export default {
   methods: {
     sendData (flag) {
       this.$store.state.applyList.shift() /** 处理完一个请求后删除请求列表数组的第一个，处理下一个请求 */
+      console.log('handle_apply > sendData()', this.$store.state.applyList)
       const date = new Date()
       const formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
       this.$store.state.ws.sendMsg({
@@ -66,8 +67,9 @@ export default {
     --error-Color: #d93025;
     width: 340px;
     height: auto;
-    background: rgba(250, 250, 250, .95);
-    border: 1px solid #CCCCCC;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1));
+    box-shadow: 10px 10px 30px rgb(235, 235, 235),
+    -10px -10px 30px rgba(235, 235, 235, 1);
     border-radius: 5px;
     position: absolute;
     left: 50%;

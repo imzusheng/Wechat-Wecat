@@ -46,7 +46,7 @@
 
 <script>
 import axios from 'axios'
-import inputZs from '../components/input_zusheng'
+import inputZs from '../components/login/input_zusheng'
 
 export default {
   name: 'emailCheck',

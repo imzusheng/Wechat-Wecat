@@ -1,7 +1,7 @@
 <template>
   <ul class="list" @click="selectFriend">
-    <li v-for="(item, i) in contactList" :key="i">
-      <figure><img src="../assets/ginger-cat/ginger-cat-715.png" draggable="false"/></figure>
+    <li v-for="(item, i) in $store.state.globe.navigation.contactList" :key="i">
+      <figure><img src="../../assets/ginger-cat/ginger-cat-715.png" draggable="false"/></figure>
       <div class="friName">{{item}}</div>
     </li>
   </ul>
@@ -10,7 +10,6 @@
 <script>
 
 export default {
-  props: ['contactList'],
   name: 'contacts',
   data () {
     return {

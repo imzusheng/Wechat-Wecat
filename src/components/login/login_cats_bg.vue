@@ -198,62 +198,62 @@ export default {
   }
 
   .login_cats li:nth-of-type(1)::after {
-    background: url("../assets/ginger-cat/ginger-cat-715.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-715.png") no-repeat 50%;
     background-size: 80%;
   }
 
   .login_cats li:nth-of-type(2)::after {
-    background: url("../assets/ginger-cat/ginger-cat-750.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-750.png") no-repeat 50%;
     background-size: 80%;
   }
 
   .login_cats li:nth-of-type(3)::after {
-    background: url("../assets/ginger-cat/ginger-cat-722.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-722.png") no-repeat 50%;
     background-size: 80%;
   }
 
   .login_cats li:nth-of-type(4)::after {
-    background: url("../assets/ginger-cat/ginger-cat-730.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-730.png") no-repeat 50%;
     background-size: 80%;
   }
 
   .login_cats li:nth-of-type(5)::after {
-    background: url("../assets/ginger-cat/ginger-cat-729.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-729.png") no-repeat 50%;
     background-size: 140%;
   }
 
   .login_cats li:nth-of-type(6)::after {
-    background: url("../assets/ginger-cat/ginger-cat-732.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-732.png") no-repeat 50%;
     background-size: 80%;
   }
 
   .login_cats li:nth-of-type(7)::after {
-    background: url("../assets/ginger-cat/ginger-cat-733.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-733.png") no-repeat 50%;
     background-size: 100%;
   }
 
   .login_cats li:nth-of-type(8)::after {
-    background: url("../assets/ginger-cat/ginger-cat-735.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-735.png") no-repeat 50%;
     background-size: 100%;
   }
 
   .login_cats li:nth-of-type(9)::after {
-    background: url("../assets/ginger-cat/ginger-cat-734.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-734.png") no-repeat 50%;
     background-size: 80%;
   }
 
   .login_cats li:nth-of-type(10)::after {
-    background: url("../assets/ginger-cat/ginger-cat-738.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-738.png") no-repeat 50%;
     background-size: 80%;
   }
 
   .login_cats li:nth-of-type(11)::after {
-    background: url("../assets/ginger-cat/ginger-cat-740.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-740.png") no-repeat 50%;
     background-size: 80%;
   }
 
   .login_cats li:nth-of-type(12)::after {
-    background: url("../assets/ginger-cat/ginger-cat-749.png") no-repeat 50%;
+    background: url("../../assets/ginger-cat/ginger-cat-749.png") no-repeat 50%;
     background-size: 80%;
   }
 

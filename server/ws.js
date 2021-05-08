@@ -124,14 +124,6 @@ async function chat (MsgObj, wss, _that, type) {
         sendStatus2 = true
       }
     })
-    const myQuery = {
-      userID: MsgObj.uid1,
-      chatObj: MsgObj.uid2
-    }
-    const youQuery = {
-      userID: MsgObj.uid2,
-      chatObj: MsgObj.uid1
-    }
     const myChat = {
       time: MsgObj.time,
       say: 'you',
@@ -144,12 +136,30 @@ async function chat (MsgObj, wss, _that, type) {
       msg: MsgObj.msg,
       status: sendStatus2
     }
-    db.insertChatRecord('chatRecord', {
-      myQuery,
-      myChat,
-      youQuery,
-      youChat
-    }, 'chat')
+    /** 判断数据库中是否有两人的聊天记录集合，如果没有则插入新的 */
+    const result = await db.find('chatRecord', {
+      userID: MsgObj.uid1,
+      chatObj: MsgObj.uid2
+    })
+    console.log('ws.js > chat ---- agree: 看看存不存在聊天记录集合', result)
+    if (result.length === 0) {
+      console.log('ws.js > chat ---- agree: 开始写入')
+      db.insertManyData('chatRecord', [
+        {
+          chat: [
+            myChat
+          ],
+          userID: MsgObj.uid1,
+          chatObj: MsgObj.uid2
+        }, {
+          chat: [
+            youChat
+          ],
+          userID: MsgObj.uid2,
+          chatObj: MsgObj.uid1
+        }
+      ]).then()
+    }
   } else {
     /**
      * 当聊天记录不存在的时候，要创建一个新的聊天记录，睡醒觉再说
@@ -206,12 +216,24 @@ async function addFriend (MsgObj, wss, _that) {
     }
   })
   if (!sendStatus) {
-    await db.insertOneData('friendApply', MsgObj)
-    _that.send(JSON.stringify({
-      Msg: '已发送请求',
-      type: 'addFriend',
-      error: false
-    }))
+    const result = await db.find('friendApply', {
+      'to.email': MsgObj.to.email,
+      'from.email': MsgObj.from.email
+    })
+    if (result.length > 0) {
+      _that.send(JSON.stringify({
+        msg: '请勿重复添加',
+        type: 'addFriend',
+        error: true
+      }))
+    } else {
+      await db.insertOneData('friendApply', MsgObj)
+      _that.send(JSON.stringify({
+        msg: '已发送请求',
+        type: 'addFriend',
+        error: false
+      }))
+    }
   }
 }
 
@@ -253,7 +275,6 @@ async function addFriendReply (MsgObj, wss, _that) {
       type: 'agree'
     }
     await this.chat(agreeMsg, wss, _that, 'agree')
-    console.log(MsgObj)
 
     /** 数据库好友申请表状态改为status: true */
     db.updateOne('friendApply', {

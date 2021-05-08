@@ -69,9 +69,10 @@ export default {
     --error-Color: #d93025;
     width: 340px;
     height: auto;
-    background: rgba(250, 250, 250, .95);
-    border: 1px solid #CCCCCC;
-    border-radius: 5px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6));
+    box-shadow: 10px 10px 30px rgb(235, 235, 235),
+    -10px -10px 30px rgba(235, 235, 235, 0.3);
+    border-radius: 8px;
     position: absolute;
     left: 50%;
     top: 50%;

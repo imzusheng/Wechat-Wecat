@@ -79,9 +79,9 @@
       </li>
     </ul>
     <div class="list_container" ref="listContainer" v-if="!searchActive">
-      <chatHistory class="list_container_chatHistory noSelect" :historyList="historyList" @getData="getData"/>
-      <contact class="list_container_contact noSelect" :contactList="contactList" @getData="getData"/>
-      <group class="list_container_group noSelect" :groupList="groupList" @getData="getData"/>
+      <chatHistory class="list_container_chatHistory noSelect"  @getData="getData"/>
+      <contact class="list_container_contact noSelect"  @getData="getData"/>
+      <group class="list_container_group noSelect"  @getData="getData"/>
     </div>
   </div>
 </template>
@@ -102,9 +102,6 @@ export default {
   data () {
     return {
       uid: '',
-      historyList: [],
-      contactList: [],
-      groupList: [],
       searchContent: '',
       searchActive: false,
       searchTips: '输入内容以查找',
@@ -116,15 +113,12 @@ export default {
   mounted () {
     this.uid = window.sessionStorage.getItem('uid') || this.$store.state.uid
     // 获取数据
-    this.getData('chatHistory')
-    this.getData('contact')
-    this.getData('group')
-    this.getData('friendApply')
+    this.$store.commit('navInit')
   },
   methods: {
     addFriend (e) {
       if (e.target.nodeName !== 'UL' && e.target.innerHTML !== this.$store.state.uid) { /** 事件委托，点击UL时不触发click */
-        if (this.contactList.includes(e.target.dataset.email)) {
+        if (this.$store.state.globe.navigation.contactList.includes(e.target.dataset.email)) {
           this.chatObj = e.target.dataset.email
           this.$store.commit('chatObjChange', this.chatObj)
           // this.$emit('getData', 'chatRecord', this.chatObj)
@@ -132,7 +126,7 @@ export default {
           this.$store.commit('scrollRec')
           // 选中该好友时，清除该好友的未读消息列表
           if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
-        } else if (!this.contactList.includes(e.target.dataset.email)) {
+        } else if (!this.$store.state.globe.navigation.contactList.includes(e.target.dataset.email)) {
           /** 当点击的对象已经是好友时，跳转到聊天界面 */
           this.$store.commit('setAddFriend', {
             email: e.target.dataset.email,
@@ -166,7 +160,6 @@ export default {
     },
     wsMsgGHandler (data) {
       this.$store.commit('wsMsgGHandler', data)
-      // this.$store.commit('navSearch', data)
     },
     /**
      * @param type // 请求分组内数据的类型 chatHistory / contact / group
@@ -388,7 +381,7 @@ export default {
 .logo figure {
   height: var(--logo-height);
   width: var(--logo-height);
-  background: url("../assets/img/logo.svg") no-repeat 50%;
+  background: url("../../assets/img/logo.svg") no-repeat 50%;
   background-size: 100%;
 }
 
@@ -470,7 +463,7 @@ export default {
   left: calc(var(--logo-height) / 5);
   height: 38px;
   width: 38px;
-  background: url("../assets/img/search.png") no-repeat 50%;
+  background: url("../../assets/img/search.png") no-repeat 50%;
   background-size: 50%;
 }
 
@@ -630,19 +623,19 @@ export default {
 }
 
 .class_list > li:nth-of-type(1) > input + span {
-  mask-image: url("../assets/img/chatHistory.png");
+  mask-image: url("../../assets/img/chatHistory.png");
   mask-size: 32%;
   mask-position: 0 50%;
 }
 
 .class_list > li:nth-of-type(2) > input + span {
-  mask-image: url("../assets/img/contacts.png");
+  mask-image: url("../../assets/img/contacts.png");
   mask-size: 36%;
   mask-position: 50%;
 }
 
 .class_list > li:nth-of-type(3) > input + span {
-  mask-image: url("../assets/img/group.png");
+  mask-image: url("../../assets/img/group.png");
   mask-size: 35%;
   mask-position: 100% 50%;
 }
