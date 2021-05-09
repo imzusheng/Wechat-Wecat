@@ -20,5 +20,8 @@ Vue.config.devtools = true
 new Vue({
   router,
   store,
+  created () {
+    this.$store.commit('linkWsServer')
+  },
   render: h => h(App)
 }).$mount('#app')

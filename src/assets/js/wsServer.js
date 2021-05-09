@@ -1,41 +1,40 @@
-let Guid = ''
-let Gcb = ''
-let Gws = ''
+let msg = {}
+
 export class WsServer {
   constructor (url, uid, cb) {
-    Guid = uid
-    Gcb = cb
-    this.connect(url)
+    this.Guid = uid
+    this.Gcb = cb
+    this.connect(url).then()
   }
 
   connect (url) {
-    const msg = JSON.stringify({
-      uid: Guid,
-      type: 'online'
-    })
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       // 判断是否存在连接，不存在则新建
-      if (!Gws) {
-        console.log('wss：新建连接')
-        Gws = new WebSocket(url)
+      if (!this.Gws) {
+        console.log('%cwss：新建连接', 'color: red')
+        this.Gws = new WebSocket(url)
         // 发生错误断开，10秒自动重连一次
-        Gws.onerror = err => this.errorCb(err)
-        Gws.onclose = err => this.errorCb(err)
-        Gws.onmessage = data => Gcb(data)
-        Gws.onopen = () => {
-          Gws.send(msg)
-          console.log('wss：连接成功!')
-          resolve(Gws)
+        this.Gws.onerror = err => this.errorCb(err)
+        this.Gws.onclose = err => this.errorCb(err)
+        this.Gws.onmessage = data => this.Gcb(data)
+        this.Gws.onopen = () => {
+          msg = JSON.stringify({
+            uid: this.Guid,
+            type: 'online'
+          })
+          this.Gws.send(msg)
+          console.log('%cwss：连接成功!', 'color: red')
+          resolve(this.Gws)
         }
       } else {
-        resolve(Gws)
+        resolve(this.Gws)
       }
     })
   }
 
   errorCb (err) {
-    console.error('ws：连接意外断开')
-    Gws = null
+    console.error('ws：连接意外断开', err)
+    this.Gws = null
     const _that = this
     this.wsTimer = setTimeout(() => {
       clearTimeout(_that.wsTimer)
@@ -47,7 +46,9 @@ export class WsServer {
     try {
       this.connect().then((ws) => {
         ws.send(JSON.stringify(msg))
+        // console.log('%cwsServer.js > ws.send(JSON.stringify(msg))', 'color: red', msg)
         ws.onmessage = data => {
+          // console.log('%cwsServer.js >  ws.onmessage', 'color: red', JSON.parse(data.data))
           cb(data)
         }
       })

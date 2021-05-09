@@ -12,7 +12,6 @@
 </template>
 
 <script>
-import { WsServer } from '../assets/js/wsServer'
 import catsBg from '../components/login/login_cats_bg'
 import indexNav from '../components/navigation/nav'
 import mainPanel from '../components/main_middlePanel'
@@ -42,11 +41,6 @@ export default {
   mounted () {
     this.uid = window.sessionStorage.getItem('uid') || this.$store.state.uid
     this.bgFade = true
-    this.ws = new WsServer(this.$store.state.wsAddress, this.uid, this.wsMsgGHandler) // 建立WebSocket连接
-    this.$store.commit('linkWsServer', {
-      uid: this.uid,
-      cb: this.wsMsgGHandler
-    })
   },
   methods: {
     sendMsg (input, chatObj, msgType) {

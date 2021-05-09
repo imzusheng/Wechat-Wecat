@@ -2,6 +2,7 @@
   <div
     id="login"
     :style="{'pointer-events': login.axiosStatus || login.pwdStatus? 'none' : 'all'}">
+    <messageTips :style="{display: login.uidStatus ? 'none' : 'block'}"/>
     <transition name="fade">
       <div class="login_container"
            v-if="!login.pwdStatus">
@@ -92,10 +93,12 @@ import LoadingLine from '../components/login/login_loading_line'
 import catsBg from '../components/login/login_cats_bg'
 import catTitle from '../components/login/login_cat_title'
 import axios from 'axios'
+import messageTips from '@/components/globe/message_tips'
 
 export default {
   name: 'login',
   components: {
+    messageTips,
     LoadingLine, // 加载动画模板
     catsBg, // 背景
     catTitle // 标题logo
@@ -111,7 +114,8 @@ export default {
         axiosStatus: false, // 发送请求状态
         tipsActive: false, // 输入框内提示内容状态（电子邮箱或用户名是否缩小）
         errStatus: false, // 服务器返回错误时为true
-        errInfo: ''
+        errInfo: '',
+        checkRepeatLoginFlag: false// 是否重复登录
       }
     }
   },
@@ -135,11 +139,33 @@ export default {
       this.login.axiosStatus = status
     },
     /**
+     * 查询有无重复登录
+     */
+    checkRepeatLogin () {
+      return new Promise(resolve => {
+        this.$store.state.ws.sendMsg({
+          uid: this.uid,
+          type: 'checkRepeatLogin'
+        }, data => resolve(data))
+      })
+    },
+    /**
      * 发送请求验证账号密码
      * 回调函数 dataHandler()
      */
-    sendData () {
+    async sendData () {
       this.login.axiosStatus = true
+      if (!this.login.uidStatus) {
+        await this.checkRepeatLogin().then(data => {
+          this.$store.commit('wsMsgGHandler', data)
+          this.checkRepeatLoginFlag = JSON.parse(data.data).flag
+        })
+        /** 如果重复登录则直接返回 */
+        if (this.checkRepeatLoginFlag) {
+          this.login.axiosStatus = false
+          return
+        }
+      }
       this.login.uidStatus ? this.login.type = 'pwd' : this.login.type = 'uid' // id验证通过则验证密码
       axios({
         method: 'post',
@@ -182,6 +208,8 @@ export default {
         sessionStorage.setItem('avatar', response.avatar)
         sessionStorage.setItem('token', response.token)
         sessionStorage.setItem('uid', _that.uid)
+        /** 登陆成功重新实例化wsServer */
+        this.$store.commit('linkWsServer')
         // 路由跳转到home，500ms为动画时间
         setTimeout(() => _that.$router.push('home'), 500)
       }

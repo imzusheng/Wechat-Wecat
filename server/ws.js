@@ -17,20 +17,55 @@ module.exports = (port) => {
     ws.on('message', (msg) => {
       clientsArr = Array.from(wss.clients)
       console.log('ws.js > ws.on ---- 在线人数：' + clientsArr.length)
-      // const _that = this
       const MsgObj = JSON.parse(msg)
+      console.log('ws.on > onmessage() ---- ', MsgObj)
       const route = {
         chat,
         online,
         clearUnReadMsg,
         navSearch,
         addFriend,
-        addFriendReply
+        addFriendReply,
+        checkRepeatLogin,
+        exit
       }
-      const routeArr = ['chat', 'online', 'clearUnReadMsg', 'navSearch', 'addFriend', 'addFriendReply']
+      const routeArr = ['chat', 'online', 'clearUnReadMsg', 'navSearch', 'addFriend', 'addFriendReply', 'checkRepeatLogin', 'exit']
       if (routeArr.includes(MsgObj.type)) return route[MsgObj.type](MsgObj, wss, ws)
     })
   })
+}
+
+/**
+ * 退出登录，清除登陆状态
+ */
+function exit (MsgObj, wss, _that) {
+  wss.clients.forEach(value => {
+    if (value.userID === MsgObj.uid) value.userID = null
+  })
+  _that.send(JSON.stringify({
+    uid: MsgObj.uid,
+    error: false,
+    msg: '退出登录',
+    type: 'exit'
+  }))
+}
+
+/**
+ *  查询有无重复登陆
+ */
+function checkRepeatLogin (MsgObj, wss, _that) {
+  console.log('ws.js > checkRepeatLogin()', MsgObj)
+  let flag = false
+  wss.clients.forEach(value => {
+    if (value.userID === MsgObj.uid) flag = true
+  })
+  _that.send(JSON.stringify({
+    uid: MsgObj.uid,
+    flag: flag,
+    error: flag,
+    msg: flag ? '请勿重复登录' : '欢迎',
+    type: 'checkRepeatLogin'
+  }))
 }
 
 /**
@@ -44,12 +79,12 @@ async function navSearch (MsgObj, wss, _that) {
   const Query = {}
   const q1 = {}
   const q2 = {}
+  const resultArr = []
   // 模糊查询条件
   q1.nickName = { $regex: new RegExp(MsgObj.msg) }
   q2.email = { $regex: new RegExp(MsgObj.msg) }
   Query.$or = [q1, q2]
   const result = await db.likeFind('user', Query)
-  const resultArr = []
   result.forEach(value => {
     if (MsgObj.uid !== value.email) {
       resultArr.push({
@@ -251,6 +286,7 @@ async function addFriendReply (MsgObj, wss, _that) {
       UID: MsgObj.uid,
       Friend: MsgObj.friend
     })
+    /** 不存在时则写入好友关系 */
     if (result.length === 0) {
       await db.insertManyData('friend', [
         {
@@ -274,7 +310,7 @@ async function addFriendReply (MsgObj, wss, _that) {
       uid2: MsgObj.friend,
       type: 'agree'
     }
-    await this.chat(agreeMsg, wss, _that, 'agree')
+    this.chat(agreeMsg, wss, _that, 'agree')
 
     /** 数据库好友申请表状态改为status: true */
     db.updateOne('friendApply', {
