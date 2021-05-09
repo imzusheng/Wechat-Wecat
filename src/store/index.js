@@ -313,8 +313,9 @@ export default new Vuex.Store({
       }
     },
     // 建立WebSocket连接
-    linkWsServer (state, args) {
-      state.ws = new WsServer(state.wsAddress, args.uid, args.cb)
+    linkWsServer (state) {
+      const _that = this
+      state.ws = new WsServer(state.wsAddress, state.uid, data => _that.commit('wsMsgGHandler', data))
     },
     // 收到消息时的处理
     /**
@@ -341,6 +342,7 @@ export default new Vuex.Store({
           /** 搜索 */
           return this.commit('navSearch', data)
         case 'agree':
+          /** 同意好友申请后 */
           msgObj.uid = msgObj.uid1
           msgObj.chatObj = msgObj.uid2
           state.globe.messageImgDisplay = true
@@ -351,11 +353,29 @@ export default new Vuex.Store({
             setTime: 5000
           })
         case 'addFriend':
+          /** 好友请求发送成功后 */
           state.globe.messageImgDisplay = true
           return this.commit('showTips', {
             messageContent: msgObj.msg,
             messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
             setTime: 5000
+          })
+        case 'checkRepeatLogin':
+          if (msgObj.error) {
+            state.globe.messageImgDisplay = true
+            this.commit('showTips', {
+              messageContent: msgObj.msg,
+              messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
+              setTime: 2000
+            })
+          }
+          return
+        case 'exit':
+          state.globe.messageImgDisplay = true
+          return this.commit('showTips', {
+            messageContent: msgObj.msg,
+            messageImgSrc: msgObj.error ? require('../assets/img/msg_error.png') : require('../assets/img/done.png'),
+            setTime: 2000
           })
       }
       /** 以下为msgObj.type = chat时 */

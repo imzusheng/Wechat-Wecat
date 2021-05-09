@@ -45,7 +45,7 @@
           <li v-for="(item, i) in $store.state.searchResult" :key="i">
             <div class="searchResultMask" :data-email="item.email" :data-nickname="item.nickName"
                  :data-avatar="item.avatar"></div>
-            <figure><img :src="item.avatar"></figure>
+            <figure><img :src="item.avatar" alt=""></figure>
             <div class="resultName">
               <div>{{ item.nickName }}</div>
               <div>{{ item.email }}</div>
@@ -79,9 +79,9 @@
       </li>
     </ul>
     <div class="list_container" ref="listContainer" v-if="!searchActive">
-      <chatHistory class="list_container_chatHistory noSelect"  @getData="getData"/>
-      <contact class="list_container_contact noSelect"  @getData="getData"/>
-      <group class="list_container_group noSelect"  @getData="getData"/>
+      <chatHistory class="list_container_chatHistory noSelect" @getData="getData"/>
+      <contact class="list_container_contact noSelect" @getData="getData"/>
+      <group class="list_container_group noSelect" @getData="getData"/>
     </div>
   </div>
 </template>
@@ -138,6 +138,10 @@ export default {
       }
     },
     exit () {
+      this.$store.state.ws.sendMsg({
+        uid: this.$store.state.uid,
+        type: 'exit'
+      }, this.wsMsgGHandler)
       window.sessionStorage.removeItem('uid')
       window.sessionStorage.removeItem('token')
       this.$router.replace('login')
@@ -163,6 +167,7 @@ export default {
     },
     /**
      * @param type // 请求分组内数据的类型 chatHistory / contact / group
+     * @param chatObj
      */
     getData (type, chatObj) {
       axios({
@@ -419,7 +424,7 @@ export default {
 }
 
 .addFriend .add_1 {
-  top: 0%;
+  top: 0;
 }
 
 .addFriend .add_2 {
