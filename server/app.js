@@ -260,3 +260,11 @@ router.get('/api/chatRecord', async (ctx) => {
     result: result[0].chat
   }
 })
+
+router.get('/api/admin', async (ctx) => {
+  let result = await db.find('user', '')  // 查询数据
+  ctx.body = {
+    type: ctx.query.type,
+    result: result
+  }
+})

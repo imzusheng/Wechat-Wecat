@@ -7,6 +7,8 @@ import Forget from '../views/forget'
 import store from '../store/index'
 import Admin from '../views/admin'
 import emailCheck from '../views/emailCheck'
+import userList from '../components/admin/userList'
+import chatRecord from '../components/admin/chatRecord'
 
 Vue.use(VueRouter)
 
@@ -27,8 +29,21 @@ const routes = [
   },
   {
     path: '/admin',
-    bane: 'name',
-    component: Admin
+    name: 'admin',
+    redirect: '/admin/userList',
+    component: Admin,
+    children: [
+      {
+        path: 'userList',
+        name: 'userList',
+        component: userList
+      },
+      {
+        path: 'chatRecord',
+        name: 'chatRecord',
+        component: chatRecord
+      }
+    ]
   },
   {
     path: '/login',

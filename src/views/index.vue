@@ -3,6 +3,7 @@
     <friendApply :style="{visibility: $store.state.addFriState?'visible':'hidden'}"/>
     <handleApply :style="{visibility: $store.state.applyList.length?'visible':'hidden'}"/>
     <messageTips/>
+
     <indexNav :class="{'wrap_slide_left' : bgFade}"/>
     <mainPanel class="mainPanel" :class="{'wrap_scale' : bgFade}" v-if="this.$store.state.chatObj.length > 0"
                @sendMsg="sendMsg"/>
