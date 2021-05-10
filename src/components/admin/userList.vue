@@ -46,7 +46,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="sendData()" :loading="load">确 定</el-button>
+        <el-button type="primary" @click="userListModify()" :loading="load">确 定</el-button>
       </div>
     </el-dialog>
     <el-row>
@@ -55,13 +55,13 @@
           <el-row :gutter="0">
             <el-col :span="5">
               <el-form-item label="用户名">
-                <el-input placeholder=""></el-input>
+                <el-input placeholder="" v-model="find.input"></el-input>
               </el-form-item>
             </el-col>
 
             <el-col :span="5">
               <el-form-item label="权限">
-                <el-select placeholder="" v-model="selectValue1">
+                <el-select placeholder="" v-model="find.selectAccess">
                   <el-option label="所有" value="all"></el-option>
                   <el-option label="用户" value="user"></el-option>
                   <el-option label="管理员" value="admin"></el-option>
@@ -71,7 +71,7 @@
 
             <el-col :span="5">
               <el-form-item>
-                <el-button type="primary">查询</el-button>
+                <el-button type="primary" @click="userListFind()">查询</el-button>
               </el-form-item>
             </el-col>
           </el-row>
@@ -81,6 +81,7 @@
     <el-row>
       <el-col :span="24">
         <el-table
+          height="calc(100vh - (48px * 4) - (20px * 2) - 30px)"
           :data="tableData.slice((pagination.current*pagination.pageSize-pagination.pageSize),pagination.current*pagination.pageSize)"
           stripe
           style="width: 100%">
@@ -149,7 +150,7 @@
 
 <script>
 
-// import axios from 'axios'
+import axios from 'axios'
 
 export default {
   name: 'userList',
@@ -166,249 +167,143 @@ export default {
         pageSize: 5,
         current: 1
       },
-      selectValue1: 'all', // 默认选中
-      tableData: [
-        {
-          _id: { $oid: '6093e04ce815df3b1ceff7cf' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '1',
-          nickName: 'zusheng',
-          pwd: 'lzs123321',
-          time: '2021年5月6日 20:25:48',
-          trueName: 'zusheng'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        }
-      ] // 列表数据
+      find: {
+        selectAccess: 'all', // 默认选中
+        input: '',
+        type: ''
+      },
+      tableData: []
     }
   },
   created () {
-    /*    axios({
-      method: 'get',
-      url: '/admin',
-      data: {
-        uid: this.$store.state.uid,
-        type: 'allUser'
-      }
-    }).then(data => this.dataHandler(data.data)).catch(err => this.dataHandler(err.response)) */
+    this.initUserList()
   },
   methods: {
-    sendData () {
+    /**
+     * 查找
+     */
+    userListFind () {
+      this.find.type = 'userListFind'
+      console.log(this.find)
+      this.sendData('get', this.find).then(data => {
+        this.tableData = data.data.result.map(value => {
+          delete value._id
+          return value
+        })
+      })
+    },
+    /**
+     * 初始化获取数据
+     */
+    initUserList () {
+      this.sendData('get', {
+        uid: this.$store.state.uid,
+        type: 'userList'
+      }).then(data => {
+        if (data.data.msg === 'success') {
+          /** 去掉_id属性，因为_id属性在mongodb中可读不可写 */
+          this.tableData = data.data.result.map(value => {
+            delete value._id
+            return value
+          })
+        }
+      })
+    },
+    /**
+     * 发送消息
+     * @param data  发送的数据
+     * @returns {AxiosPromise} then()回调
+     */
+    sendData (method, data) {
+      if (method === 'get') {
+        return axios({
+          method: method,
+          url: '/admin/' + data.type,
+          params: data
+        })
+      } else {
+        return axios({
+          method: method,
+          url: '/admin/' + data.type,
+          data: data
+        })
+      }
+    },
+    /**
+     * 提交编辑用户信息
+     */
+    userListModify () {
       this.load = !this.load
+      this.sendData('post', {
+        type: 'userListModify',
+        uid: this.$store.state.uid,
+        formData: this.editForm
+      }).then(data => {
+        if (data.data.msg === 'success') {
+          this.load = !this.load
+          this.dialogFormVisible = false
+          this.initUserList()
+        }
+      })
     },
-    dataHandler (data) {
-      console.log(data)
-    },
+    /**
+     * 切换页面回调
+     * @param current 当前页码
+     */
     handleCurrentChange (current) {
       this.pagination.current = current
     },
+    /**
+     * 一页显示数据改变回调
+     * @param pageSize 一页显示数据
+     */
     handleSizeChange (pageSize) {
       this.pagination.pageSize = pageSize
     },
+    /**
+     * 编辑用户信息按钮
+     * @param e
+     */
     handleEdit (e) {
       this.dialogFormVisible = true
       this.editForm = e.row
     },
+    /**
+     * 删除用户信息按钮
+     * @param e
+     */
     handleDelete (e) {
+      this.editForm = e.row
+      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'error'
+      }).then(() => {
+        /** 删除操作 */
+        this.sendData('post', {
+          type: 'userListDelete',
+          formData: this.editForm
+        }).then(data => {
+          if (data.data.msg === 'success') {
+            this.initUserList()
+            this.load = !this.load
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            })
+          } else {
+            this.$message({
+              type: 'info',
+              message: '删除失败'
+            })
+          }
+        })
+      }).catch(() => {
+        /*        this.$message({
+          type: 'info',
+          message: '取消删除操作'
+        }) */
+      })
     }
   }
 }

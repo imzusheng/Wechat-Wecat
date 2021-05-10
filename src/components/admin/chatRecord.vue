@@ -1,89 +1,100 @@
 <template>
-  <div class="userList">
-    <el-dialog title="编辑用户信息" :visible.sync="dialogFormVisible">
-      <el-form :model="editForm" :label-position="labelPosition">
-        <el-row :gutter="20">
-          <el-col :span="23">
-            <el-form-item label="用户名" :label-width="formLabelWidth">
-              <el-input v-model="editForm.email" autocomplete="off" disabled></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="11">
-            <el-form-item label="昵称" :label-width="formLabelWidth">
-              <el-input v-model="editForm.nickName" autocomplete="off"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="真实姓名" :label-width="formLabelWidth">
-              <el-input v-model="editForm.trueName" autocomplete="off"></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="11">
-            <el-form-item label="密码" :label-width="formLabelWidth">
-              <el-input v-model="editForm.pwd" autocomplete="off"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="注册时间" :label-width="formLabelWidth">
-              <el-input v-model="editForm.time" autocomplete="off" disabled></el-input>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="23">
-            <el-form-item label="权限" :label-width='formLabelWidth'>
-              <el-select v-model="editForm.access" placeholder="">
-                <el-option label="用户" value="user"></el-option>
-                <el-option label="管理员" value="admin"></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="sendData()" :loading="load">确 定</el-button>
-      </div>
-    </el-dialog>
-    <el-row>
-      <el-col :span="24">
-        <el-form size="small" :inline="true">
-          <el-row :gutter="0">
-            <el-col :span="5">
-              <el-form-item label="用户名">
-                <el-input placeholder=""></el-input>
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="5">
-              <el-form-item label="权限">
-                <el-select placeholder="" v-model="selectValue1">
-                  <el-option label="所有" value="all"></el-option>
-                  <el-option label="用户" value="user"></el-option>
-                  <el-option label="管理员" value="admin"></el-option>
-                </el-select>
-              </el-form-item>
-            </el-col>
-
-            <el-col :span="5">
-              <el-form-item>
-                <el-button type="primary">查询</el-button>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </el-form>
-      </el-col>
-    </el-row>
+  <div class="chatRecord">
     <el-row>
       <el-col :span="24">
         <el-table
+          class="chatRecordTable"
           :data="tableData.slice((pagination.current*pagination.pageSize-pagination.pageSize),pagination.current*pagination.pageSize)"
-          stripe
+          height="calc(100vh - (48px * 4) - (20px * 2))"
           style="width: 100%">
+          <el-table-column type="expand">
+            <template slot-scope="props">
+              <el-form label-position="left" inline class="demo-table-expand">
+                <el-form-item label="最近聊天">
+                  <el-dialog
+                    width="80%"
+                    title="聊天记录"
+                    :visible.sync="dialogTableVisible">
+                    <el-form size="small" :inline="true">
+                      <el-row :gutter="0">
+                        <el-col :span="5">
+                          <el-form-item label="发送人">
+                            <el-input placeholder=""></el-input>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="5">
+                          <el-form-item label="关键词">
+                            <el-input placeholder=""></el-input>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="10">
+                          <el-form-item label="时间">
+                            <el-date-picker
+                              v-model="datePicker.value"
+                              type="datetimerange"
+                              align="right"
+                              :start-placeholder="'开始日期 ' + datePicker.defaultTime.start"
+                              :end-placeholder="'结束日期 ' + datePicker.defaultTime.end"
+                              :default-time="[datePicker.defaultTime.start, datePicker.defaultTime.end]">
+                            </el-date-picker>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="4" style="text-align: right">
+                          <el-form-item>
+                            <el-button type="primary">查询</el-button>
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+                    </el-form>
+
+                    <el-table
+                      height="360"
+                      :data="chatDetailList"
+                    >
+                      <el-table-column
+                        label="发送人">
+                        <template slot-scope="scope">
+                          <span>{{ scope.row.say === 'me' ? chatDetailPrams.uid : chatDetailPrams.chatObj }}</span>
+                        </template>
+                      </el-table-column>
+
+                      <el-table-column
+                        label="消息内容"
+                        prop="msg">
+                      </el-table-column>
+
+                      <el-table-column
+                        label="时间"
+                        prop="time">
+                      </el-table-column>
+
+                      <el-table-column
+                        label="状态">
+                        <template slot-scope="scope">
+                          <span>{{ scope.row.status ? '已读' : '未读' }}</span>
+                        </template>
+                      </el-table-column>
+                    </el-table>
+
+                  </el-dialog>
+
+                  <el-badge
+                    class="item"
+                    v-for="(items, index) of props.row.friends"
+                    :key="index"
+                    :value="items.recMsgCount + items.sendMsgCount"
+                  >
+                    <el-button size="small" @click="chatDetail(props.row.email, items.name)">{{
+                        items.name
+                      }}
+                    </el-button>
+                  </el-badge>
+
+                </el-form-item>
+              </el-form>
+            </template>
+          </el-table-column>
+
           <el-table-column
             label="序号"
             type="index"
@@ -92,44 +103,32 @@
               <span>{{ pagination.pageSize * (pagination.current - 1) + scope.$index + 1 }}</span>
             </template>
           </el-table-column>
+
           <el-table-column
-            prop="email"
-            label="用户名">
+            label="用户名"
+            prop="email">
           </el-table-column>
+
           <el-table-column
-            prop="nickName"
-            label="昵称">
+            label="好友总数"
+            prop="friendsCount">
           </el-table-column>
+
           <el-table-column
-            prop="trueName"
-            label="真实姓名">
+            label="发送消息"
+            prop="sendMsgCount">
           </el-table-column>
+
           <el-table-column
-            prop="pwd"
-            label="密码">
+            label="接收消息"
+            prop="recMsgCount">
           </el-table-column>
+
           <el-table-column
-            prop="time"
-            label="注册时间">
+            label="最近登录时间"
+            prop="RecentlyTime">
           </el-table-column>
-          <el-table-column
-            prop="access"
-            label="权限">
-          </el-table-column>
-          <el-table-column
-            label="操作">
-            <template slot-scope="scope">
-              <el-button
-                size="mini"
-                @click="handleEdit(scope)">编辑
-              </el-button>
-              <el-button
-                size="mini"
-                type="danger"
-                @click="handleDelete(scope)">删除
-              </el-button>
-            </template>
-          </el-table-column>
+
         </el-table>
         <el-pagination
           class="pagination"
@@ -149,266 +148,103 @@
 
 <script>
 
-// import axios from 'axios'
+import axios from 'axios'
 
 export default {
   name: 'chatRecord',
   components: {},
   data () {
     return {
-      load: false, // 加载状态
-      dialogFormVisible: false, // 编辑面板的状态
-      editForm: {}, // 编辑面板绑定的数据
-      formLabelWidth: '80px', // 面板label长度
-      labelPosition: 'left', // 面板label文字对齐
+      datePicker: {
+        value: '',
+        defaultTime: {
+          start: '00:00:00',
+          end: '24:00:00'
+        }
+      },
+      dialogTableVisible: false, // 编辑面板的状态
       count: 0, // 信息总条数
       pagination: {
         pageSize: 5,
         current: 1
       },
-      selectValue1: 'all', // 默认选中
-      tableData: [
-        {
-          _id: { $oid: '6093e04ce815df3b1ceff7cf' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '1',
-          nickName: 'zusheng',
-          pwd: 'lzs123321',
-          time: '2021年5月6日 20:25:48',
-          trueName: 'zusheng'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        },
-        {
-          _id: { $oid: '6094d8bca5f33913848c1251' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '2',
-          nickName: 'shanni',
-          pwd: 'lsn123321',
-          time: '2021年5月7日 14:5:48',
-          trueName: 'shanni'
-        },
-        {
-          _id: { $oid: '60963218d672e394b09ddef0' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '3',
-          nickName: 'wenjian',
-          pwd: '123321',
-          time: '2021年5月7日 20:25:48',
-          trueName: 'wenjian'
-        },
-        {
-          _id: { $oid: '6096577164723d1bc80009c8' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-722.50be5f08.png',
-          email: '4',
-          nickName: 'test',
-          pwd: 'test123',
-          time: '2021年5月8日 17:18:41',
-          trueName: 'test'
-        },
-        {
-          _id: { $oid: '60967eca0643ba57e86f8b45' },
-          access: 'user',
-          avatar: '/chat/img/ginger-cat-714.058d5831.png',
-          email: '5',
-          nickName: '李',
-          pwd: 'a123456',
-          time: '2021年5月8日 20:6:34',
-          trueName: '佛山市'
-        }
-      ] // 列表数据
+      chatDetailPrams: {
+        uid: '',
+        chatObj: ''
+      },
+      chatDetailList: [],
+      tableData: []// 列表数据
     }
   },
   created () {
-    /*    axios({
-      method: 'get',
-      url: '/admin',
-      data: {
-        uid: this.$store.state.uid,
-        type: 'allUser'
-      }
-    }).then(data => this.dataHandler(data.data)).catch(err => this.dataHandler(err.response)) */
+    this.initChatRecord()
   },
   methods: {
-    sendData () {
-      this.load = !this.load
+    chatDetail (uid, chatObj) {
+      this.chatDetailPrams.uid = uid
+      this.chatDetailPrams.chatObj = chatObj
+      this.dialogTableVisible = true
+      this.sendData('get', {
+        uid: uid,
+        chatObj: chatObj,
+        type: 'chatDetail'
+      }).then(data => {
+        if (data.data.msg === 'success') {
+          this.chatDetailList = data.data.result[0].chat
+        }
+      })
     },
-    dataHandler (data) {
-      console.log(data)
+    /**
+     * 初始化获取数据
+     */
+    initChatRecord () {
+      this.sendData('get', {
+        uid: this.$store.state.uid,
+        type: 'chatRecordList'
+      }).then(data => {
+        if (data.data.msg === 'success') {
+          /** 去掉_id属性，因为_id属性在mongodb中可读不可写 */
+          this.tableData = data.data.data.map(value => {
+            delete value._id
+            return value
+          })
+        }
+      })
     },
+    /**
+     * 发送消息
+     * @param data  发送的数据
+     * @param method  get/post
+     * @returns {AxiosPromise} then()回调
+     */
+    sendData (method, data) {
+      if (method === 'get') {
+        return axios({
+          method: method,
+          url: '/admin/' + data.type,
+          params: data
+        })
+      } else {
+        return axios({
+          method: method,
+          url: '/admin/' + data.type,
+          data: data
+        })
+      }
+    },
+    /**
+     * 切换页面回调
+     * @param current 当前页码
+     */
     handleCurrentChange (current) {
       this.pagination.current = current
     },
+    /**
+     * 一页显示数据改变回调
+     * @param pageSize 一页显示数据
+     */
     handleSizeChange (pageSize) {
       this.pagination.pageSize = pageSize
-    },
-    handleEdit (e) {
-      this.dialogFormVisible = true
-      this.editForm = e.row
-    },
-    handleDelete (e) {
     }
   }
 }
@@ -427,7 +263,7 @@ export default {
 .el-main {
 }
 
-.breadcrumb, .pagination {
-  margin: 18px 0 48px;
+.item {
+  margin: 0 40px 10px 0;
 }
 </style>

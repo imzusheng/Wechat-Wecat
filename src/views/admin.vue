@@ -2,8 +2,6 @@
   <div class="admin-container">
     <el-container class="admin-container">
       <el-container>
-        <!--        <router-link :to="{ name: 'userList'}" replace>userList</router-link>-->
-        <!--        <router-link :to="{ name: 'chatRecord'}" replace>chatRecord</router-link>-->
         <el-aside width="200px">
           <el-menu
             :router="false"
@@ -49,8 +47,6 @@
 
 <script>
 
-// import axios from 'axios'
-
 export default {
   name: 'admin',
   components: {},
@@ -63,20 +59,8 @@ export default {
     }
   },
   created () {
-    /*    axios({
-      method: 'get',
-      url: '/admin',
-      data: {
-        uid: this.$store.state.uid,
-        type: 'allUser'
-      }
-    }).then(data => this.dataHandler(data.data)).catch(err => this.dataHandler(err.response)) */
   },
-  methods: {
-    dataHandler (data) {
-      // console.log(this.$router.history)
-    }
-  }
+  methods: {}
 }
 </script>
 
@@ -100,5 +84,6 @@ export default {
 
 .breadcrumb, .pagination {
   margin: 18px 0 48px;
+  text-align: right;
 }
 </style>

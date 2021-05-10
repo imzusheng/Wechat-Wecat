@@ -9,7 +9,7 @@
         <LoadingLine v-if="login.axiosStatus"/>
         <catTitle/>
         <div class="login_container_mask"
-             :style="{transform: $store.state.sign === true || $store.state.forget === true ? 'translateX(0%)' : (login.uidStatus ? 'translateX(-66.66%)' : 'translateX(-33.33%)'),
+             :style="{transform: $route.name === 'sign' || $route.name === 'forget' ? 'translateX(0%)' : (login.uidStatus ? 'translateX(-66.66%)' : 'translateX(-33.33%)'),
              opacity: login.axiosStatus || login.pwdStatus? 0.5 : 1}">
           <div class="common_from">
             <router-view @axiosStatusChange="axiosStatusChange"/>
@@ -128,12 +128,12 @@ export default {
     goSign () { // 跳转到注册页
       this.$store.commit('setSign')
       this.$store.commit('goSign')
-      this.$router.replace('sign')
+      this.$router.push('sign')
     },
     goForget () { // 忘记密码
       this.$store.commit('setForget')
       this.$store.commit('goSign')
-      this.$router.replace('forget')
+      this.$router.push('forget')
     },
     axiosStatusChange (status) {
       this.login.axiosStatus = status
@@ -200,6 +200,14 @@ export default {
         // ID验证成功，密码输入框获得焦点
         setTimeout(() => _that.$refs.inputPWD.focus(), 300)
       } else if (response.type === 'pwd') {
+        /** 登录成功，更新数据库最近登录时间 */
+        axios({
+          method: 'post',
+          url: '/updateTime',
+          data: {
+            email: response.email
+          }
+        }).then()
         // 修改全局uid为登录用户
         _that.$store.commit('loginSuc', response)
         // 保存服务器传回token、uid到sessionStorage
@@ -211,7 +219,7 @@ export default {
         /** 登陆成功重新实例化wsServer */
         this.$store.commit('linkWsServer')
         // 路由跳转到home，500ms为动画时间
-        setTimeout(() => _that.$router.push('home'), 500)
+        setTimeout(() => _that.$router.replace('home'), 500)
       }
     },
     loginErr (response, _that) {

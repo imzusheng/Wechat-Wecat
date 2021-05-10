@@ -18,7 +18,7 @@ module.exports = (port) => {
       clientsArr = Array.from(wss.clients)
       console.log('ws.js > ws.on ---- 在线人数：' + clientsArr.length)
       const MsgObj = JSON.parse(msg)
-      console.log('ws.on > onmessage() ---- ', MsgObj)
+      console.log('ws.js > onmessage() ---- ', MsgObj)
       const route = {
         chat,
         online,

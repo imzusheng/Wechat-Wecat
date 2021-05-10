@@ -74,6 +74,19 @@ module.exports = class MongoDB {
     })
   }
 
+  deleteOneData (collectionName, queryData) {
+    const _that = this
+    return new Promise((resolve, reject) => {
+      this.connectDB().then(() => {
+        console.log('执行删除', queryData)
+        _that.db.collection(collectionName).deleteOne(queryData, err => {
+          if (err) throw err
+          resolve()
+        })
+      })
+    })
+  }
+
   myUpdateOne (collectionName, queryData, newData, num) {
     const _that = this
     return new Promise((resolve, reject) => {
