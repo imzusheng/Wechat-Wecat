@@ -50,6 +50,18 @@ module.exports = class MongoDB {
     })
   }
 
+  detailFind (collectionName, queryUnwind, queryMatch, queryProject) {
+    const _that = this
+    return new Promise((resolve, reject) => {
+      this.connectDB().then(() => {
+        _that.db.collection(collectionName).aggregate([queryUnwind, queryMatch, queryProject]).toArray((err, result) => {
+          if (err) throw err
+          resolve(result)
+        })
+      })
+    })
+  }
+
   insertOneData (collectionName, queryData) {
     const _that = this
     return new Promise((resolve, reject) => {

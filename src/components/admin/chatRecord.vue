@@ -11,25 +11,30 @@
             <template slot-scope="props">
               <el-form label-position="left" inline class="demo-table-expand">
                 <el-form-item label="最近聊天">
+                  <!--  模态框内容  -->
                   <el-dialog
                     width="80%"
                     title="聊天记录"
                     :visible.sync="dialogTableVisible">
-                    <el-form size="small" :inline="true">
+                    <el-form size="small" :inline="true" :model="dialogFindParams">
                       <el-row :gutter="0">
                         <el-col :span="5">
                           <el-form-item label="发送人">
-                            <el-input placeholder=""></el-input>
+                            <el-select v-model="dialogFindParams.sendObj" placeholder="">
+                              <el-option :label='chatDetailPrams.uid' value="me"></el-option>
+                              <el-option :label="chatDetailPrams.chatObj" value="you"></el-option>
+                            </el-select>
                           </el-form-item>
                         </el-col>
                         <el-col :span="5">
                           <el-form-item label="关键词">
-                            <el-input placeholder=""></el-input>
+                            <el-input v-model="dialogFindParams.keyword" placeholder=""></el-input>
                           </el-form-item>
                         </el-col>
                         <el-col :span="10">
                           <el-form-item label="时间">
                             <el-date-picker
+                              @change="DatePickerChange($event)"
                               v-model="datePicker.value"
                               type="datetimerange"
                               align="right"
@@ -41,12 +46,11 @@
                         </el-col>
                         <el-col :span="4" style="text-align: right">
                           <el-form-item>
-                            <el-button type="primary">查询</el-button>
+                            <el-button type="primary" @click="chatDetailFind()">查询</el-button>
                           </el-form-item>
                         </el-col>
                       </el-row>
                     </el-form>
-
                     <el-table
                       height="360"
                       :data="chatDetailList"
@@ -75,9 +79,7 @@
                         </template>
                       </el-table-column>
                     </el-table>
-
                   </el-dialog>
-
                   <el-badge
                     class="item"
                     v-for="(items, index) of props.row.friends"
@@ -97,8 +99,7 @@
 
           <el-table-column
             label="序号"
-            type="index"
-          >
+            type="index">
             <template slot-scope="scope">
               <span>{{ pagination.pageSize * (pagination.current - 1) + scope.$index + 1 }}</span>
             </template>
@@ -149,6 +150,7 @@
 <script>
 
 import axios from 'axios'
+import moment from 'moment'
 
 export default {
   name: 'chatRecord',
@@ -163,6 +165,12 @@ export default {
         }
       },
       dialogTableVisible: false, // 编辑面板的状态
+      dialogFindParams: { // 搜索条件
+        sendObj: '',
+        keyword: '',
+        startTime: '',
+        endTime: ''
+      },
       count: 0, // 信息总条数
       pagination: {
         pageSize: 5,
@@ -177,12 +185,31 @@ export default {
     }
   },
   created () {
-    this.sendData('get', {
-      type: 'chatDetailFind'
-    })
     this.initChatRecord()
   },
   methods: {
+    chatDetailFind () {
+      const params = {}
+      this
+        .sendData('get',
+          {
+            data: Object.assign(params, this.chatDetailPrams, this.dialogFindParams),
+            type: 'chatDetailFind'
+          })
+        .then(data => {
+          if (data.data.msg === 'success') {
+            console.log(data.data)
+            this.chatDetailList = data.data.result
+          }
+        })
+    },
+    /**
+     *  选择时间
+     */
+    DatePickerChange (e) {
+      this.dialogFindParams.startTime = moment(e[0]).format('YYYY-MM-DD hh:mm:ss')
+      this.dialogFindParams.endTime = moment(e[1]).format('YYYY-MM-DD hh:mm:ss')
+    },
     chatDetail (uid, chatObj) {
       this.chatDetailPrams.uid = uid
       this.chatDetailPrams.chatObj = chatObj

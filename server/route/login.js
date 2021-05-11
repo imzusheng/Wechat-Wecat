@@ -5,6 +5,9 @@ const JsonWebToken = require('../jwt')
 const jwt = new JsonWebToken()
 const sendEmail = require('../EmailServer')
 
+/**
+ * 检测重复登录
+ */
 router.get('/api/login/checkRepeatLogin', async (ctx) => {
   ctx.status = 200
   const data = ctx.query
@@ -28,7 +31,7 @@ router.post('/api/updateTime', async (ctx) => {
   console.log('login.js > updateTime ---- ', data)
   // 更新时间
   const date = new Date()
-  const formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+  const formatTime = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
   await db.updateOne('user', { email: data.email }, { $set: { RecentlyTime: formatTime } })
   ctx.body = {
     type: data.type,
@@ -75,7 +78,7 @@ router.post('/api/signSuc', async (ctx) => {
   const data = ctx.request.body
   // 注册时间
   const date = new Date()
-  const formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+  const formatTime = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
   // 用户信息写入
   const queryData = {}
   queryData.nickName = data.firstName

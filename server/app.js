@@ -72,7 +72,7 @@ router.post('/api/signSuc', async (ctx) => {
   const data = ctx.request.body
   // 注册时间
   let date = new Date()
-  let formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+  let formatTime = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
   // 用户信息写入
   const queryData = {}
   queryData.nickName = data.firstName

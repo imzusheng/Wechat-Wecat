@@ -10,30 +10,32 @@ router.get('/api/chatHistory', async (ctx) => {
   result = await db.find('chatRecord', {
     userID: ctx.query.uid
   })
-  result.forEach(value => {
-    chat.push({
-      chatObj: value.chatObj,
-      chat: value.chat
+  if (result.length > 0) {
+    result.forEach(value => {
+      chat.push({
+        chatObj: value.chatObj,
+        chat: value.chat
+      })
     })
-  })
-  /** 查询对应的用户信息 */
-  const queryData = {}
-  queryData.$or = []
-  chat.forEach(value => queryData.$or.push({ email: value.chatObj }))
-  result = await db.likeFind('user', queryData)
-  /** 合并后发送 */
-  result.forEach((value, key) => {
-    resultArr.push({
-      chatObj: chat[key].chatObj,
-      chat: chat[key].chat,
-      nickName: value.nickName,
-      trueName: value.trueName,
-      email: value.email,
-      avatar: value.avatar,
-      access: value.access,
-      time: value.time
+    /** 查询对应的用户信息 */
+    const queryData = {}
+    queryData.$or = []
+    chat.forEach(value => queryData.$or.push({ email: value.chatObj }))
+    result = await db.likeFind('user', queryData)
+    /** 合并后发送 */
+    result.forEach((value, key) => {
+      resultArr.push({
+        chatObj: chat[key].chatObj,
+        chat: chat[key].chat,
+        nickName: value.nickName,
+        trueName: value.trueName,
+        email: value.email,
+        avatar: value.avatar,
+        access: value.access,
+        time: value.time
+      })
     })
-  })
+  }
   ctx.body = {
     uid: ctx.query.uid,
     type: 'chatHistory',
@@ -47,20 +49,22 @@ router.get('/api/contact', async (ctx) => {
   const resultArr = []
   const friendResult = await db.find('friend', {
     UID: ctx.query.uid
-  }) // 查询数据
-
-  /** 查询对应的用户信息 */
-  const queryData = {}
-  queryData.$or = []
-  friendResult.forEach(value => queryData.$or.push({ email: value.Friend }))
-  likeFindResult = await db.likeFind('user', queryData)
-  /** 合并后发送 */
-  likeFindResult.forEach((value) => {
-    resultArr.push({
-      email: value.email,
-      avatar: value.avatar
-    })
   })
+
+  if (friendResult.length > 0) {
+    /** 查询对应的用户信息 */
+    const queryData = {}
+    queryData.$or = []
+    friendResult.forEach(value => queryData.$or.push({ email: value.Friend }))
+    likeFindResult = await db.likeFind('user', queryData)
+    /** 合并后发送 */
+    likeFindResult.forEach((value) => {
+      resultArr.push({
+        email: value.email,
+        avatar: value.avatar
+      })
+    })
+  }
 
   ctx.body = {
     uid: ctx.query.uid,
@@ -89,7 +93,7 @@ router.get('/api/chatRecord', async (ctx) => {
   ctx.body = {
     uid: ctx.query.uid,
     type: 'chatRecord',
-    result: result[0].chat
+    result: result ? result[0].chat : []
   }
 })
 

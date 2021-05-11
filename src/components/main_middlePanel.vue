@@ -89,7 +89,7 @@
 </template>
 
 <script>
-// import axios from 'axios'
+import moment from 'moment'
 
 export default {
   name: 'mainPanel',
@@ -162,7 +162,7 @@ export default {
         chat: {
           msg: input,
           say: 'me',
-          time: this.formatDate()
+          time: moment(new Date()).format('YYYY-MM-DD hh:mm:ss')
         },
         type: 'send'
       })

@@ -21,6 +21,8 @@
 </template>
 
 <script>
+import moment from 'moment'
+
 export default {
   name: 'friendApply',
   data () {
@@ -33,8 +35,6 @@ export default {
     sendData () {
       this.$store.state.addFriState = false
       const _that = this.$store.state
-      const date = new Date()
-      const formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
       this.$store.state.ws.sendMsg({
         from: {
           email: window.sessionStorage.getItem('email'),
@@ -48,7 +48,7 @@ export default {
         },
         applyMsg: this.applyMsg,
         status: false, // 通过状态
-        time: formatTime,
+        time: moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),
         type: 'addFriend'
       }, this.wsMsgGHandler)
     },

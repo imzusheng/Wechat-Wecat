@@ -33,7 +33,7 @@ export class WsServer {
   }
 
   errorCb (err) {
-    console.error('ws：连接意外断开', err)
+    console.error('ws：连接意外断开')
     this.Gws = null
     const _that = this
     this.wsTimer = setTimeout(() => {
@@ -46,9 +46,7 @@ export class WsServer {
     try {
       this.connect().then((ws) => {
         ws.send(JSON.stringify(msg))
-        // console.log('%cwsServer.js > ws.send(JSON.stringify(msg))', 'color: red', msg)
         ws.onmessage = data => {
-          // console.log('%cwsServer.js >  ws.onmessage', 'color: red', JSON.parse(data.data))
           cb(data)
         }
       })

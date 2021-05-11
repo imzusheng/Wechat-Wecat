@@ -15,6 +15,8 @@
 </template>
 
 <script>
+import moment from 'moment'
+
 export default {
   name: 'handle_apply',
   data () {
@@ -29,13 +31,11 @@ export default {
     sendData (flag) {
       this.$store.state.applyList.shift() /** 处理完一个请求后删除请求列表数组的第一个，处理下一个请求 */
       console.log('handle_apply > sendData()', this.$store.state.applyList)
-      const date = new Date()
-      const formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
       this.$store.state.ws.sendMsg({
         uid: window.sessionStorage.getItem('uid'),
         friend: this.email,
         flag: flag, // 通过状态
-        time: formatTime,
+        time: moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),
         type: 'addFriendReply'
       }, this.wsMsgGHandler)
     },

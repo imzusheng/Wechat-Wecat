@@ -287,18 +287,20 @@ export default new Vuex.Store({
     },
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {
-      if (playLoad.type === 'addFriend') return // 通过好友时的信息
-      if (playLoad.type === 'agree') {
-        state.friends[state.chatObj] = []
-        state.friends[state.chatObj].push(playLoad.chat)
-      } else if (playLoad.type === 'send') {
-        // state.friends[state.chatObj] = state.friends[state.chatObj] ? state.friends[state.chatObj] : []
-        if (!state.friends[state.chatObj]) Vue.set(state.friends, state.chatObj, []) // 后期为对象添加属性时要用此方法，不然无法实时渲染(没有get(),set())
-        state.friends[state.chatObj].splice(0, state.friends[state.chatObj].length - state.maxMsg)
-        state.friends[state.chatObj].push(playLoad.chat)
-      } else {
-        state.friends[playLoad.uid].splice(0, state.friends[playLoad.uid].length - state.maxMsg)
-        state.friends[playLoad.uid].push(playLoad.chat)
+      if (playLoad.type) {
+        if (playLoad.type === 'addFriend') return // 通过好友时的信息
+        if (playLoad.type === 'agree') {
+          state.friends[state.chatObj] = []
+          state.friends[state.chatObj].push(playLoad.chat)
+        } else if (playLoad.type === 'send') {
+          // state.friends[state.chatObj] = state.friends[state.chatObj] ? state.friends[state.chatObj] : []
+          if (!state.friends[state.chatObj]) Vue.set(state.friends, state.chatObj, []) // 后期为对象添加属性时要用此方法，不然无法实时渲染(没有get(),set())
+          state.friends[state.chatObj].splice(0, state.friends[state.chatObj].length - state.maxMsg)
+          state.friends[state.chatObj].push(playLoad.chat)
+        } else {
+          state.friends[playLoad.uid].splice(0, state.friends[playLoad.uid].length - state.maxMsg)
+          state.friends[playLoad.uid].push(playLoad.chat)
+        }
       }
     },
     // 滚动条自动到底底部
@@ -335,8 +337,14 @@ export default new Vuex.Store({
       }, args.setTime)
     },
     wsMsgGHandler (state, data) {
-      const msgObj = typeof data === 'object' ? data.data : JSON.parse(data.data)
+      const msgObj = typeof data.data === 'object' ? data.data : JSON.parse(data.data)
       console.log('Vuex > wsMsgGHandler()', msgObj)
+      if (msgObj.type === 'checkOnline') {
+        return state.ws.sendMsg({
+          uid: state.uid,
+          type: 'checkOnline'
+        }, data => this.commit('wsMsgGHandler', data))
+      }
       switch (msgObj.type) {
         case 'navSearch':
           /** 搜索 */

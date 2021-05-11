@@ -34,7 +34,6 @@ router.get('/api/admin/userListFind', async (ctx) => {
     ]
   }
   const result = await db.find('user', queryData) // 查询数据
-  console.log(result)
   ctx.body = {
     msg: 'success',
     type: ctx.query.type,
@@ -48,7 +47,6 @@ router.get('/api/admin/userListFind', async (ctx) => {
 router.post('/api/admin/userListModify', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
-  console.log(data)
   await db.updateOne('user', { email: data.formData.email }, { $set: data.formData })
   ctx.body = {
     msg: 'success',
@@ -144,13 +142,38 @@ router.get('/api/admin/chatDetail', async (ctx) => {
  * 聊天记录细节搜索
  */
 router.get('/api/admin/chatDetailFind', async (ctx) => {
-  const result = await db.find('chatRecord', {
-    userID: 'imzusheng@163.com',
-    chatObj: 'imyvzhou@163.com'
-  })
-  result[0].chat.forEach(value => {
-    console.log(value.time + ' > ' + '2021年05月08日 20:10:12', value.time >= '2021年05月08日 20:10:12')
-  })
+  const data = typeof ctx.query.data === 'object' ? ctx.query.data : JSON.parse(ctx.query.data)
+  const queryMatch = {
+    $match: {
+      userID: data.uid,
+      chatObj: data.chatObj
+    }
+  }
+  const queryProject = {
+    $project: { chat: 1 }
+  }
+  const queryUnwind = {
+    $unwind: '$chat'
+  }
+  if (data.sendObj) {
+    queryMatch.$match['chat.say'] = data.sendObj
+  }
+  if (data.keyword) {
+    queryMatch.$match['chat.msg'] = data.keyword
+  }
+  /*  if (data.startTime) {
+    queryMatch.$match['chat.time'] = {
+      $gte: data.startTime,
+      $lte: data.endTime
+    }
+  } */
+  /**
+   * 查询内嵌数组并过滤：https://blog.csdn.net/u014756827/article/details/80677628
+   * @type {({$unwind: string}|{$match: {'chat.msg': string, chatObj: string, userID: string}}|{$project: {chat: number}})[]}
+   */
+  const result = await db.detailFind('chatRecord', queryUnwind, queryMatch, queryProject)
+  // value.chat.time.replace(/年|月/g, '-').replace(/日/g, '')  })
+  console.log(result)
   ctx.body = {
     msg: 'success',
     type: ctx.query.type,

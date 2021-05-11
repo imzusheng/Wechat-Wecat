@@ -14,15 +14,22 @@ module.exports = {
     console.log(`WebSocketServer listen at ws://localhost:${port}`)
     /** wss.clients为 set集合，转换为数组便于操作 */
     wss.on('connection', async (ws) => {
-      ws.on('close', () => {
-        // 有客户端离线时，更新在线客户端
-        clientsArr = Array.from(wss.clients)
-      })
+      /*      clearInterval(this.timer)
+      this.timer = setInterval(function () {
+        Array.from(wss.clients).forEach(client => {
+          console.log(client.userID)
+          if (!client.onlineStatus) client.userID = null
+          client.onlineStatus = false
+          client.send(JSON.stringify({
+            type: 'checkOnline'
+          }))
+        })
+      }, 10000) */
       ws.on('message', (msg) => {
         clientsArr = Array.from(wss.clients)
-        console.log('ws.js > ws.on ---- 在线人数：' + clientsArr.length)
+        // console.log('ws.js > ws.onmessage() ---- ', `\x1B[36m在线用户：${clientsArr.length}\x1B[0m`)
         const MsgObj = JSON.parse(msg)
-        console.log('ws.js > onmessage() ---- ', MsgObj)
+        // console.log('ws.js > onmessage() ---- ', `\x1B[36m${JSON.stringify(MsgObj)}\x1B[0m`)
         const route = {
           chat,
           online,
@@ -31,9 +38,20 @@ module.exports = {
           addFriend,
           addFriendReply,
           exit
+          // checkOnline
           // checkRepeatLogin 现在通过get请求获取在线客户端，不需要你了
         }
-        const routeArr = ['chat', 'online', 'clearUnReadMsg', 'navSearch', 'addFriend', 'addFriendReply', 'checkRepeatLogin', 'exit']
+        const routeArr = [
+          'chat',
+          'online',
+          'clearUnReadMsg',
+          'navSearch',
+          'addFriend',
+          'addFriendReply',
+          'checkRepeatLogin',
+          'exit',
+          'checkOnline'
+        ]
         /**
          * MsgObj 聊天信息载体
          * wss 完整的WebSocket.Server对象
@@ -44,6 +62,13 @@ module.exports = {
     })
   }
 }
+
+/**
+ * 检查在线状态
+ */
+/* function checkOnline (MsgObj, wss, _that) {
+  _that.onlineStatus = true
+} */
 
 /**
  * 退出登录，清除登陆状态
@@ -147,6 +172,7 @@ function online (MsgObj, wss, _that) {
   })
   /** userIDStatus为false则用户没有重复在线 */
   if (userIDStatus) {
+    _that.onlineStatus = true
     _that.userID = MsgObj.uid
   }
 }
@@ -187,7 +213,6 @@ async function chat (MsgObj, wss, _that, type) {
       userID: MsgObj.uid1,
       chatObj: MsgObj.uid2
     })
-    console.log('ws.js > chat ---- agree: 看看存不存在聊天记录集合', result)
     if (result.length === 0) {
       console.log('ws.js > chat ---- agree: 开始写入')
       db.insertManyData('chatRecord', [
@@ -322,7 +347,7 @@ async function addFriendReply (MsgObj, wss, _that) {
     /** 同意好友申请后，假装成系统发送一条消息给双方 */
     const agreeMsg = {
       msg: '已通过好友申请',
-      time: `${date.getFullYear()}年${month}月${day}日 ${h}:${m}:${s}`,
+      time: `${date.getFullYear()}-${month}-${day} ${h}:${m}:${s}`,
       uid1: MsgObj.uid,
       uid2: MsgObj.friend,
       type: 'agree'
