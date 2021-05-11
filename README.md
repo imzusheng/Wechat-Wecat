@@ -1,6 +1,25 @@
 WeCat
 ======
 
+启动方式
+-----------
+需要node/mongodb环境，数据库备份在wecat文件夹，配置完mongodb后执行
+```
+mongorestore -d wecat ./wecat
+npm i
+npm run serve
+node appModule
+```
+
+[项目部署地址](https://zusheng.club/chat)
+```
+测试账号
+imzusheng@163.com
+a123456
+```
+<br/>
+简介
+-----
 学习`WebSocket`、`nodejs`、`VUE`路上的动手实践项目，
 以实现微信网页版功能的基础上加入一些小功能.
 
@@ -11,7 +30,7 @@ WeCat
 <br />
 <br />
 
-起步时到现在共经历了三次重构，以下是遇到的一些问题
+以下是遇到的一些问题
 ## 版本一
 * 刚接触后台，用`nodejs`的`ws模块`实现`Websocket连接`，不理解`路由、组件、模块化`    
 * 相对于`nodejs`更熟悉`PHP、mysql、Nignx`，所以需要切换多种语言    
@@ -29,10 +48,13 @@ WeCat
 * `mongodb` 频繁查询都涉及到js的`Promise、async、await`    
 * `es6 module`及`class`封装一个`websocket服务、mongodb数据库`
 
-## 版本三（目前）
+## 版本三
 * 费心机的还是找`logo素材`，`设计排版`
 * 使用`vue-cli`之前没接触过`webpack`，不理解原理。以至于初次构建项目时生成了一堆没见过的文件
 * vue 在初始化项目配置的时候，有两个运行环境配置的版本：`Compiler 版本、Runtime 版本`
 * `组件通信`初次接触有点绕
 * `router-view`有很多高级功能有待研究
 * 跨域问题，请求类型变成`options`，涉及到`复杂请求`和`简单请求`
+
+## 目前
+* 见github

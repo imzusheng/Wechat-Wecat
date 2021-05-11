@@ -81,6 +81,7 @@
     <el-row>
       <el-col :span="24">
         <el-table
+          v-loading="loading"
           height="calc(100vh - (48px * 4) - (20px * 2) - 30px)"
           :data="tableData.slice((pagination.current*pagination.pageSize-pagination.pageSize),pagination.current*pagination.pageSize)"
           stripe
@@ -112,6 +113,9 @@
           <el-table-column
             prop="time"
             label="注册时间">
+            <template slot-scope="scope">
+              <el-tag v-text="signTime(scope.row.time)"></el-tag>
+            </template>
           </el-table-column>
           <el-table-column
             prop="access"
@@ -151,12 +155,14 @@
 <script>
 
 import axios from 'axios'
+import moment from 'moment'
 
 export default {
   name: 'userList',
   components: {},
   data () {
     return {
+      loading: false, // 主面板加载
       load: false, // 加载状态
       dialogFormVisible: false, // 编辑面板的状态
       editForm: {}, // 编辑面板绑定的数据
@@ -172,7 +178,8 @@ export default {
         input: '',
         type: ''
       },
-      tableData: []
+      tableData: [],
+      flag: false
     }
   },
   created () {
@@ -180,12 +187,18 @@ export default {
   },
   methods: {
     /**
+     * 返回格式化时间
+     */
+    signTime (time) {
+      return moment(time).format('YYYY-MM-DD')
+    },
+    /**
      * 查找
      */
     userListFind () {
       this.find.type = 'userListFind'
-      console.log(this.find)
       this.sendData('get', this.find).then(data => {
+        this.loading = !this.loading
         this.tableData = data.data.result.map(value => {
           delete value._id
           return value
@@ -200,6 +213,7 @@ export default {
         uid: this.$store.state.uid,
         type: 'userList'
       }).then(data => {
+        this.loading = false
         if (data.data.msg === 'success') {
           /** 去掉_id属性，因为_id属性在mongodb中可读不可写 */
           this.tableData = data.data.result.map(value => {
@@ -216,6 +230,7 @@ export default {
      * @returns {AxiosPromise} then()回调
      */
     sendData (method, data) {
+      this.loading = !this.loading
       if (method === 'get') {
         return axios({
           method: method,
@@ -240,8 +255,8 @@ export default {
         uid: this.$store.state.uid,
         formData: this.editForm
       }).then(data => {
+        this.load = !this.load
         if (data.data.msg === 'success') {
-          this.load = !this.load
           this.dialogFormVisible = false
           this.initUserList()
         }
@@ -285,6 +300,7 @@ export default {
           type: 'userListDelete',
           formData: this.editForm
         }).then(data => {
+          this.loading = !this.loading
           if (data.data.msg === 'success') {
             this.initUserList()
             this.load = !this.load

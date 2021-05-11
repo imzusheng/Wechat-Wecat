@@ -134,7 +134,9 @@ router.get('/api/admin/chatDetail', async (ctx) => {
   ctx.body = {
     msg: 'success',
     type: ctx.query.type,
-    result: result
+    result: {
+      chat: result
+    }
   }
 })
 
@@ -143,14 +145,19 @@ router.get('/api/admin/chatDetail', async (ctx) => {
  */
 router.get('/api/admin/chatDetailFind', async (ctx) => {
   const data = typeof ctx.query.data === 'object' ? ctx.query.data : JSON.parse(ctx.query.data)
+  console.log(data.startTime, data.endTime)
   const queryMatch = {
     $match: {
       userID: data.uid,
       chatObj: data.chatObj
     }
   }
+
   const queryProject = {
-    $project: { chat: 1 }
+    $project: {
+      chat: 1,
+      _id: 0
+    }
   }
   const queryUnwind = {
     $unwind: '$chat'
@@ -159,25 +166,38 @@ router.get('/api/admin/chatDetailFind', async (ctx) => {
     queryMatch.$match['chat.say'] = data.sendObj
   }
   if (data.keyword) {
-    queryMatch.$match['chat.msg'] = data.keyword
+    queryMatch.$match['chat.msg'] = { $regex: new RegExp(`.*${data.keyword}.*`) }
   }
+
   /*  if (data.startTime) {
     queryMatch.$match['chat.time'] = {
       $gte: data.startTime,
       $lte: data.endTime
     }
   } */
+  console.log(queryMatch)
   /**
    * 查询内嵌数组并过滤：https://blog.csdn.net/u014756827/article/details/80677628
    * @type {({$unwind: string}|{$match: {'chat.msg': string, chatObj: string, userID: string}}|{$project: {chat: number}})[]}
    */
   const result = await db.detailFind('chatRecord', queryUnwind, queryMatch, queryProject)
-  // value.chat.time.replace(/年|月/g, '-').replace(/日/g, '')  })
-  console.log(result)
+  let newChat = []
+  if (data.startTime) {
+    result.forEach(value => {
+      value.chat.time = value.chat.time.replace(/年|月/g, '-').replace(/日/g, '')
+      if (new Date(value.chat.time).getTime() >= new Date(data.startTime).getTime() && new Date(value.chat.time).getTime() <= new Date(data.endTime).getTime()) {
+        newChat.push(value)
+      }
+    })
+  } else {
+    newChat = result
+  }
   ctx.body = {
     msg: 'success',
     type: ctx.query.type,
-    result: result
+    uid: data.uid,
+    chatObj: data.chatObj,
+    chatList: newChat
   }
 })
 

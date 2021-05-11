@@ -30,9 +30,7 @@ router.post('/api/updateTime', async (ctx) => {
   const data = ctx.request.body
   console.log('login.js > updateTime ---- ', data)
   // 更新时间
-  const date = new Date()
-  const formatTime = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-  await db.updateOne('user', { email: data.email }, { $set: { RecentlyTime: formatTime } })
+  await db.updateOne('user', { email: data.email }, { $set: { RecentlyTime: data.time } })
   ctx.body = {
     type: data.type,
     msg: 'success'

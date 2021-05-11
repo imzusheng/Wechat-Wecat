@@ -3,6 +3,7 @@
     <el-row>
       <el-col :span="24">
         <el-table
+          v-loading="loading"
           class="chatRecordTable"
           :data="tableData.slice((pagination.current*pagination.pageSize-pagination.pageSize),pagination.current*pagination.pageSize)"
           height="calc(100vh - (48px * 4) - (20px * 2))"
@@ -14,13 +15,16 @@
                   <!--  模态框内容  -->
                   <el-dialog
                     width="80%"
-                    title="聊天记录"
                     :visible.sync="dialogTableVisible">
+                    <template v-slot:title>
+                      <div style="font-size: 24px">聊天记录<el-tag size="medium" type="info" style="margin-left: 20px">{{ chatDetailPrams.uid }}</el-tag></div>
+                    </template>
                     <el-form size="small" :inline="true" :model="dialogFindParams">
                       <el-row :gutter="0">
-                        <el-col :span="5">
+                        <el-col :span="6">
                           <el-form-item label="发送人">
                             <el-select v-model="dialogFindParams.sendObj" placeholder="">
+                              <el-option label='全部' value=""></el-option>
                               <el-option :label='chatDetailPrams.uid' value="me"></el-option>
                               <el-option :label="chatDetailPrams.chatObj" value="you"></el-option>
                             </el-select>
@@ -44,7 +48,7 @@
                             </el-date-picker>
                           </el-form-item>
                         </el-col>
-                        <el-col :span="4" style="text-align: right">
+                        <el-col :span="2" style="text-align: right">
                           <el-form-item>
                             <el-button type="primary" @click="chatDetailFind()">查询</el-button>
                           </el-form-item>
@@ -58,24 +62,24 @@
                       <el-table-column
                         label="发送人">
                         <template slot-scope="scope">
-                          <span>{{ scope.row.say === 'me' ? chatDetailPrams.uid : chatDetailPrams.chatObj }}</span>
+                          <span>{{ scope.row.chat.say === 'me' ? chatDetailPrams.uid : chatDetailPrams.chatObj }}</span>
                         </template>
                       </el-table-column>
 
                       <el-table-column
                         label="消息内容"
-                        prop="msg">
+                        prop="chat.msg">
                       </el-table-column>
 
                       <el-table-column
                         label="时间"
-                        prop="time">
+                        prop="chat.time">
                       </el-table-column>
 
                       <el-table-column
                         label="状态">
                         <template slot-scope="scope">
-                          <span>{{ scope.row.status ? '已读' : '未读' }}</span>
+                          <span>{{ scope.row.chat.status ? '已读' : '未读' }}</span>
                         </template>
                       </el-table-column>
                     </el-table>
@@ -86,9 +90,10 @@
                     :key="index"
                     :value="items.recMsgCount + items.sendMsgCount"
                   >
-                    <el-button size="small" @click="chatDetail(props.row.email, items.name)">{{
-                        items.name
-                      }}
+                    <el-button size="small" @click="chatDetailFind(props.row.email, items.name)">
+                      <el-tag type="success">
+                        {{ items.name }}
+                      </el-tag>
                     </el-button>
                   </el-badge>
 
@@ -113,16 +118,25 @@
           <el-table-column
             label="好友总数"
             prop="friendsCount">
+            <template slot-scope="scope">
+              <el-tag type="success">{{ scope.row.friendsCount }} 个</el-tag>
+            </template>
           </el-table-column>
 
           <el-table-column
             label="发送消息"
             prop="sendMsgCount">
+            <template slot-scope="scope">
+              <el-tag>{{ scope.row.sendMsgCount }} 条</el-tag>
+            </template>
           </el-table-column>
 
           <el-table-column
             label="接收消息"
             prop="recMsgCount">
+            <template slot-scope="scope">
+              <el-tag type="warning">{{ scope.row.recMsgCount }} 条</el-tag>
+            </template>
           </el-table-column>
 
           <el-table-column
@@ -157,11 +171,12 @@ export default {
   components: {},
   data () {
     return {
+      loading: false,
       datePicker: {
         value: '',
         defaultTime: {
-          start: '00:00:00',
-          end: '24:00:00'
+          start: '07:00:00',
+          end: '22:00:00'
         }
       },
       dialogTableVisible: false, // 编辑面板的状态
@@ -188,7 +203,12 @@ export default {
     this.initChatRecord()
   },
   methods: {
-    chatDetailFind () {
+    chatDetailFind (uid, chatObj) {
+      if (!this.dialogTableVisible) {
+        this.chatDetailPrams.uid = uid
+        this.chatDetailPrams.chatObj = chatObj
+        this.dialogTableVisible = true
+      }
       const params = {}
       this
         .sendData('get',
@@ -198,8 +218,8 @@ export default {
           })
         .then(data => {
           if (data.data.msg === 'success') {
-            console.log(data.data)
-            this.chatDetailList = data.data.result
+            this.chatDetailList = data.data.chatList
+            console.log(this.chatDetailList)
           }
         })
     },
@@ -207,31 +227,19 @@ export default {
      *  选择时间
      */
     DatePickerChange (e) {
-      this.dialogFindParams.startTime = moment(e[0]).format('YYYY-MM-DD hh:mm:ss')
-      this.dialogFindParams.endTime = moment(e[1]).format('YYYY-MM-DD hh:mm:ss')
-    },
-    chatDetail (uid, chatObj) {
-      this.chatDetailPrams.uid = uid
-      this.chatDetailPrams.chatObj = chatObj
-      this.dialogTableVisible = true
-      this.sendData('get', {
-        uid: uid,
-        chatObj: chatObj,
-        type: 'chatDetail'
-      }).then(data => {
-        if (data.data.msg === 'success') {
-          this.chatDetailList = data.data.result[0].chat
-        }
-      })
+      this.dialogFindParams.startTime = moment(e[0]).format('YYYY-MM-DD HH:mm:ss')
+      this.dialogFindParams.endTime = moment(e[1]).format('YYYY-MM-DD HH:mm:ss')
     },
     /**
      * 初始化获取数据
      */
     initChatRecord () {
+      this.loading = !this.loading
       this.sendData('get', {
         uid: this.$store.state.uid,
         type: 'chatRecordList'
       }).then(data => {
+        this.loading = !this.loading
         if (data.data.msg === 'success') {
           /** 去掉_id属性，因为_id属性在mongodb中可读不可写 */
           this.tableData = data.data.data.map(value => {
@@ -295,5 +303,9 @@ export default {
 
 .item {
   margin: 0 40px 10px 0;
+}
+
+.el-button--small {
+  border: none;
 }
 </style>

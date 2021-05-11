@@ -95,6 +95,7 @@ import catsBg from '../components/login/login_cats_bg'
 import catTitle from '../components/login/login_cat_title'
 import axios from 'axios'
 import messageTips from '@/components/globe/message_tips'
+import moment from 'moment'
 
 export default {
   name: 'login',
@@ -208,7 +209,8 @@ export default {
           method: 'post',
           url: '/updateTime',
           data: {
-            email: response.email
+            email: response.email,
+            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
           }
         }).then()
         // 修改全局uid为登录用户
