@@ -55,7 +55,7 @@ router.get('/api/contact', async (ctx) => {
   friendResult.forEach(value => queryData.$or.push({ email: value.Friend }))
   likeFindResult = await db.likeFind('user', queryData)
   /** 合并后发送 */
-  likeFindResult.forEach((value, key) => {
+  likeFindResult.forEach((value) => {
     resultArr.push({
       email: value.email,
       avatar: value.avatar
