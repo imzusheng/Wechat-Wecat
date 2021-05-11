@@ -335,7 +335,7 @@ export default new Vuex.Store({
       }, args.setTime)
     },
     wsMsgGHandler (state, data) {
-      const msgObj = JSON.parse(data.data)
+      const msgObj = typeof data === 'object' ? data.data : JSON.parse(data.data)
       console.log('Vuex > wsMsgGHandler()', msgObj)
       switch (msgObj.type) {
         case 'navSearch':

@@ -1,10 +1,10 @@
 const router = require('@koa/router')()
+const commonRouter = require('./commonRouter')
 const routeAdmin = require('./admin')
 const routeLogin = require('./login')
-const common = require('./common')
 
 router
-  .use(common)
+  .use(commonRouter)
   .use(routeAdmin)
   .use(routeLogin)
 

@@ -9,7 +9,8 @@
         <LoadingLine v-if="login.axiosStatus"/>
         <catTitle/>
         <div class="login_container_mask"
-             :style="{transform: $route.name === 'sign' || $route.name === 'forget' ? 'translateX(0%)' : (login.uidStatus ? 'translateX(-66.66%)' : 'translateX(-33.33%)'),
+             :style="{transform: ['sign', 'forget', 'emailCheck'].includes($route.name) ?
+          'translateX(0%)' : (login.uidStatus ? 'translateX(-66.66%)' : 'translateX(-33.33%)'),
              opacity: login.axiosStatus || login.pwdStatus? 0.5 : 1}">
           <div class="common_from">
             <router-view @axiosStatusChange="axiosStatusChange"/>
@@ -142,11 +143,13 @@ export default {
      * 查询有无重复登录
      */
     checkRepeatLogin () {
-      return new Promise(resolve => {
-        this.$store.state.ws.sendMsg({
+      return axios({
+        method: 'get',
+        url: '/login/checkRepeatLogin',
+        params: {
           uid: this.uid,
           type: 'checkRepeatLogin'
-        }, data => resolve(data))
+        }
       })
     },
     /**
@@ -158,9 +161,9 @@ export default {
       if (!this.login.uidStatus) {
         await this.checkRepeatLogin().then(data => {
           this.$store.commit('wsMsgGHandler', data)
-          this.checkRepeatLoginFlag = JSON.parse(data.data).flag
+          this.checkRepeatLoginFlag = data.data.flag
         })
-        /** 如果重复登录则直接返回 */
+        // 如果重复登录则直接返回
         if (this.checkRepeatLoginFlag) {
           this.login.axiosStatus = false
           return
@@ -216,8 +219,6 @@ export default {
         sessionStorage.setItem('avatar', response.avatar)
         sessionStorage.setItem('token', response.token)
         sessionStorage.setItem('uid', _that.uid)
-        /** 登陆成功重新实例化wsServer */
-        this.$store.commit('linkWsServer')
         // 路由跳转到home，500ms为动画时间
         setTimeout(() => _that.$router.replace('home'), 500)
       }

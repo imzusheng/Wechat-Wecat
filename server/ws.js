@@ -1,38 +1,48 @@
 const WebSocket = require('ws')
 const MongoDB = require('./mongodb.js')
 const db = new MongoDB()
+let clientsArr = []
 
-module.exports = (port) => {
-  const wss = new WebSocket.Server({
-    port: port
-  })
-  console.log(`WebSocketServer listen at ws://localhost:${port}`)
-  let clientsArr = []
-  /** wss.clients为 set集合，转换为数组便于操作 */
-  wss.on('connection', async (ws) => {
-    ws.on('close', () => {
-      // 有客户端离线时，更新在线客户端
-      clientsArr = Array.from(wss.clients)
+module.exports = {
+  getOnlineClients: function () {
+    return clientsArr
+  },
+  link: function (port) {
+    const wss = new WebSocket.Server({
+      port: port
     })
-    ws.on('message', (msg) => {
-      clientsArr = Array.from(wss.clients)
-      console.log('ws.js > ws.on ---- 在线人数：' + clientsArr.length)
-      const MsgObj = JSON.parse(msg)
-      console.log('ws.js > onmessage() ---- ', MsgObj)
-      const route = {
-        chat,
-        online,
-        clearUnReadMsg,
-        navSearch,
-        addFriend,
-        addFriendReply,
-        checkRepeatLogin,
-        exit
-      }
-      const routeArr = ['chat', 'online', 'clearUnReadMsg', 'navSearch', 'addFriend', 'addFriendReply', 'checkRepeatLogin', 'exit']
-      if (routeArr.includes(MsgObj.type)) return route[MsgObj.type](MsgObj, wss, ws)
+    console.log(`WebSocketServer listen at ws://localhost:${port}`)
+    /** wss.clients为 set集合，转换为数组便于操作 */
+    wss.on('connection', async (ws) => {
+      ws.on('close', () => {
+        // 有客户端离线时，更新在线客户端
+        clientsArr = Array.from(wss.clients)
+      })
+      ws.on('message', (msg) => {
+        clientsArr = Array.from(wss.clients)
+        console.log('ws.js > ws.on ---- 在线人数：' + clientsArr.length)
+        const MsgObj = JSON.parse(msg)
+        console.log('ws.js > onmessage() ---- ', MsgObj)
+        const route = {
+          chat,
+          online,
+          clearUnReadMsg,
+          navSearch,
+          addFriend,
+          addFriendReply,
+          exit
+          // checkRepeatLogin 现在通过get请求获取在线客户端，不需要你了
+        }
+        const routeArr = ['chat', 'online', 'clearUnReadMsg', 'navSearch', 'addFriend', 'addFriendReply', 'checkRepeatLogin', 'exit']
+        /**
+         * MsgObj 聊天信息载体
+         * wss 完整的WebSocket.Server对象
+         * ws 当前新建连接并激活的客户端
+         */
+        if (routeArr.includes(MsgObj.type)) return route[MsgObj.type](MsgObj, wss, ws)
+      })
     })
-  })
+  }
 }
 
 /**
@@ -40,7 +50,9 @@ module.exports = (port) => {
  */
 function exit (MsgObj, wss, _that) {
   wss.clients.forEach(value => {
-    if (value.userID === MsgObj.uid) value.userID = null
+    if (value.userID === MsgObj.uid) {
+      value.userID = null
+    }
   })
   _that.send(JSON.stringify({
     uid: MsgObj.uid,
@@ -50,9 +62,7 @@ function exit (MsgObj, wss, _that) {
   }))
 }
 
-/**
- *  查询有无重复登陆
- */
+/* 查询有无重复登陆
 function checkRepeatLogin (MsgObj, wss, _that) {
   console.log('ws.js > checkRepeatLogin()', MsgObj)
   let flag = false
@@ -67,6 +77,7 @@ function checkRepeatLogin (MsgObj, wss, _that) {
     type: 'checkRepeatLogin'
   }))
 }
+ */
 
 /**
  * 用户模糊搜索功能
@@ -300,12 +311,18 @@ async function addFriendReply (MsgObj, wss, _that) {
         }
       ])
     }
-    /** 同意好友申请后，假装成系统发送一条消息给双方 */
     const date = new Date()
-    const formatTime = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+    const format = date => date < 10 ? `0${date}` : date
+    const month = format(date.getMonth() + 1)
+    const day = format(date.getDate())
+    const h = format(date.getHours())
+    const m = format(date.getMinutes())
+    const s = format(date.getSeconds())
+
+    /** 同意好友申请后，假装成系统发送一条消息给双方 */
     const agreeMsg = {
       msg: '已通过好友申请',
-      time: formatTime,
+      time: `${date.getFullYear()}年${month}月${day}日 ${h}:${m}:${s}`,
       uid1: MsgObj.uid,
       uid2: MsgObj.friend,
       type: 'agree'

@@ -5,6 +5,23 @@ const JsonWebToken = require('../jwt')
 const jwt = new JsonWebToken()
 const sendEmail = require('../EmailServer')
 
+router.get('/api/login/checkRepeatLogin', async (ctx) => {
+  ctx.status = 200
+  const data = ctx.query
+  let flag = false
+  require('../ws').getOnlineClients().forEach(value => {
+    if (value.userID === data.uid) flag = true
+    console.log('login.js > checkRepeatLogin ----', value.userID)
+  })
+  ctx.body = {
+    uid: data.uid,
+    flag: flag,
+    error: flag,
+    msg: flag ? '请勿重复登录' : '欢迎',
+    type: 'checkRepeatLogin'
+  }
+})
+
 router.post('/api/updateTime', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
@@ -19,7 +36,7 @@ router.post('/api/updateTime', async (ctx) => {
   }
 })
 
-router.post('/api/login', async (ctx, next) => {
+router.post('/api/login', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
   const queryData = {}

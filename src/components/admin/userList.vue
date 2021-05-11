@@ -212,6 +212,7 @@ export default {
     /**
      * 发送消息
      * @param data  发送的数据
+     * @param method  post/get
      * @returns {AxiosPromise} then()回调
      */
     sendData (method, data) {
@@ -316,7 +317,7 @@ export default {
 }
 
 .el-aside {
-  background: rgba(180, 190, 200, .3);
+  /*background: rgba(180, 190, 200, .3);*/
 }
 
 .el-main {

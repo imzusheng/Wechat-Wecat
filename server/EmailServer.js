@@ -5,7 +5,6 @@ async function main (data) {
   const transporter = nodemailer.createTransport({
     host: Config.email.host,
     port: Config.email.port,
-    secureConnection: true,
     secure: Config.email.secure,
     auth: {
       user: Config.email.user,

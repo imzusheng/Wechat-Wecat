@@ -6,11 +6,14 @@
       <p></p>
     </div>
     <main class="main">
+      <!--  昵称和姓名  -->
       <div class="inline_Container">
         <inputZs :tips="G.firstNameTips" :type="'firstName'" :typeStatus="'firstNameErrInfo'"/>
         <inputZs :tips="G.lastNameTips" :type="'lastName'" :typeStatus="'lastNameErrInfo'"/>
       </div>
+      <!--  电子邮件  -->
       <inputZs class="email" :tips="G.EmailTips" :type="'email'" :typeStatus="'emailErrInfo'"/>
+      <!--  密码和确认密码  -->
       <div class="inline_Container">
         <inputZs :tips="G.pwdTips" :type="'pwd'" :typeStatus="'pwdErrInfo'"/>
         <inputZs :tips="G.enterTips" :type="'enter'" :typeStatus="'enterErrInfo'"/>
@@ -106,61 +109,61 @@ export default {
 </script>
 
 <style scoped>
-  .sign_container {
-    height: 100%;
-    width: 100%;
-    box-sizing: border-box;
-  }
+.sign_container {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
 
-  .main {
-    padding: 0 9%;
-  }
+.main {
+  padding: 0 9%;
+}
 
-  .inline_Container {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
+.inline_Container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
 
-  .email {
-    margin-bottom: 30px;
-  }
+.email {
+  margin-bottom: 30px;
+}
 
-  .inline_Container > div {
-    width: calc(32px * 7);
-  }
+.inline_Container > div {
+  width: calc(32px * 7);
+}
 
-  .bottom_Bar {
-    width: 100%;
-    position: relative;
-    margin-top: 70px;
-  }
+.bottom_Bar {
+  width: 100%;
+  position: relative;
+  margin-top: 70px;
+}
 
-  .submitData {
-    display: block;
-    margin: auto;
-    height: 36px;
-    width: 100px;
-    border-radius: 20px;
-    color: #ffffff;
-    font-size: 16px;
-    letter-spacing: 0.25px;
-    border: none;
-    font-weight: 500;
-    cursor: pointer;
-    outline: none;
-    background: var(--common-color);
-  }
+.submitData {
+  display: block;
+  margin: auto;
+  height: 36px;
+  width: 100px;
+  border-radius: 20px;
+  color: #ffffff;
+  font-size: 16px;
+  letter-spacing: 0.25px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  background: var(--common-color);
+}
 
-  .turnLogin {
-    display: block;
-    color: #1A73E8;
-    font-size: 15px;
-    cursor: pointer;
-    position: absolute;
-    height: 100%;
-    top: 0;
-    right: 10%;
-    line-height: 36px;
-  }
+.turnLogin {
+  display: block;
+  color: #1A73E8;
+  font-size: 15px;
+  cursor: pointer;
+  position: absolute;
+  height: 100%;
+  top: 0;
+  right: 10%;
+  line-height: 36px;
+}
 </style>

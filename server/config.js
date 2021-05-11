@@ -9,6 +9,6 @@ module.exports = {
     user: 'imzusheng@163.com',
     pass: 'HNPJUKBWLOXHVQMT',
     port: 25,
-    secure: true
+    secure: false
   }
 }

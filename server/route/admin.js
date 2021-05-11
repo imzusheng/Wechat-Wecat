@@ -140,4 +140,22 @@ router.get('/api/admin/chatDetail', async (ctx) => {
   }
 })
 
+/**
+ * 聊天记录细节搜索
+ */
+router.get('/api/admin/chatDetailFind', async (ctx) => {
+  const result = await db.find('chatRecord', {
+    userID: 'imzusheng@163.com',
+    chatObj: 'imyvzhou@163.com'
+  })
+  result[0].chat.forEach(value => {
+    console.log(value.time + ' > ' + '2021年05月08日 20:10:12', value.time >= '2021年05月08日 20:10:12')
+  })
+  ctx.body = {
+    msg: 'success',
+    type: ctx.query.type,
+    result: result
+  }
+})
+
 module.exports = router.routes()

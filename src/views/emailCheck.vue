@@ -1,5 +1,6 @@
 <template>
   <div class="emailCheck_container" :style="{ 'transform': checkSuc ? 'translateX(-50%)' : 'translateX(0%)' }">
+    <!--  验证邮箱  -->
     <div class="checkEmail">
       <div class="title">
         <p>验证您的邮件地址</p>
@@ -14,6 +15,7 @@
         <button class="submitData" @click="sendData">下一步</button>
       </div>
     </div>
+    <!--  注册成功选择头像  -->
     <div class="checkEmailSuc">
       <div class="title">
         <p>注册成功</p>
@@ -103,6 +105,7 @@ export default {
       if (this.$store.state.signPage.emailCode === this.$store.state.signPage.emailCheck) {
         this.$store.commit('setEmailCodeErrInfo', '')
         this.checkSuc = true
+        console.log(this.checkSuc)
       } else {
         this.$store.commit('setEmailCodeErrInfo', '验证码错误')
       }

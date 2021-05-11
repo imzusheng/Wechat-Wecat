@@ -177,6 +177,9 @@ export default {
     }
   },
   created () {
+    this.sendData('get', {
+      type: 'chatDetailFind'
+    })
     this.initChatRecord()
   },
   methods: {
