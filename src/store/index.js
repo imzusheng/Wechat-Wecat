@@ -308,11 +308,10 @@ export default new Vuex.Store({
       if (!state.chatObj) return
       if (refs) {
         state.refs = refs
-      } else {
-        setTimeout(() => {
-          state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
-        }, 0)
       }
+      setTimeout(() => {
+        state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
+      }, 0)
     },
     // 建立WebSocket连接
     linkWsServer (state) {

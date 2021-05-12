@@ -136,15 +136,16 @@
             </template>
           </el-table-column>
         </el-table>
+
         <el-pagination
           class="pagination"
           background
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
-          :current-page="pagination.current"
           :page-sizes="[5, 10, 20, 50, 100]"
-          :page-size="pagination.pageSize"
           layout="total, sizes, prev, pager, next, jumper"
+          :current-page="pagination.current"
+          :page-size="pagination.pageSize"
           :total="tableData.length">
         </el-pagination>
       </el-col>

@@ -9,7 +9,7 @@ const JsonWebToken = require('./jwt')
 const jwt = new JsonWebToken()
 const sendEmail = require('./EmailServer')
 const Config = require('./config')
-require('./ws')(Config.wsServerPort)
+require('./ws').link(Config.wsServerPort)
 app.listen(Config.serverPort, console.log('server running at http://localhost:3000'))
 
 app

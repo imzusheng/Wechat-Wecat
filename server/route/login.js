@@ -40,35 +40,34 @@ router.post('/api/updateTime', async (ctx) => {
 router.post('/api/login', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
-  const queryData = {}
-  queryData.email = data.uid
-  // eslint-disable-next-line no-unused-expressions
-  data.type === 'pwd' ? queryData.pwd = data.pwd : '' // 当验证密码时，查询条件加上密码
-  const result = await db.find('user', queryData) // 查询数据
+  const queryParams = {
+    $or: [
+      { email: data.uid }, { nickName: data.uid }
+    ],
+    pwd: data.pwd
+  }
+  if (!data.pwd) delete queryParams.pwd
+  const result = await db.find('user', queryParams) // 查询数据
+  let res
   if (result.length > 0) { // 当查询到匹配的数据则验证成功
     const token = data.type === 'pwd' ? jwt.getToken(ctx.uid) : '' // 当密码验证成功时，返回token给客户端
-    const resultArr = [{
-      msg: '验证成功',
-      type: 'uid'
-    }, {
-      msg: '登录成功',
+    res = {
+      msg: `欢迎，${data.uid}`,
       token: token,
       nickName: result[0].nickName,
       email: result[0].email,
       avatar: result[0].avatar,
-      type: 'pwd'
-    }]
-    ctx.body = data.type === 'uid' ? resultArr[0] : resultArr[1]
+      error: false,
+      type: data.type
+    }
   } else {
-    const resultArr = [{
-      msg: '请输入有效的邮箱地址或账号',
-      type: 'err'
-    }, {
-      msg: '密码错误，请重试或点击“忘记密码”以重置密码',
-      type: 'err'
-    }]
-    ctx.body = data.type === 'uid' ? resultArr[0] : resultArr[1]
+    res = {
+      msg: data.type === 'uid' ? '请输入有效的邮箱地址或账号' : '密码错误，请重试或点击“忘记密码”以重置密码',
+      error: true,
+      type: data.type
+    }
   }
+  ctx.body = res
 })
 
 router.post('/api/signSuc', async (ctx) => {

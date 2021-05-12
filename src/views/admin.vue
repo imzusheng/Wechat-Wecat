@@ -6,6 +6,7 @@
           <figure></figure>
         </router-link>
         <el-menu
+          style="height: calc(100vh - 80px); position: relative"
           :router="false"
           :unique-opened="true"
           :default-active="$router.history.current.name">
@@ -22,9 +23,8 @@
             </el-menu-item>
           </router-link>
           <router-link :to="{ name: 'home'}" replace>
-            <el-menu-item index="/home">
-              <i class="el-icon-s-home"></i>
-              <span slot="title">用户界面</span>
+            <el-menu-item index="/home" class="goBack">
+              返回用户界面
             </el-menu-item>
           </router-link>
         </el-menu>
@@ -83,12 +83,12 @@ export default {
   user-select: none;
 }
 
-.el-aside{
+.el-aside {
   border-right: 1px solid #e6e6e6;
 }
 
-.el-menu{
-  border: none!important;
+.el-menu {
+  border: none !important;
 }
 
 .breadcrumb, .pagination {
@@ -107,5 +107,24 @@ export default {
   width: 100%;
   background: url("../assets/img/logo.svg") no-repeat 50%;
   background-size: 48%;
+}
+
+.goBack {
+  position: absolute !important;
+  left: 50%;
+  bottom: 20px;
+  width: 60%;
+  height: 40px !important;
+  line-height: 40px !important;
+  transform: translate(-50%, 0);
+  display: block;
+  background: rgba(221, 0, 27, .4);
+  color: #ffffff!important;
+  border-radius: 5px;
+  padding: 0;
+}
+
+.goBack:hover{
+  background: rgba(221, 0, 27, .7)!important;
 }
 </style>

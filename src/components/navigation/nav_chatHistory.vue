@@ -30,8 +30,8 @@ export default {
     selectFriend (e) {
       if (e.target.nodeName === 'INPUT' && this.chatObj !== e.target.attributes['data-friend-name'].value) {
         this.chatObj = e.target.attributes['data-friend-name'].value
-        this.$store.commit('chatObjChange', this.chatObj)
         // 收到或发送消息时，滚动条自动到达底部
+        setTimeout(() => this.$store.commit('chatObjChange', this.chatObj), 0)
         this.$store.commit('scrollRec')
         if (this.$store.state.unReadMsg[this.chatObj] > 0) {
           console.log('执行清除')

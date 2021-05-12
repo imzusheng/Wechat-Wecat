@@ -41,20 +41,22 @@
   }
 
   /* 设置滚动条的样式 */
-  ::-webkit-scrollbar {
-    /*width: 12px;*/
-    width: 0;
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
     background-color: transparent;
   }
 
   /* 滚动槽 */
   ::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
     border-radius: 10px;
   }
 
   /* 滚动条滑块 */
   ::-webkit-scrollbar-thumb {
     border-radius: 10px;
-    background: #888;
+    background: #888888;
   }
+
 </style>
