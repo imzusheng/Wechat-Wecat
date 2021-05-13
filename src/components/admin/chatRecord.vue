@@ -17,7 +17,9 @@
                     width="80%"
                     :visible.sync="dialogTableVisible">
                     <template v-slot:title>
-                      <div style="font-size: 24px">聊天记录<el-tag size="medium" type="info" style="margin-left: 20px">{{ chatDetailPrams.uid }}</el-tag></div>
+                      <div style="font-size: 24px">聊天记录
+                        <el-tag size="medium" type="info" style="margin-left: 20px">{{ chatDetailPrams.uid }}</el-tag>
+                      </div>
                     </template>
                     <el-form size="small" :inline="true" :model="dialogFindParams">
                       <el-row :gutter="0">
@@ -84,18 +86,23 @@
                       </el-table-column>
                     </el-table>
                   </el-dialog>
-                  <el-badge
+
+                  <el-tooltip
                     class="item"
+                    effect="dark"
+                    placement="bottom-end"
                     v-for="(items, index) of props.row.friends"
                     :key="index"
-                    :value="items.recMsgCount + items.sendMsgCount"
+                    :content="tooltipContent(items)"
                   >
-                    <el-button size="small" @click="chatDetailFind(props.row.email, items.name)">
-                      <el-tag type="success">
+                    <el-badge
+                      class="item"
+                      :value="items.recMsgCount + items.sendMsgCount">
+                      <el-button size="small" class="el-icon-view" @click="chatDetailFind(props.row.email, items.name)">
                         {{ items.name }}
-                      </el-tag>
-                    </el-button>
-                  </el-badge>
+                      </el-button>
+                    </el-badge>
+                  </el-tooltip>
 
                 </el-form-item>
               </el-form>
@@ -196,13 +203,16 @@ export default {
         chatObj: ''
       },
       chatDetailList: [],
-      tableData: []// 列表数据
+      tableData: [] // 列表数据
     }
   },
   created () {
     this.initChatRecord()
   },
   methods: {
+    tooltipContent (items) {
+      return `共 ${items.recMsgCount + items.sendMsgCount} 条记录，点击查看详情`
+    },
     chatDetailFind (uid, chatObj) {
       if (!this.dialogTableVisible) {
         this.chatDetailPrams.uid = uid
@@ -303,9 +313,5 @@ export default {
 
 .item {
   margin: 0 40px 10px 0;
-}
-
-.el-button--small {
-  border: none;
 }
 </style>

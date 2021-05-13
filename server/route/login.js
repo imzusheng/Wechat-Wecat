@@ -46,7 +46,7 @@ router.post('/api/login', async (ctx) => {
     ],
     pwd: data.pwd
   }
-  if (!data.pwd) delete queryParams.pwd
+  if (data.type === 'uid' && !data.pwd) delete queryParams.pwd
   const result = await db.find('user', queryParams) // 查询数据
   let res
   if (result.length > 0) { // 当查询到匹配的数据则验证成功

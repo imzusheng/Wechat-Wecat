@@ -22,13 +22,12 @@
               <p>使用您的 weCat 账号</p>
             </div>
             <!--  登录表单ID  s -->
+            <!--  autocomplete="new-password"  -->
             <div class="login_uid_container">
               <input
-                tabindex="-1"
                 type="text"
                 id="login_uid"
                 name="uid"
-                autocomplete="new-password"
                 ref="inputUID"
                 :disabled="login.axiosStatus || login.uidStatus || $store.state.login.uidDisabled"
                 v-model="uid"
