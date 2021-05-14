@@ -1,5 +1,5 @@
 const router = require('@koa/router')()
-const MongoDB = require('../mongodb')
+const MongoDB = require('../module/mongodb')
 const db = new MongoDB()
 
 router.get('/api/chatHistory', async (ctx) => {

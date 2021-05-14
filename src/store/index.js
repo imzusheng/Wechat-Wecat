@@ -22,8 +22,7 @@ export default new Vuex.Store({
       messageEventLoop: [],
       clock: {}
     },
-    // wsAddress: 'wss://zusheng.club/wsServer',
-    wsAddress: 'ws://localhost:4000',
+    wsAddress: process.env.NODE_ENV === 'production' ? 'wss://zusheng.club/wsServer' : 'ws://localhost:4000',
     login: {
       uidDisabled: false, // id输入框状态
       pwdDisabled: false, // 密码输入框状态

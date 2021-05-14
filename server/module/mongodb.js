@@ -1,6 +1,6 @@
 /* eslint-disable */
 const { MongoClient } = require('mongodb') // const MongoClient = require('mongodb').MongoClient;
-const Config = require('./config')
+const Config = require('../config')
 
 module.exports = class MongoDB {
   connectDB () {

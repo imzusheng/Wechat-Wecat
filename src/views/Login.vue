@@ -98,6 +98,7 @@ import catTitle from '../components/login/login_cat_title'
 import axios from 'axios'
 import messageTips from '@/components/globe/message_tips'
 import moment from 'moment'
+import { API_LOGIN } from '@/assets/js/api'
 
 export default {
   name: 'login',
@@ -125,12 +126,13 @@ export default {
     }
   },
   created () {
+    console.log(process.env.NODE_ENV)
   },
   mounted () {
     this.$store.commit('restore')
   },
   methods: {
-    keyCheck (evt) {
+    keyCheck (evt) { // 本页禁用Tab键
       if (evt.key === 'Tab') evt.preventDefault()
     },
     goSign () { // 跳转到注册页

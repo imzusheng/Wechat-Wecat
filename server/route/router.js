@@ -4,8 +4,8 @@ const routeAdmin = require('./admin')
 const routeLogin = require('./login')
 
 router
+  .use(routeLogin)
   .use(commonRouter)
   .use(routeAdmin)
-  .use(routeLogin)
 
 module.exports = router

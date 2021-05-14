@@ -9,8 +9,7 @@ import axios from 'axios'
 
 Vue.use(ElementUI)
 
-// axios.defaults.baseURL = 'https://zusheng.club/api'
-axios.defaults.baseURL = 'http://localhost:3000/api'
+axios.defaults.baseURL = process.env.NODE_ENV === 'production' ? 'https://zusheng.club/api' : 'http://localhost:3000/wechatAPI'
 axios.defaults.headers['Content-Type'] = 'application/json'
 axios.interceptors.request.use(config => {
   config.headers.Authorization = window.sessionStorage.getItem('token')
