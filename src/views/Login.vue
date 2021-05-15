@@ -1,27 +1,28 @@
 <template>
   <div
-    @keydown="keyCheck($event)"
     id="login"
-    :style="{'pointer-events': login.axiosStatus || login.pwdStatus? 'none' : 'all'}">
-    <messageTips :style="{display: login.uidStatus ? 'none' : 'block'}"/>
+    @keydown="keyCheck($event)"
+    :style="{'pointer-events': login.axiosStatus ? 'none' : 'all'}">
     <transition name="fade">
       <div class="login_container"
            v-if="!login.pwdStatus">
         <LoadingLine v-if="login.axiosStatus"/>
         <catTitle/>
-        <div class="login_container_mask"
-             :style="{transform: ['sign', 'forget', 'emailCheck'].includes($route.name) ?
+        <div
+          class="login_container_mask"
+          :style="{transform: ['sign', 'forget', 'emailCheck'].includes($route.name) ?
           'translateX(0%)' : (login.uidStatus ? 'translateX(-66.66%)' : 'translateX(-33.33%)'),
-             opacity: login.axiosStatus || login.pwdStatus? 0.5 : 1}">
+          opacity: login.axiosStatus || login.pwdStatus? 0.5 : 1}"
+        >
           <div class="common_from">
             <router-view @axiosStatusChange="axiosStatusChange"/>
           </div>
+          <!--  登录表单ID  s -->
           <div class="login_form_uid" @keydown.enter='sendData("uid")'>
             <div class="title">
               <p>登录</p>
               <p>使用您的 weCat 账号</p>
             </div>
-            <!--  登录表单ID  s -->
             <!--  autocomplete="new-password"  -->
             <div class="login_uid_container">
               <input
@@ -29,7 +30,7 @@
                 id="login_uid"
                 name="uid"
                 ref="inputUID"
-                :disabled="login.axiosStatus || login.uidStatus || $store.state.login.uidDisabled"
+                :disabled="login.axiosStatus || login.uidStatus"
                 v-model="uid"
                 @focus="pwdFocus"
                 @blur="pwdBlur">
@@ -51,6 +52,7 @@
               <button @click='sendData("uid")'>下一步</button>
             </div>
           </div>
+          <!--  登录表单ID  e -->
           <!--  密码输入框  s  -->
           <div class="login_form_pwd" @keydown.enter='sendData("pwd")'>
             <div class="title">
@@ -66,7 +68,7 @@
                 autocomplete="off"
                 ref="inputPWD"
                 v-model="pwd"
-                :disabled="login.axiosStatus || $store.state.login.pwdDisabled"
+                :disabled="login.axiosStatus"
                 @focus="pwdFocus"
                 @blur="pwdBlur">
               <div class="pwd_border"
@@ -84,6 +86,7 @@
               <button @click='sendData("pwd")'>登录</button>
             </div>
           </div>
+          <!--  密码输入框  e  -->
         </div>
       </div>
     </transition>
@@ -95,15 +98,13 @@
 import LoadingLine from '../components/login/login_loading_line'
 import catsBg from '../components/login/login_cats_bg'
 import catTitle from '../components/login/login_cat_title'
-import axios from 'axios'
-import messageTips from '@/components/globe/message_tips'
 import moment from 'moment'
+import { apiService } from '@/assets/js/Functions'
 import { API_LOGIN } from '@/assets/js/api'
 
 export default {
   name: 'login',
   components: {
-    messageTips,
     LoadingLine, // 加载动画模板
     catsBg, // 背景
     catTitle // 标题logo
@@ -120,125 +121,128 @@ export default {
         axiosStatus: false, // 发送请求状态
         tipsActive: false, // 输入框内提示内容状态（电子邮箱或用户名是否缩小）
         errStatus: false, // 服务器返回错误时为true
-        errInfo: '',
-        checkRepeatLoginFlag: false// 是否重复登录
+        errInfo: '' // 错误信息
       }
     }
   },
   created () {
-    console.log(process.env.NODE_ENV)
+    /*    window.navigator.geolocation.getCurrentPosition(function (position) {
+      console.log(position.coords.latitude)
+      console.log(position.coords.longitude)
+    }) */
   },
   mounted () {
-    this.$store.commit('restore')
+    console.log(process.env.NODE_ENV) // 运行环境
   },
   methods: {
     keyCheck (evt) { // 本页禁用Tab键
       if (evt.key === 'Tab') evt.preventDefault()
     },
     goSign () { // 跳转到注册页
-      this.$store.commit('setSign')
-      this.$store.commit('goSign')
       this.$router.push('sign')
     },
     goForget () { // 忘记密码
-      this.$store.commit('setForget')
-      this.$store.commit('goSign')
       this.$router.push('forget')
     },
     axiosStatusChange (status) {
       this.login.axiosStatus = status
     },
     /**
-     * 查询有无重复登录
+     * 阻塞，为了完成动画
      */
-    checkRepeatLogin () {
-      return axios({
-        method: 'get',
-        url: '/login/checkRepeatLogin',
-        params: {
-          uid: this.uid,
-          type: 'checkRepeatLogin'
-        }
+    transitionTime (time) {
+      clearTimeout(this.transTime)
+      return new Promise(resolve => {
+        this.transTime = setTimeout(() => {
+          resolve()
+        }, time)
       })
     },
     /**
-     * 发送请求验证账号密码
-     * 回调函数 dataHandler()
+     * 查询有无重复登录
+     */
+    async checkRepeatLogin () {
+      return apiService.getData(API_LOGIN.GET_LOGIN_CHECK_REPEAT, {
+        email: this.uid
+      })
+    },
+    /**
+     * 获取用户位置信息
+     */
+    getUserIPAddress () {
+      return apiService.getData(API_LOGIN.GET_LOGIN_IP_ADDRESS, {})
+    },
+    /**
+     * 更新用户信息
+     */
+    async updateUserInfo () {
+      const IPAddressResult = await this.getUserIPAddress()
+      return apiService.updateData(API_LOGIN.PUT_LOGIN_UPDATE, {
+        email: this.uid,
+        time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+        address: IPAddressResult.data.data.result
+      })
+    },
+    /**
+     * 验证账号/密码
      */
     async sendData (type) {
-      this.login.axiosStatus = true
+      this.login.axiosStatus = true // 加载动画
+      // 验证用户名操作
       if (type === 'uid') {
         // 检查是否重复登录
-        await this.checkRepeatLogin().then(data => {
-          this.$store.commit('wsMsgGHandler', data)
-          this.checkRepeatLoginFlag = data.data.flag
-        })
-        // 如果重复登录则直接返回
-        if (this.checkRepeatLoginFlag) {
+        const result = await this.checkRepeatLogin()
+        if (result.data.error) { // 如果重复登录则直接返回
           this.login.axiosStatus = false
           return
         }
+        apiService.postData(API_LOGIN.POST_LOGIN_USERID, {
+          email: this.uid,
+          nickName: this.uid
+        }).then(res => {
+          this.transitionTime(1200).then(() => {
+            if (res.data.error) {
+              // 全局报错
+              this.$message({
+                message: res.data.msg,
+                type: 'error'
+              })
+            }
+            this.login.uidStatus = !res.data.error
+            this.login.axiosStatus = false
+            this.$refs.inputPWD.focus()
+          })
+        })
+      } else {
+        // 验证密码操作
+        apiService.postData(API_LOGIN.POST_LOGIN_PWD, {
+          email: this.uid,
+          pwd: this.pwd
+        }).then(res => {
+          this.transitionTime(1200).then(() => {
+            if (res.data.error) {
+              // 全局报错
+              this.login.axiosStatus = false
+              this.$message({
+                message: res.data.msg,
+                type: 'error'
+              })
+              return
+            }
+            // 更新用户信息，登录时间之类的
+            this.updateUserInfo()
+            const resData = res.data.data
+            sessionStorage.setItem('token', res.data.token)
+            sessionStorage.setItem('nickName', resData.nickName)
+            sessionStorage.setItem('email', resData.email)
+            sessionStorage.setItem('avatar', resData.avatar)
+            sessionStorage.setItem('uid', resData.email)
+            this.login.pwdStatus = true
+            this.login.axiosStatus = false
+            this.$router.replace('home')
+          })
+        })
       }
-      axios({
-        method: 'post',
-        url: '/login',
-        data: {
-          uid: this.uid,
-          pwd: this.pwd,
-          type: type
-        }
-      }).then(data => this.dataHandler(data, type)).catch(error => this.dataHandler(error.response, type))
-    },
-    /**
-     * @param data  //服务器返回数据
-     */
-    dataHandler (data, type) {
-      const response = data.data // 提取数据
-      this.loadingTimer = setTimeout(() => {
-        clearTimeout(this.loadingTimer)
-        this.login.axiosStatus = false // 请求结束
-        return response.error ? this.loginErr(response, type) : this.loginSuc(response, type)
-      }, 1200)
-    },
-    /**
-     * @param response
-     * @param _that
-     */
-    loginSuc (response, type) {
-      this.login[`${response.type}Status`] = true
-      if (response.type === 'uid') {
-        // ID验证成功，密码输入框获得焦点
-        setTimeout(() => this.$refs.inputPWD.focus(), 300)
-      } else if (response.type === 'pwd') {
-        /** 登录成功，更新数据库最近登录时间 */
-        axios({
-          method: 'post',
-          url: '/updateTime',
-          data: {
-            email: response.email,
-            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-          }
-        }).then()
-        // 修改全局uid为登录用户
-        this.$store.commit('loginSuc', response)
-        // 保存服务器传回token、uid到sessionStorage
-        sessionStorage.setItem('nickName', response.nickName)
-        sessionStorage.setItem('email', response.email)
-        sessionStorage.setItem('avatar', response.avatar)
-        sessionStorage.setItem('token', response.token)
-        sessionStorage.setItem('uid', this.uid)
-        // 路由跳转到home，500ms为动画时间
-        setTimeout(() => this.$router.replace('home'), 500)
-      }
-    },
-    loginErr (response, type) {
-      // 报错
-      this.login.errStatus = true
-      this.login.errInfo = response.msg
-      // 异步让input获取焦点
-      setTimeout(() => {
-        if (!this.pwd) this.$refs.inputUID.focus() // 登录错误时自动让ID登录框获取焦点
-      }, 0)
     },
     returnUid () { // 返回到上一步
       this.login.uidStatus = false
@@ -259,12 +263,6 @@ export default {
     }
   },
   watch: {
-    // '$route' (to, from) {
-    //   const toDepth = to.path.split('/').length
-    //   const fromDepth = from.path.split('/').length
-    //   console.log(toDepth, fromDepth)
-    //   this.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left'
-    // },
     uid (newVal, oldVal) {
       if (oldVal.length - newVal.length !== 0) {
         this.login.errStatus = false

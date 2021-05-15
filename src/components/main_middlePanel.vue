@@ -2,7 +2,7 @@
   <div class="mainPanel_wrap">
     <!--    聊天对象名字-->
     <div class="mainPanel_name" @click="faceListActive = false">
-      <figure><img :src=$store.state.globe.chatObjAvatar alt=""></figure>
+      <figure><img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt=""></figure>
       <div class="chatObj">
         <div class="chatObjName">{{chatObj}}</div>
         <div class="chatObjNickName">{{chatObj}}</div>
@@ -11,7 +11,7 @@
     <!--    聊天记录信息面板-->
     <div class="mainPanel_msgContent" ref="msgContentBox" @click="faceListActive = false">
       <div class="msgContent" ref="msgContent">
-        <div v-for="(item, i) in friends"
+        <div v-for="(item, i) in $store.state.globe.navigation.historyList.chat[$store.state.chatObj].chat"
              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}" :key="i">
           <div :class="{My_Msg : item.say === 'me', You_Msg : item.say === 'you'}">{{item.msg}}</div>
           <div class="msgTime" v-if="$store.state.timeSwitch">{{item.time}}</div>

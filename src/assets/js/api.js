@@ -4,5 +4,10 @@ export const API_LOGIN = {
   GET_LOGIN_CHECK_REPEAT: '/login/checkRepeatLogin', // 验证是否重复登录
   PUT_LOGIN_UPDATE: '/login/update', // 登录后更新用户信息
   POST_LOGIN_FORGET: '/login/forget', // 忘记密码
-  PUT_LOGIN_MODIFY_PWD: '/login/modifyPwd' // 修改密码
+  PUT_LOGIN_MODIFY_PWD: '/login/modifyPwd', // 修改密码
+  GET_LOGIN_IP_ADDRESS: '/login/userOrigin' // 返回IP
+}
+
+export const API_COMMON = {
+  GET_COMMON_CHAT_HISTORY: '/common/chatHistory'
 }

@@ -20,6 +20,7 @@
     "moment": "^2.29.1",
     "mongodb": "^3.5.9",
     "nodemailer": "^6.4.10",
+    "request": "^2.88.2",
     "vue": "^2.6.11",
     "vue-router": "^3.3.4",
     "vuex": "^3.4.0"

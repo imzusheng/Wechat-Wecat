@@ -4,7 +4,6 @@ import Login from '../views/Login'
 import Sign from '../views/sign'
 import Home from '../views/index'
 import Forget from '../views/forget'
-import store from '../store/index'
 import Admin from '../views/admin'
 import emailCheck from '../views/emailCheck'
 import userList from '../components/admin/userList'
@@ -82,17 +81,14 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (['/login'].includes(to.path)) {
+  if (['/login', '/sign', '/forget', '/emailCheck'].includes(to.path)) {
     return next()
-  } else if (['/sign', '/forget', '/emailCheck'].includes(to.path)) { // 防止直接通过url进入注册页面
-    if (store.state.sign || store.state.forget || store.state.emailCheck) {
-      return next()
-    } else {
-      return next('/login')
-    }
   }
   const token = window.sessionStorage.getItem('token')
-  if (!token) return next('/login')
+  if (!token) {
+    next('/login')
+    return
+  }
   next()
 })
 

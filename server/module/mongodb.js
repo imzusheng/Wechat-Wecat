@@ -38,11 +38,24 @@ module.exports = class MongoDB {
   }
 
   // 通用查询
-  find (collectionName, queryData) {
+  find (collectionName, queryParams) {
     const _that = this
     return new Promise((resolve, reject) => {
       this.connectDB().then(() => {
-        _that.db.collection(collectionName).find(queryData).toArray((err, result) => {
+        _that.db.collection(collectionName).aggregate(queryParams).toArray((err, result) => {
+          if (err) throw err
+          resolve(result)
+        })
+      })
+    })
+  }
+
+  // 通用查询
+  query (collectionName, queryParams) {
+    const _that = this
+    return new Promise((resolve, reject) => {
+      this.connectDB().then(() => {
+        _that.db.collection(collectionName).find(queryParams).toArray((err, result) => {
           if (err) throw err
           resolve(result)
         })
@@ -120,9 +133,9 @@ module.exports = class MongoDB {
     const _that = this
     return new Promise((resolve, reject) => {
       this.connectDB().then(() => {
-        _that.db.collection(collectionName).updateOne(queryData, newData, err => {
-          if (err) throw err
-          resolve()
+        _that.db.collection(collectionName).updateOne(queryData, newData, (err, res) => {
+          if (err) return reject(err)
+          resolve(true)
         })
       })
     })

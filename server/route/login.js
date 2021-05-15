@@ -6,6 +6,23 @@ const jwt = new JsonWebToken()
 const commonFunction = require('../module/commonFunction')
 const moment = require('moment')
 
+const request = require('request')
+const querystring = require('querystring')
+
+function getCity (IPAddress) {
+  return new Promise((resolve, reject) => {
+    const queryData = querystring.stringify({
+      ip: IPAddress,
+      key: '3fc70466cf3f14c1908d58252f8c9f3c' // 申请的接口请求key
+    })
+    const queryUrl = 'http://apis.juhe.cn/ip/ipNew?' + queryData
+    request(queryUrl, (error, response, body) => {
+      if (error) return reject(error)
+      resolve(JSON.parse(body))
+    })
+  })
+}
+
 /**
  * @api {Post} /wechatAPI/login/userID 验证用户名
  * @apiName 1
@@ -129,7 +146,8 @@ router.post('/wechatAPI/login/pwd', async (ctx) => {
     email: data.email,
     pwd: data.pwd
   }
-  const result = await db.find('user', queryParams) // 查询数据
+  const result = await db.query('user', queryParams) // 查询数据
+  console.log(result)
   let res
   if (result.length > 0) {
     const token = jwt.getToken(ctx.email) // 当密码验证成功时，返回token给客户端
@@ -213,51 +231,55 @@ router.get('/wechatAPI/login/checkRepeatLogin', (ctx) => {
  * @apiGroup 登录
  *
  * @apiParam (请求参数) {String} email 用户名
- * @apiParam (请求参数) {String} ip ip地址
  * @apiParam (请求参数) {String} time 登录时间
- * @apiParam (请求参数) {String} gps 经纬度
+ * @apiParam (请求参数) {String} address.Country
+ * @apiParam (请求参数) {String} address.Province
+ * @apiParam (请求参数) {String} address.City
+ * @apiParam (请求参数) {String} address.Isp
  * @apiParamExample Request-Sample:
  * {
  *   "email": "imzusheng@163.com",
- *   "ip": "",
  *   "time": "",
- *   "gps": ""
+ *   "address": {
+ *      Country: '中国',
+ *      Province: '广东省',
+ *      City: '广州',
+ *      Isp: '移动'
+ *   }
  * }
  *
  * @apiSuccess (成功响应参数) {Boolean} error 错误
  * @apiSuccess (成功响应参数) {String} msg 信息
- * @apiSuccess (成功响应参数) {String} data.email 用户名
  * @apiSuccessExample Success-Response:
  * {
- *   "msg": "",
+ *   "msg": "更新成功",
  *   "error": false
- *   "data": {
- *       "email": "imzusheng@163.com"
- *   }
  * }
  *
  * @apiError (失败响应参数) {Boolean} error 错误
  * @apiError (失败响应参数) {String} msg 错误信息
- * @apiError (失败响应参数) {String} data.email 用户名
  * @apiErrorExample Error-Response:
  * {
- *   "msg": "请勿重复登录"
- *   "error": true,
- *   "data": {
- *       "email": "imzusheng@163.com"
- *   }
+ *   "msg": "更新失败",
+ *   "error": true
  * }
  *
  */
 router.put('/wechatAPI/login/update', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
-  console.log('login.js > updateTime ---- ', data)
   // 更新时间
-  await db.updateOne('user', { email: data.email }, { $set: { RecentlyTime: data.time } })
+  const newData = {
+    $set: {
+      RecentlyTime: data.time,
+      address: data.address
+    }
+  }
+  if (!data.address) delete newData.$set.address
+  const result = await db.updateOne('user', { email: data.email }, newData)
   ctx.body = {
-    type: data.type,
-    msg: 'success'
+    error: !result,
+    msg: result ? '更新成功' : '更新失败'
   }
 })
 /**
@@ -332,8 +354,8 @@ router.post('/wechatAPI/sign/verify', async (ctx) => {
   let flag = false// 用户是否符合注册条件
   const data = ctx.request.body
   const code = moment(new Date()).format('ssHHmm')
-  const emailResult = await db.find('user', { email: data.email }) // 查询数据
-  const nickNameResult = await db.find('user', { nickName: data.nickName }) // 查询数据
+  const emailResult = await db.query('user', { email: data.email }) // 查询数据
+  const nickNameResult = await db.query('user', { nickName: data.nickName }) // 查询数据
   if (emailResult.length === 0 && nickNameResult.length === 0) { // 用户符合注册条件时，发送邮箱验证码
     flag = await commonFunction.sendEmail({
       obj: data.email,
@@ -403,7 +425,7 @@ router.post('/wechatAPI/sign/success', async (ctx) => {
   userInfo.time = time
   // 用户信息写入
   await db.insertOneData('user', userInfo)
-  const result = await db.find('user', userInfo) // 查询数据
+  const result = await db.query('user', userInfo) // 查询数据
   ctx.body = {
     msg: result.length !== 0 ? '注册成功' : '注册失败',
     error: result.length !== 0
@@ -431,9 +453,9 @@ router.post('/wechatAPI/sign/success', async (ctx) => {
  *   error: false
  * }
  *
- * @apiSuccess (成功响应参数) {Boolean} error 错误
- * @apiSuccess (成功响应参数) {String} msg 消息
- * @apiSuccess (成功响应参数) {String} code 验证码
+ * @apiError (失败响应参数) {Boolean} error 错误
+ * @apiError (失败响应参数) {String} msg 消息
+ * @apiError (失败响应参数) {String} code 验证码
  * @apiErrorExample 失败响应示例:
  * {
  *   code: "",
@@ -448,7 +470,7 @@ router.post('/wechatAPI/login/forget', async (ctx) => {
   let flag = false
   const data = ctx.request.body
   const code = moment(new Date()).format('ssHHmm')
-  const result = await db.find('user', { email: data.email }) // 查询数据
+  const result = await db.query('user', { email: data.email }) // 查询数据
   if (result.length !== 0) {
     flag = await commonFunction.sendEmail({
       obj: data.email,
@@ -489,8 +511,8 @@ router.post('/wechatAPI/login/forget', async (ctx) => {
  *   error: false
  * }
  *
- * @apiSuccess (成功响应参数) {Boolean} error 错误
- * @apiSuccess (成功响应参数) {String} msg 消息
+ * @apiError (失败响应参数) {Boolean} error 错误
+ * @apiError (失败响应参数) {String} msg 消息
  * @apiErrorExample 失败响应示例:
  * {
  *   msg: "修改密码失败",
@@ -506,11 +528,81 @@ router.put('/wechatAPI/login/modifyPwd', async (ctx) => {
     email: data.email,
     pwd: data.pwd
   })
-  await db.find('user', { email: data.email })
+  await db.query('user', { email: data.email })
   ctx.body = {
     msg: '修改密码成功',
     error: false
   }
+})
+/**
+ * @api {Get} /wechatAPI/login/userOrigin 获取用户真实IP
+ * @apiName 7
+ * @apiVersion 1.0.0
+ * @apiGroup 登录
+ *
+ * @apiParamExample 请求示例:
+ * {}
+ *
+ * @apiSuccess (成功响应参数) {Boolean} error 错误
+ * @apiSuccess (成功响应参数) {String} msg 消息
+ * @apiSuccess (成功响应参数) {String} data.IPAddress IP地址
+ * @apiSuccess (成功响应参数) {String} data.result.Country 国家
+ * @apiSuccess (成功响应参数) {String} data.result.Province 省份
+ * @apiSuccess (成功响应参数) {String} data.result.City 城市
+ * @apiSuccess (成功响应参数) {String} data.result.Isp 运营商
+ *
+ * @apiSuccessExample 成功响应示例:
+ * {
+ *   msg: "获取成功",
+ *   error: false,
+ *   data: {
+ *     "IPAddress": "192.168.1.1",
+ *     "result": {
+ *        Country: '中国',
+ *        Province: '广东省',
+ *        City: '广州',
+ *        Isp: '移动'
+ *     }
+ *   }
+ * }
+ *
+ * @apiError (失败响应参数) {Boolean} error 错误
+ * @apiError (失败响应参数) {String} msg 消息
+ * @apiError (失败响应参数) {String} data.IPAddress IP地址
+ * @apiErrorExample 失败响应示例:
+ * {
+ *   msg: "获取失败",
+ *   error: true,
+ *   data: {}
+ * }
+ *
+ *
+ */
+router.get('/wechatAPI/login/userOrigin', async (ctx) => {
+  ctx.status = 200
+  let msg
+  if (ctx.request.header.origin) {
+    const IPAddress = ctx.request.header.origin.slice(ctx.request.header.origin.indexOf('://') + 3, ctx.request.header.origin.lastIndexOf(':'))
+    const result = await getCity(IPAddress)
+    msg = {
+      data: {
+        IPAddress: IPAddress,
+        result: result.result
+      },
+      error: false,
+      msg: '获取成功'
+    }
+  } else {
+    msg = {
+      data: {
+        IPAddress: '',
+        result: ''
+      },
+      error: true,
+      msg: '获取失败'
+    }
+  }
+  ctx.body = msg
 })
 
 module.exports = router.routes()
