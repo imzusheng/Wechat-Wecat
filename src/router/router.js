@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import store from '../store'
 import Login from '../views/Login'
 import Sign from '../views/sign'
 import Home from '../views/index'
@@ -81,7 +82,9 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (['/login', '/sign', '/forget', '/emailCheck'].includes(to.path)) {
+  if (['/login', '/sign', '/forget'].includes(to.path)) {
+    return next()
+  } else if (to.path === '/emailCheck' && store.state.signStore.checkSuc) {
     return next()
   }
   const token = window.sessionStorage.getItem('token')

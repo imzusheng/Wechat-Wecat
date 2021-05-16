@@ -60,6 +60,7 @@ html, body {
 }
 
 .el-message {
+  min-width: 0px!important;
   background: linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1))!important;
   box-shadow: 4px 4px 20px rgb(225, 225, 235),
   -4px -4px 20px rgba(235, 235, 235, 1)!important;

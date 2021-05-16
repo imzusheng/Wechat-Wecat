@@ -140,7 +140,7 @@ export default {
     // 同步邮箱输入框
     emailInputChange (inputText) {
       this.inputObj_Email.inputText = inputText
-      if (this.$store.state.globe.regExp.regEmail.test(this.inputObj_Email.inputText)) { // 检查邮件格式
+      if (this.$store.state.signStore.regExp.regEmail.test(this.inputObj_Email.inputText)) { // 检查邮件格式
         this.inputObj_Email.errStatus = false
         this.inputObj_Email.errInfo = ''
       } else {
@@ -155,7 +155,7 @@ export default {
     // 新密码输入框
     pwdInputChange (inputText) {
       this.inputObj_newPwd.inputText = inputText
-      if (this.$store.state.globe.regExp.pwdCommon.test(this.inputObj_newPwd.inputText)) {
+      if (this.$store.state.signStore.regExp.pwdCommon.test(this.inputObj_newPwd.inputText)) {
         this.inputObj_newPwd.errStatus = false
         this.inputObj_newPwd.errInfo = ''
       } else {

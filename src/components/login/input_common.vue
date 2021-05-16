@@ -2,7 +2,7 @@
   <div class="input_Container">
     <input
       type="text"
-      id="inputText"
+      class="inputText"
       name="inputText"
       autocomplete="off"
       v-model="inputText"
@@ -54,7 +54,7 @@ export default {
     position: relative;
   }
 
-  #inputText {
+  .inputText {
     position: absolute;
     bottom: 0;
     left: 0;

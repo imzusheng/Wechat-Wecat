@@ -32,7 +32,7 @@ module.exports = (data) => {
       `
     }, (error) => {
       if (error) {
-        throw error
+        reject(error)
       } else {
         resolve()
       }

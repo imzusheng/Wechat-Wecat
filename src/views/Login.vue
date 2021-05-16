@@ -230,7 +230,7 @@ export default {
               return
             }
             // 更新用户信息，登录时间之类的
-            this.updateUserInfo()
+            // this.updateUserInfo()
             const resData = res.data.data
             sessionStorage.setItem('token', res.data.token)
             sessionStorage.setItem('nickName', resData.nickName)
@@ -239,7 +239,16 @@ export default {
             sessionStorage.setItem('uid', resData.email)
             this.login.pwdStatus = true
             this.login.axiosStatus = false
-            this.$router.replace('home')
+            this.$notify({
+              title: '登录成功',
+              type: 'success',
+              message: resData.email,
+              duration: 0
+            })
+            this.transitionTime(400).then(() => {
+              this.$router.replace('home')
+              this.$destroy()
+            })
           })
         })
       }

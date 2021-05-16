@@ -8,6 +8,11 @@ export const API_LOGIN = {
   GET_LOGIN_IP_ADDRESS: '/login/userOrigin' // 返回IP
 }
 
+export const API_SIGN = {
+  POST_SIGN_VERIFY: '/sign/verify',
+  POST_SIGN_SUCCESS: '/sign/success'
+}
+
 export const API_COMMON = {
   GET_COMMON_CHAT_HISTORY: '/common/chatHistory'
 }

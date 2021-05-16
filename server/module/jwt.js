@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 module.exports = class jwtClass {
   getToken (uid) {
     return jwt.sign({ // 生成token
-      exp: Math.floor(Date.now() / 1000) + (60),
+      exp: Math.floor(Date.now() / 1000) + (60 * 30),
       data: `${uid}pass`
     }, 'shhhhh')
   }

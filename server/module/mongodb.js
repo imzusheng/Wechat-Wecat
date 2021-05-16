@@ -170,11 +170,11 @@ module.exports = class MongoDB {
     }
   }
 
-  changePwd (collectionName, queryData) {
+  changePwd (collectionName, queryParams) {
     const _that = this
     try {
       this.connectDB().then(() => {
-        _that.db.collection('user').updateOne(queryData.email, { $set: { 'pwd': queryData.pwd } })
+        _that.db.collection('user').updateOne(queryParams[0], queryParams[1])
       })
     } catch (e) {
       console.error(e)

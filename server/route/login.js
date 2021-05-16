@@ -147,12 +147,11 @@ router.post('/wechatAPI/login/pwd', async (ctx) => {
     pwd: data.pwd
   }
   const result = await db.query('user', queryParams) // 查询数据
-  console.log(result)
   let res
   if (result.length > 0) {
     const token = jwt.getToken(ctx.email) // 当密码验证成功时，返回token给客户端
     res = {
-      msg: 'success',
+      msg: `登录成功，${result[0].email}`,
       error: false,
       token: token,
       data: {
@@ -366,12 +365,12 @@ router.post('/wechatAPI/sign/verify', async (ctx) => {
     data: {
       email: {
         value: data.email,
-        error: emailResult.length === 0,
+        error: emailResult.length !== 0,
         msg: emailResult.length === 0 ? 'success' : '该邮箱已被注册'
       },
       nickName: {
         value: data.nickName,
-        error: nickNameResult.length === 0,
+        error: nickNameResult.length !== 0,
         msg: nickNameResult.length === 0 ? 'success' : '该昵称已被注册'
       },
       code: flag ? code : '',
@@ -420,15 +419,27 @@ router.post('/wechatAPI/sign/verify', async (ctx) => {
 router.post('/wechatAPI/sign/success', async (ctx) => {
   ctx.status = 200
   const userInfo = ctx.request.body
-  const time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-  userInfo.access = 'user'
-  userInfo.time = time
-  // 用户信息写入
-  await db.insertOneData('user', userInfo)
-  const result = await db.query('user', userInfo) // 查询数据
-  ctx.body = {
-    msg: result.length !== 0 ? '注册成功' : '注册失败',
-    error: result.length !== 0
+  let flag = true
+  Object.keys(userInfo).forEach(value => {
+    if (!userInfo[value]) flag = false
+  })
+
+  if (flag) {
+    const time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+    userInfo.access = 'user'
+    userInfo.time = time
+    // 用户信息写入
+    await db.insertOneData('user', userInfo)
+    const result = await db.query('user', userInfo) // 查询数据
+    ctx.body = {
+      msg: result.length !== 0 ? '注册成功' : '注册失败',
+      error: result.length === 0
+    }
+  } else {
+    ctx.body = {
+      msg: '注册失败，你自己心里有数',
+      error: true
+    }
   }
 })
 /**
@@ -467,15 +478,15 @@ router.post('/wechatAPI/sign/success', async (ctx) => {
  */
 router.post('/wechatAPI/login/forget', async (ctx) => {
   ctx.status = 200
-  let flag = false
+  const flag = false
   const data = ctx.request.body
   const code = moment(new Date()).format('ssHHmm')
   const result = await db.query('user', { email: data.email }) // 查询数据
   if (result.length !== 0) {
-    flag = await commonFunction.sendEmail({
+    /*    flag = await commonFunction.sendEmail({
       obj: data.email,
       code: code
-    })
+    }) */
     ctx.body = {
       error: flag,
       code: code,
@@ -524,14 +535,29 @@ router.post('/wechatAPI/login/forget', async (ctx) => {
 router.put('/wechatAPI/login/modifyPwd', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
-  db.changePwd('user', {
-    email: data.email,
-    pwd: data.pwd
-  })
-  await db.query('user', { email: data.email })
-  ctx.body = {
-    msg: '修改密码成功',
-    error: false
+  // 先验证新旧密码是否相同
+  const verifyPwd = await db.query('user', { email: data.email })
+  if (verifyPwd[0].pwd === data.pwd) {
+    ctx.body = {
+      msg: '请勿与旧密码相同',
+      error: true
+    }
+  } else {
+    // 不相同则开始修改
+    db.changePwd('user', [{ email: data.email }, { $set: { pwd: data.pwd } }])
+    const result = await db.query('user', { email: data.email })
+    // 验证是否修改成功
+    if (result[0].pwd === data.pwd) {
+      ctx.body = {
+        msg: '修改密码成功',
+        error: false
+      }
+    } else {
+      ctx.body = {
+        msg: '修改密码失败',
+        error: true
+      }
+    }
   }
 })
 /**

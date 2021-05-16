@@ -8,11 +8,21 @@
     <main class="main">
       <!--  昵称和姓名  -->
       <div class="inline_Container">
-        <inputZs :tips="G.firstNameTips" :type="'firstName'" :typeStatus="'firstNameErrInfo'"/>
-        <inputZs :tips="G.lastNameTips" :type="'lastName'" :typeStatus="'lastNameErrInfo'"/>
+        <inputZs
+          :tips="G.firstNameTips"
+          :type="'firstName'"
+          :typeStatus="'firstNameErrInfo'"/>
+        <inputZs
+          :tips="G.lastNameTips"
+          :type="'lastName'"
+          :typeStatus="'lastNameErrInfo'"/>
       </div>
       <!--  电子邮件  -->
-      <inputZs class="email" :tips="G.EmailTips" :type="'email'" :typeStatus="'emailErrInfo'"/>
+      <inputZs
+        class="email"
+        :tips="G.EmailTips"
+        :type="'email'"
+        :typeStatus="'emailErrInfo'"/>
       <!--  密码和确认密码  -->
       <div class="inline_Container">
         <inputZs :tips="G.pwdTips" :type="'pwd'" :typeStatus="'pwdErrInfo'"/>
@@ -29,7 +39,8 @@
 
 <script>
 import inputZs from '../components/login/input_zusheng'
-import axios from 'axios'
+import { apiService } from '@/assets/js/Functions'
+import { API_SIGN } from '@/assets/js/api'
 
 export default {
   name: 'sign',
@@ -44,65 +55,58 @@ export default {
         EmailTips: '您的电子邮件地址',
         pwdTips: '密码',
         enterTips: '确认',
-        axiosStatus: false,
-        emailVerification: false // 进入邮件地址验证
+        axiosStatus: false
       }
     }
   },
+  created () {
+  },
   methods: {
     goLogin () {
-      this.$store.commit('signInputRestore')
-      this.$store.commit('restore')
-      this.$store.commit('goLogin')
       this.$router.replace('login')
     },
-    sendData () {
-      this.G.axiosStatus = true
-      this.axiosStatusChange()
-      // 发送回调函数
-      this.$store.commit('checkData', (firstName, lastName, pwd, email, type) => {
-        if (type === true) {
-          axios({
-            method: 'post',
-            url: '/sign',
-            data: {
-              uid: firstName + lastName,
-              pwd: pwd,
-              email: email
-            }
-          }).then(data => this.dataHandler(data)).catch(err => this.dataHandler(err.response))
-        } else {
-          this.dataHandler({
-            data: {
-              msg: '请检查注册信息',
-              type: 'error',
-              error: 1 // 假装成注册信息检测错误
-            }
-          })
-        }
+    // 检查注册信息
+    checkData () {
+      if (this.$store.state.signStore.data.firstName && this.$store.state.signStore.data.lastName && this.$store.state.signStore.data.email && this.$store.state.signStore.data.pwd) {
+        // 当所有输入框填写完成
+        return true
+      } else {
+        // 没有填写完
+        this.$store.commit('signInputCheck', {
+          type: 'all'
+        })
+        return false
+      }
+    },
+    verifyData () {
+      return apiService.postData(API_SIGN.POST_SIGN_VERIFY, {
+        email: this.$store.state.signStore.data.email,
+        nickName: this.$store.state.signStore.data.firstName
       })
     },
-    dataHandler (data) {
-      const _that = this
-      console.log(data.data)
-      if (data.data.type === 'error') {
-        alert(data.data.msg)
-        _that.G.axiosStatus = false
-        this.axiosStatusChange()
-        console.error(data)
-        return
+    sendData () {
+      if (this.checkData() === true) {
+        this.axiosStatusChange(true)
+        this.axiosStatus = true
+        this.verifyData().then(res => { // 验证昵称和邮箱是否被注册
+          this.axiosStatus = false
+          this.axiosStatusChange(false)
+          this.$store.state.signStore.emailErrInfo = !res.data.data.email.error ? '' : res.data.data.email.msg
+          this.$store.state.signStore.firstNameErrInfo = !res.data.data.nickName.error ? '' : res.data.data.nickName.msg
+          if (!res.data.data.email.error && !res.data.data.nickName.error) { // 验证成功,跳转验证码
+            this.$store.state.signStore.emailCode = res.data.data.code
+            this.$router.replace('/emailCheck')
+          }
+        })
+      } else {
+        this.$message({
+          type: 'error',
+          message: '请检查注册信息'
+        })
       }
-      setTimeout(() => {
-        _that.$store.commit('setEmailCheck')
-        _that.$store.commit('setEmailCode', data.data.code)
-        _that.$router.replace('/emailCheck')
-        _that.G.emailVerification = true
-        _that.G.axiosStatus = false
-        this.axiosStatusChange()
-      }, 1500)
     },
-    axiosStatusChange () {
-      this.$emit('axiosStatusChange', this.G.axiosStatus)
+    axiosStatusChange (switchStatus) {
+      this.$emit('axiosStatusChange', switchStatus)
     }
   }
 }
