@@ -1,11 +1,11 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import store from '../store'
+// import store from '../store'
 import Login from '../views/Login'
 import Sign from '../views/sign'
 import Home from '../views/index'
 import Forget from '../views/forget'
-import Admin from '../views/admin'
+// import Admin from '../views/admin'
 import emailCheck from '../views/emailCheck'
 import userList from '../components/admin/userList'
 import chatRecord from '../components/admin/chatRecord'
@@ -37,7 +37,7 @@ const routes = [
     path: '/admin',
     name: 'admin',
     redirect: '/admin/userList',
-    component: Admin,
+    component: () => import('../views/admin'),
     children: [
       {
         path: 'userList',
@@ -77,16 +77,17 @@ const routes = [
 
 const router = new VueRouter({
   mode: 'history',
-  base: '/chat',
+  base: '/chatV2',
   routes
 })
 
 router.beforeEach((to, from, next) => {
-  if (['/login', '/sign', '/forget'].includes(to.path)) {
-    return next()
-  } else if (to.path === '/emailCheck' && store.state.signStore.checkSuc) {
+  if (['/login', '/sign', '/forget', '/emailCheck'].includes(to.path)) {
     return next()
   }
+  // else if (to.path === '/emailCheck' && store.state.signStore.checkSuc) {
+  //   return next()
+  // }
   const token = window.sessionStorage.getItem('token')
   if (!token) {
     next('/login')

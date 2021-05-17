@@ -2,10 +2,11 @@
   <div class="mainPanel_wrap">
     <!--    聊天对象名字-->
     <div class="mainPanel_name" @click="faceListActive = false">
-      <figure><img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt=""></figure>
+      <figure><img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt="">
+      </figure>
       <div class="chatObj">
-        <div class="chatObjName">{{chatObj}}</div>
-        <div class="chatObjNickName">{{chatObj}}</div>
+        <div class="chatObjName">{{ chatObj }}</div>
+        <div class="chatObjNickName">{{ chatObj }}</div>
       </div>
     </div>
     <!--    聊天记录信息面板-->
@@ -13,8 +14,8 @@
       <div class="msgContent" ref="msgContent">
         <div v-for="(item, i) in $store.state.globe.navigation.historyList.chat[$store.state.chatObj].chat"
              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}" :key="i">
-          <div :class="{My_Msg : item.say === 'me', You_Msg : item.say === 'you'}">{{item.msg}}</div>
-          <div class="msgTime" v-if="$store.state.timeSwitch">{{item.time}}</div>
+          <div :class="{My_Msg : item.say === 'me', You_Msg : item.say === 'you'}">{{ item.msg }}</div>
+          <div class="msgTime" v-if="$store.state.timeSwitch">{{ item.time }}</div>
         </div>
       </div>
     </div>
@@ -95,15 +96,15 @@ export default {
   name: 'mainPanel',
   data () {
     return {
-      err: '',
       keyCodeArr: [],
       uid: '',
       input: '',
-      faceListActive: false
+      faceListActive: false,
+      visible: true
     }
   },
   mounted () {
-    this.$store.commit('scrollRec', this.$refs)
+    this.$store.commit('scrollRec', this.$refs) //
     this.uid = window.sessionStorage.getItem('uid')
   },
   methods: {
@@ -129,30 +130,23 @@ export default {
      * 检测 ctrl + enter 组合键发送消息
      */
     keyCodeCheck (e) {
-      const KeyCode = e.keyCod || e.which || e.charCode
+      const KeyCode = e.keyCode || e.which || e.charCode
       if (KeyCode === 17 && !this.keyCodeArr.includes(KeyCode)) return this.keyCodeArr.push(KeyCode)
       if (KeyCode === 13 && this.keyCodeArr.includes(17)) {
         e.preventDefault()
         this.sendMsg()
+      } else if (KeyCode === 13 && !this.$store.state.sendKeyCode) {
+        e.preventDefault()
+        this.sendMsg()
       }
     },
-    formatDate () {
-      const date = new Date()
-      const format = date => date < 10 ? `0${date}` : date
-      const month = format(date.getMonth() + 1)
-      const day = format(date.getDate())
-      const h = format(date.getHours())
-      const m = format(date.getMinutes())
-      const s = format(date.getSeconds())
-      return `${date.getFullYear()}年${month}月${day}日 ${h}:${m}:${s}`
-    },
-    sendMsg () {
+    sendMsg (e) {
+      this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
       this.faceListActive = false
       const input = this.$refs.textBox.innerText.replace(/\n$/, '') // 匹配结尾的回车符号并替换
-      const replaceSpace = input.replace(/\s+/g, '')
+      const replaceSpace = input.replace(/\s+/g, '') // 不知道是干嘛的，匹配空格？
       if (replaceSpace.length === 0) {
-        this.err = '不可发送空内容'
-        console.log(this.err)
+        this.$message('说点什么啊！')
         return
       }
       // 发送消息给对方
@@ -162,7 +156,7 @@ export default {
         chat: {
           msg: input,
           say: 'me',
-          time: moment(new Date()).format('YYYY-MM-DD hh:mm:ss')
+          time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
         },
         type: 'send'
       })
@@ -194,261 +188,261 @@ export default {
 </script>
 
 <style scoped>
-  .faceListActive-enter-active, .faceListActive-leave-active {
-    transition: opacity .2s;
-  }
+.faceListActive-enter-active, .faceListActive-leave-active {
+  transition: opacity .2s;
+}
 
-  .faceListActive-enter, .faceListActive-leave-to {
-    opacity: 0;
-  }
+.faceListActive-enter, .faceListActive-leave-to {
+  opacity: 0;
+}
 
-  .mainPanel_wrap {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    /*顶栏高度*/
-    --nameContent-height: 90px;
-    /*输入栏宽高*/
-    --inputContent-height: 80px;
-    --inputContent-width: 100%;
-  }
+.mainPanel_wrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /*顶栏高度*/
+  --nameContent-height: 90px;
+  /*输入栏宽高*/
+  --inputContent-height: 80px;
+  --inputContent-width: 100%;
+}
 
-  .mainPanel_name {
-    height: var(--nameContent-height);
-    min-height: var(--nameContent-height);
-    width: 100%;
-    background-color: #F7F9FA;
-    position: relative;
-    z-index: 3;
-    box-sizing: border-box;
-    /*padding-left: calc(var(--nameContent-height) / 2);*/
-    padding-left: 10px;
-    display: flex;
-  }
+.mainPanel_name {
+  height: var(--nameContent-height);
+  min-height: var(--nameContent-height);
+  width: 100%;
+  background-color: #F7F9FA;
+  position: relative;
+  z-index: 3;
+  box-sizing: border-box;
+  /*padding-left: calc(var(--nameContent-height) / 2);*/
+  padding-left: 10px;
+  display: flex;
+}
 
-  .mainPanel_name figure {
-    height: var(--nameContent-height);
-    width: var(--nameContent-height);
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+.mainPanel_name figure {
+  height: var(--nameContent-height);
+  width: var(--nameContent-height);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  .mainPanel_name figure img {
-    height: 60px;
-    width: 60px;
-    border-radius: 50%;
-    border: 1px solid #cccccc;
-  }
+.mainPanel_name figure img {
+  height: 60px;
+  width: 60px;
+  border-radius: 50%;
+  border: 1px solid #cccccc;
+}
 
-  .chatObj {
-    height: var(--nameContent-height);
-    font-family: cursive;
-    color: #444444;
-  }
+.chatObj {
+  height: var(--nameContent-height);
+  font-family: cursive;
+  color: #444444;
+}
 
-  .chatObj .chatObjName {
-    height: 53%;
-    font-size: 28px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: flex-end;
-  }
+.chatObj .chatObjName {
+  height: 53%;
+  font-size: 28px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+}
 
-  .chatObj .chatObjNickName {
-    box-sizing: border-box;
-    padding-top: 6px;
-    height: 40%;
-    font-size: 15px;
-    color: #999999;
-  }
+.chatObj .chatObjNickName {
+  box-sizing: border-box;
+  padding-top: 6px;
+  height: 40%;
+  font-size: 15px;
+  color: #999999;
+}
 
-  .mainPanel_inputContent {
-    min-height: var(--inputContent-height);
-    width: var(--inputContent-width);
-    background-color: rgba(255, 255, 255, 1);
-    background: linear-gradient(to right, #F7F9FA, #ffffff);
-    box-shadow: 20px -2px 22px rgba(210, 210, 210, .9),
-    20px -2px 22px #ffffff;
-    position: relative;
-    overflow: hidden;
-    z-index: 3;
-    /*输入框高度*/
-  }
+.mainPanel_inputContent {
+  min-height: var(--inputContent-height);
+  width: var(--inputContent-width);
+  background-color: rgba(255, 255, 255, 1);
+  background: linear-gradient(to right, #F7F9FA, #ffffff);
+  box-shadow: 20px -2px 22px rgba(210, 210, 210, .9),
+  20px -2px 22px #ffffff;
+  position: relative;
+  overflow: hidden;
+  z-index: 3;
+  /*输入框高度*/
+}
 
-  .textBoxContent {
-    display: flex;
-  }
+.textBoxContent {
+  display: flex;
+}
 
-  .textBoxContent .textBox {
-    margin: calc(var(--inputContent-height) * 0.15) 0 calc(var(--inputContent-height) * 0.15) 3%;
-    min-height: calc(var(--inputContent-height) * 0.7);
-    width: 75%;
-    padding: 6px 12px 4px;
-    box-sizing: border-box;
-    border-radius: 12px;
-    border: none;
-    background: rgba(200, 200, 200, .15);
-    line-height: 24px;
-    color: #444444;
-    outline: none;
-    max-height: 400px;
-    overflow-y: auto;
-    /*resize: none;
-    word-break: keep-all;
-    white-space: pre-wrap;*/
-  }
+.textBoxContent .textBox {
+  margin: calc(var(--inputContent-height) * 0.15) 0 calc(var(--inputContent-height) * 0.15) 3%;
+  min-height: calc(var(--inputContent-height) * 0.7);
+  width: 75%;
+  padding: 6px 12px 4px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: none;
+  background: rgba(200, 200, 200, .15);
+  /*line-height: 24px;*/
+  color: #444444;
+  outline: none;
+  max-height: 400px;
+  overflow-y: auto;
+  /*resize: none;
+  word-break: keep-all;
+  white-space: pre-wrap;*/
+}
 
-  .textBoxContent .textBox::-webkit-scrollbar {
-    display: none
-  }
+.textBoxContent .textBox::-webkit-scrollbar {
+  display: none
+}
 
-  .textBoxContent .btnGroup {
-    width: calc(var(--inputContent-width) * 0.130);
-    min-width: 110px;
-    height: 48px;
-    display: flex;
-    position: absolute;
-    justify-content: space-between;
-    margin-left: 80.4%;
-    margin-top: calc(var(--inputContent-height) * 0.2);
-    bottom: calc(var(--inputContent-height) * 0.2);
-  }
+.textBoxContent .btnGroup {
+  width: calc(var(--inputContent-width) * 0.130);
+  min-width: 110px;
+  height: 48px;
+  display: flex;
+  position: absolute;
+  justify-content: space-between;
+  margin-left: 80.4%;
+  margin-top: calc(var(--inputContent-height) * 0.2);
+  bottom: calc(var(--inputContent-height) * 0.2);
+}
 
-  .textBoxBtn {
-    border-radius: 50%;
-    height: 48px;
-    width: 48px;
-    cursor: pointer;
-  }
+.textBoxBtn {
+  border-radius: 50%;
+  height: 48px;
+  width: 48px;
+  cursor: pointer;
+}
 
-  .textBoxContent .face {
-    bottom: calc(var(--inputContent-height) * 0.2);
-    background: url("../assets/img/face.png") no-repeat 50%;
-    background-size: 90%;
-    opacity: .8;
-  }
+.textBoxContent .face {
+  bottom: calc(var(--inputContent-height) * 0.2);
+  background: url("../assets/img/face.png") no-repeat 50%;
+  background-size: 90%;
+  opacity: .8;
+}
 
-  .textBoxContent .send {
-    bottom: calc(var(--inputContent-height) * 0.2);
-    background: #65C564;
-  }
+.textBoxContent .send {
+  bottom: calc(var(--inputContent-height) * 0.2);
+  background: #65C564;
+}
 
-  .textBoxContent .send::after {
-    content: '';
-    position: absolute;
-    height: 48px;
-    width: 48px;
-    background: url("../assets/img/send.png") no-repeat 50%;
-    background-size: 70%;
-  }
+.textBoxContent .send::after {
+  content: '';
+  position: absolute;
+  height: 48px;
+  width: 48px;
+  background: url("../assets/img/send.png") no-repeat 50%;
+  background-size: 70%;
+}
 
-  .mainPanel_msgContent {
-    position: absolute;
-    top: var(--nameContent-height);
-    height: calc(100% - (var(--inputContent-height) * 1) - var(--nameContent-height));
-    width: 100%;
-    overflow-y: auto;
-    background: #F7F9FA;
-  }
+.mainPanel_msgContent {
+  position: absolute;
+  top: var(--nameContent-height);
+  height: calc(100% - (var(--inputContent-height) * 1) - var(--nameContent-height));
+  width: 100%;
+  overflow-y: auto;
+  background: #F7F9FA;
+}
 
-  .face-list {
-    cursor: pointer;
-    position: absolute;
-    max-width: 70%;
-    right: 5%;
-    bottom: 100px;
-    padding: 10px 20px;
-    z-index: 999;
-    background: #F7F9FA;
-    border-radius: 20px;
-    box-shadow: -20px 20px 60px #cecece,
-    -0px -0px 0px #ffffff;
-  }
+.face-list {
+  cursor: pointer;
+  position: absolute;
+  max-width: 70%;
+  right: 5%;
+  bottom: 100px;
+  padding: 10px 20px;
+  z-index: 999;
+  background: #F7F9FA;
+  border-radius: 20px;
+  box-shadow: -20px 20px 60px #cecece,
+  -0px -0px 0px #ffffff;
+}
 
-  .face-list li {
-    display: inline-block;
-    width: 10%;
-    text-align: center;
-    line-height: 50px;
-    font-size: 24px;
-  }
+.face-list li {
+  display: inline-block;
+  width: 10%;
+  text-align: center;
+  line-height: 50px;
+  font-size: 24px;
+}
 
-  .face-list li:hover, .face-list li:active {
-    background: #ffffff;
-  }
+.face-list li:hover, .face-list li:active {
+  background: #ffffff;
+}
 
-  .msgContent {
-    width: 100%;
-    border: 1px solid transparent;
-    box-sizing: border-box;
-    padding-bottom: 100px;
-  }
+.msgContent {
+  width: 100%;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  padding-bottom: 100px;
+}
 
-  .My_MsgContent {
-    width: 100%;
-    margin-top: 42px;
-    min-height: 30px;
-    font-size: 15px;
-    display: flex;
-    -webkit-justify-content: flex-end;
-    justify-content: flex-end;
-    align-items: start;
-    position: relative;
-  }
+.My_MsgContent {
+  width: 100%;
+  margin-top: 42px;
+  min-height: 30px;
+  font-size: 15px;
+  display: flex;
+  -webkit-justify-content: flex-end;
+  justify-content: flex-end;
+  align-items: start;
+  position: relative;
+}
 
-  .You_MsgContent {
-    width: 100%;
-    margin-top: 42px;
-    min-height: 30px;
-    font-size: 15px;
-    display: flex;
-    -webkit-justify-content: flex-start;
-    justify-content: flex-start;
-    align-items: start;
-    position: relative;
-  }
+.You_MsgContent {
+  width: 100%;
+  margin-top: 42px;
+  min-height: 30px;
+  font-size: 15px;
+  display: flex;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  align-items: start;
+  position: relative;
+}
 
-  .You_MsgContent .msgTime {
-    position: absolute;
-    left: 20px;
-    bottom: -24px;
-    font-size: 12px;
-    color: rgba(100, 100, 100, .8);
-  }
+.You_MsgContent .msgTime {
+  position: absolute;
+  left: 20px;
+  bottom: -24px;
+  font-size: 12px;
+  color: rgba(100, 100, 100, .8);
+}
 
-  .My_MsgContent .msgTime {
-    position: absolute;
-    right: 20px;
-    bottom: -24px;
-    font-size: 12px;
-    color: rgba(100, 100, 100, .8);
-  }
+.My_MsgContent .msgTime {
+  position: absolute;
+  right: 20px;
+  bottom: -24px;
+  font-size: 12px;
+  color: rgba(100, 100, 100, .8);
+}
 
-  .My_Msg, .You_Msg {
-    max-width: 60%;
-    min-height: 46px;
-    line-height: 30px;
-    font-size: 15px;
-    margin: 0 20px 0 0;
-    padding: 15px 25px;
-    box-sizing: border-box;
-    text-align: left;
-    opacity: .9;
-    border-radius: 30px 30px 0 30px;
-    position: relative;
-    letter-spacing: 1px;
-    background: linear-gradient(225deg, #96d46c, #b3fb80);
-    box-shadow: -4px 4px 8px #c3c5c6,
-    4px -4px 8px #ffffff;
-  }
+.My_Msg, .You_Msg {
+  max-width: 60%;
+  min-height: 46px;
+  line-height: 30px;
+  font-size: 15px;
+  margin: 0 20px 0 0;
+  padding: 15px 25px;
+  box-sizing: border-box;
+  text-align: left;
+  opacity: .9;
+  border-radius: 30px 30px 0 30px;
+  position: relative;
+  letter-spacing: 1px;
+  background: linear-gradient(225deg, #96d46c, #b3fb80);
+  box-shadow: -4px 4px 8px #c3c5c6,
+  4px -4px 8px #ffffff;
+}
 
-  .You_Msg {
-    border-radius: 30px 30px 30px 0px;
-    background: linear-gradient(225deg, #dee0e1, #ffffff);
-    box-shadow: -4px 4px 8px #c3c5c6,
-    4px -4px 8px #ffffff;
-    margin: 0 0 0 20px;
-  }
+.You_Msg {
+  border-radius: 30px 30px 30px 0px;
+  background: linear-gradient(225deg, #dee0e1, #ffffff);
+  box-shadow: -4px 4px 8px #c3c5c6,
+  4px -4px 8px #ffffff;
+  margin: 0 0 0 20px;
+}
 </style>

@@ -126,6 +126,7 @@ export default {
     }
   },
   created () {
+    /** 获取经纬度 */
     /*    window.navigator.geolocation.getCurrentPosition(function (position) {
       console.log(position.coords.latitude)
       console.log(position.coords.longitude)
@@ -193,6 +194,10 @@ export default {
         // 检查是否重复登录
         const result = await this.checkRepeatLogin()
         if (result.data.error) { // 如果重复登录则直接返回
+          this.$message({
+            type: 'error',
+            message: '请勿重复登录'
+          })
           this.login.axiosStatus = false
           return
         }
@@ -202,15 +207,13 @@ export default {
         }).then(res => {
           this.transitionTime(1200).then(() => {
             if (res.data.error) {
-              // 全局报错
-              this.$message({
-                message: res.data.msg,
-                type: 'error'
-              })
+              this.login.errStatus = true
+              this.login.errInfo = res.data.msg
+            } else {
+              this.$refs.inputPWD.focus()
+              this.login.uidStatus = true
             }
-            this.login.uidStatus = !res.data.error
             this.login.axiosStatus = false
-            this.$refs.inputPWD.focus()
           })
         })
       } else {
@@ -221,33 +224,42 @@ export default {
         }).then(res => {
           this.transitionTime(1200).then(() => {
             if (res.data.error) {
-              // 全局报错
+              this.login.errStatus = true
+              this.login.errInfo = res.data.msg
               this.login.axiosStatus = false
-              this.$message({
-                message: res.data.msg,
-                type: 'error'
-              })
               return
             }
+            // ws服务器报到上线
+            this.$store.state.ws.sendMsg({
+              from: this.uid,
+              type: 'online'
+            }, (data) => {
+              this.$store.commit('wsMsgGHandler', data)
+            })
             // 更新用户信息，登录时间之类的
-            // this.updateUserInfo()
+            // if (process.env.NODE_ENV === 'production')
+            this.updateUserInfo()
             const resData = res.data.data
             sessionStorage.setItem('token', res.data.token)
             sessionStorage.setItem('nickName', resData.nickName)
             sessionStorage.setItem('email', resData.email)
             sessionStorage.setItem('avatar', resData.avatar)
             sessionStorage.setItem('uid', resData.email)
-            this.login.pwdStatus = true
             this.login.axiosStatus = false
+            this.login.pwdStatus = true
             this.$notify({
               title: '登录成功',
               type: 'success',
-              message: resData.email,
-              duration: 0
+              message: resData.email
             })
-            this.transitionTime(400).then(() => {
+            this.transitionTime(600).then(() => {
               this.$router.replace('home')
-              this.$destroy()
+              // access=root, router=admin
+              /*              if (resData.access === 'admin') {
+                this.$router.replace('admin')
+              } else {
+                this.$router.replace('home')
+              } */
             })
           })
         })

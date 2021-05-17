@@ -1,5 +1,6 @@
 <template>
   <div class="userList">
+    <!--  编辑用户界面  s -->
     <el-dialog title="编辑用户信息" :visible.sync="dialogFormVisible">
       <el-form :model="editForm" :label-position="labelPosition">
         <el-row :gutter="20">
@@ -34,7 +35,12 @@
           </el-col>
         </el-row>
         <el-row :gutter="20">
-          <el-col :span="23">
+          <el-col :span="11">
+            <el-form-item label="头像" :label-width="formLabelWidth">
+              <el-input v-model="editForm.avatar" autocomplete="off"></el-input>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item label="权限" :label-width='formLabelWidth'>
               <el-select v-model="editForm.access" placeholder="">
                 <el-option label="用户" value="user"></el-option>
@@ -49,6 +55,7 @@
         <el-button type="primary" @click="userListModify()" :loading="load">确 定</el-button>
       </div>
     </el-dialog>
+    <!--  编辑用户界面  e -->
     <el-row>
       <el-col :span="24">
         <el-form size="small" :inline="true">
@@ -258,6 +265,10 @@ export default {
       }).then(data => {
         this.load = !this.load
         if (data.data.msg === 'success') {
+          this.$message({
+            type: 'success',
+            message: '修改成功'
+          })
           this.dialogFormVisible = false
           this.initUserList()
         }

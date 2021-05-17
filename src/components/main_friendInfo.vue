@@ -2,39 +2,50 @@
   <div>
     <div class="Avatar_container">
       <figure>
-        <img :src=$store.state.globe.chatObjAvatar alt="" draggable="false"/>
+        <img :src=$store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.avatar alt="" draggable="false"/>
       </figure>
     </div>
     <div class="Avatar_Info">
-      <div class="Avatar_name">{{ this.$store.state.chatObj }}</div>
-      <div class="Avatar_outline">hello world!</div>
+      <div class="Avatar_name">{{ $store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.nickName }}</div>
+      <div class="Avatar_outline">你抡我啊！</div>
     </div>
     <ul class="personal_Info">
       <li>
         <div class="info_position_title">
-          <img src="../assets/img/position.png" alt="" draggable="false"/>
-          <!--          <span>Address：</span>-->
+          <i class="el-icon-thumb"></i>
+<!--          <img src="../assets/img/position.png" alt="" draggable="false"/>-->
+          <span>最近登录：</span>
         </div>
         <div class="info_position">
-          <img src="../assets/img/lock.png" alt="" draggable="false"/>
+          {{ $store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.RecentlyTime }}
+<!--          <img src="../assets/img/lock.png" alt="" draggable="false"/>-->
         </div>
       </li>
       <li>
         <div class="info_phone_title">
-          <img src="../assets/img/phone.png" alt="" draggable="false"/>
-          <!--          <span>Phone：</span>-->
+          <i class="el-icon-chat-dot-round"></i>
+<!--          <img src="../assets/img/phone.png" alt="" draggable="false"/>-->
+          <span>最近聊天：</span>
         </div>
         <div class="info_phone">
-          <img src="../assets/img/lock.png" alt="" draggable="false"/>
+          {{ $store.state.globe.navigation.historyList.chat[$store.state.chatObj].chat[$store.state.globe.navigation.historyList.chat[$store.state.chatObj].chat.length - 1].time }}
+<!--          <img src="../assets/img/lock.png" alt="" draggable="false"/>-->
         </div>
       </li>
       <li>
         <div class="info_email_title">
-          <img src="../assets/img/email.png" alt="" draggable="false"/>
-          <!--          <span>E-Mail：</span>-->
+          <i class="el-icon-s-promotion"></i>
+<!--          <img src="../assets/img/email.png" alt="" draggable="false"/>-->
+          <span>登录地点：</span>
         </div>
         <div class="info_email">
-          <img src="../assets/img/lock.png" alt="" draggable="false"/>
+          {{
+            $store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.address ?
+              $store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.address.Country + ' - ' +
+              $store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.address.Province + ' - ' +
+              $store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.address.City : '暂无'
+          }}
+<!--          <img src="../assets/img/lock.png" alt="" draggable="false"/>-->
         </div>
       </li>
     </ul>
@@ -108,6 +119,11 @@ export default {
   display: flex;
 }
 
+.personal_Info i{
+  display: inline-block;
+  margin: 0 6px;
+}
+
 .info_position_title,
 .info_phone_title,
 .info_email_title {
@@ -116,6 +132,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   color: #999999;
+  word-break:keep-all;      /* 不换行 */
+  white-space:nowrap;       /* 不换行 */
+  overflow:hidden;          /* 内容超出宽度时隐藏超出部分的内容 */
+  text-overflow:ellipsis;
 }
 
 .info_position_title img {
@@ -140,6 +160,10 @@ export default {
 .info_email {
   padding: 0 20px;
   line-height: 40px;
+  word-break:keep-all;      /* 不换行 */
+  white-space:nowrap;       /* 不换行 */
+  overflow:hidden;          /* 内容超出宽度时隐藏超出部分的内容 */
+  text-overflow:ellipsis;
 }
 
 .info_position img,

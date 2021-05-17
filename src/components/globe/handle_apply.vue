@@ -35,7 +35,7 @@ export default {
         uid: window.sessionStorage.getItem('uid'),
         friend: this.email,
         flag: flag, // 通过状态
-        time: moment(new Date()).format('YYYY-MM-DD hh:mm:ss'),
+        time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
         type: 'addFriendReply'
       }, this.wsMsgGHandler)
     },

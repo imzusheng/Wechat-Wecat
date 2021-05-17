@@ -66,13 +66,12 @@ function getCity (IPAddress) {
 router.post('/wechatAPI/login/userID', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
-  console.log(data)
   const queryParams = {
     $or: [
       { email: data.email }, { nickName: data.nickName }
     ]
   }
-  const result = await db.find('user', queryParams) // 查询数据
+  const result = await db.query('user', queryParams) // 查询数据
   let res
   if (result.length > 0) {
     res = {
@@ -607,12 +606,12 @@ router.put('/wechatAPI/login/modifyPwd', async (ctx) => {
 router.get('/wechatAPI/login/userOrigin', async (ctx) => {
   ctx.status = 200
   let msg
-  if (ctx.request.header.origin) {
-    const IPAddress = ctx.request.header.origin.slice(ctx.request.header.origin.indexOf('://') + 3, ctx.request.header.origin.lastIndexOf(':'))
-    const result = await getCity(IPAddress)
+  if (ctx.request.header.origin || ctx.request.header['x-real-ip']) {
+    // const IPAddress = ctx.request.header.origin.slice(ctx.request.header.origin.indexOf('://') + 3, ctx.request.header.origin.lastIndexOf(':'))
+    const result = await getCity(ctx.request.header['x-real-ip'])
     msg = {
       data: {
-        IPAddress: IPAddress,
+        IPAddress: ctx.request.header['x-real-ip'],
         result: result.result
       },
       error: false,

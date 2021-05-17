@@ -44,11 +44,9 @@ export default {
   @keyframes bgFilter {
     0%{
       filter: none;
-      /*transform: scale(1);*/
     }
     100%{
       filter: blur(30px);
-      /*transform: scale(0.8);*/
     }
   }
 

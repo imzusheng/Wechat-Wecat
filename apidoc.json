@@ -3,8 +3,8 @@
   "description": "API文档",
   "version": "1.0.0",
   "author": "Zusheng",
-  "url": "localhost:3000",
-  "sampleUrl": "localhost:3000",
+  "url": "",
+  "sampleUrl": "http://",
   "title": "WeChat - API doc",
   "order": [
     "注册",

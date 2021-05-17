@@ -1,10 +1,18 @@
+// import store from '../../store'
+
 let msg = {}
 
 export class WsServer {
-  constructor (url, uid, cb) {
-    this.Guid = uid
+  constructor (url, cb) {
     this.Gcb = cb
-    this.connect(url).then()
+    this.connect(url).then(ws => {
+      console.log('%cwss：连接成功!', 'color: red')
+      msg = JSON.stringify({
+        from: window.sessionStorage.getItem('uid'),
+        type: 'online'
+      })
+      ws.send(msg)
+    })
   }
 
   connect (url) {
@@ -17,15 +25,7 @@ export class WsServer {
         this.Gws.onerror = err => this.errorCb(err)
         this.Gws.onclose = err => this.errorCb(err)
         this.Gws.onmessage = data => this.Gcb(data)
-        this.Gws.onopen = () => {
-          msg = JSON.stringify({
-            uid: this.Guid,
-            type: 'online'
-          })
-          this.Gws.send(msg)
-          console.log('%cwss：连接成功!', 'color: red')
-          resolve(this.Gws)
-        }
+        this.Gws.onopen = () => resolve(this.Gws)
       } else {
         resolve(this.Gws)
       }
@@ -35,16 +35,22 @@ export class WsServer {
   errorCb (err) {
     console.error('ws：连接意外断开')
     this.Gws = null
-    const _that = this
     this.wsTimer = setTimeout(() => {
-      clearTimeout(_that.wsTimer)
-      _that.connect(err.target.url)
+      clearTimeout(this.wsTimer)
+      this.connect(err.target.url).then(ws => {
+        console.log('%cwss：连接成功!', 'color: red')
+        msg = JSON.stringify({
+          from: window.sessionStorage.getItem('uid'),
+          type: 'online'
+        })
+        ws.send(msg)
+      })
     }, 1000)
   }
 
   sendMsg (msg, cb) {
     try {
-      this.connect().then((ws) => {
+      this.connect().then(ws => {
         ws.send(JSON.stringify(msg))
         ws.onmessage = data => {
           cb(data)

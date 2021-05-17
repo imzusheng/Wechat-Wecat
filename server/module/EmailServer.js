@@ -32,9 +32,10 @@ module.exports = (data) => {
       `
     }, (error) => {
       if (error) {
-        reject(error)
+        console.error(error)
+        reject(false)
       } else {
-        resolve()
+        resolve(true)
       }
     })
   })

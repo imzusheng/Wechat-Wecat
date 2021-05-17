@@ -19,17 +19,12 @@ module.exports = class MongoDB {
     }))
   }
 
-  /**
-   * 模糊查询 用于菜单栏等搜索
-   * @param collectionName  // 集合名
-   * @param queryData // 查询条件
-   * @returns {Promise<unknown>}
-   */
-  likeFind (collectionName, queryData) {
+  // 管道，高级查询
+  aggregate (collectionName, queryParams) {
     const _that = this
     return new Promise((resolve, reject) => {
       this.connectDB().then(() => {
-        _that.db.collection(collectionName).find(queryData).toArray((err, result) => {
+        _that.db.collection(collectionName).aggregate(queryParams).toArray((err, result) => {
           if (err) throw err
           resolve(result)
         })
@@ -37,12 +32,12 @@ module.exports = class MongoDB {
     })
   }
 
-  // 通用查询
+  // 通用查询 *************待修改
   find (collectionName, queryParams) {
     const _that = this
     return new Promise((resolve, reject) => {
       this.connectDB().then(() => {
-        _that.db.collection(collectionName).aggregate(queryParams).toArray((err, result) => {
+        _that.db.collection(collectionName).find(queryParams).toArray((err, result) => {
           if (err) throw err
           resolve(result)
         })
@@ -63,6 +58,7 @@ module.exports = class MongoDB {
     })
   }
 
+  // admin页面中细节搜索 *************待修改
   detailFind (collectionName, queryUnwind, queryMatch, queryProject) {
     const _that = this
     return new Promise((resolve, reject) => {
@@ -103,7 +99,6 @@ module.exports = class MongoDB {
     const _that = this
     return new Promise((resolve, reject) => {
       this.connectDB().then(() => {
-        console.log('执行删除', queryData)
         _that.db.collection(collectionName).deleteOne(queryData, err => {
           if (err) throw err
           resolve()
@@ -129,45 +124,16 @@ module.exports = class MongoDB {
     })
   }
 
-  updateOne (collectionName, queryData, newData) {
+  updateOne (collectionName, queryParams, newData, option) {
     const _that = this
     return new Promise((resolve, reject) => {
       this.connectDB().then(() => {
-        _that.db.collection(collectionName).updateOne(queryData, newData, (err, res) => {
+        _that.db.collection(collectionName).updateOne(queryParams, newData, option, (err, res) => {
           if (err) return reject(err)
           resolve(true)
         })
       })
     })
-  }
-
-  /**
-   * 用于websocket服务保存聊天记录
-   * @param collectionName
-   * @param queryData
-   */
-  insertChatRecord (collectionName, queryData) {
-    const _that = this
-    this.connectDB().then(() => {
-      _that.db.collection('chatRecord').updateOne(queryData.myQuery, { $push: { chat: queryData.myChat } })
-      _that.db.collection('chatRecord').updateOne(queryData.youQuery, { $push: { chat: queryData.youChat } })
-    })
-  }
-
-  /**
-   * 用于websocket服务清理未读消息
-   * @param collectionName
-   * @param queryData
-   */
-  clearUnReadMsg (collectionName, queryData) {
-    const _that = this
-    try {
-      this.connectDB().then(() => {
-        _that.db.collection('chatRecord').updateOne(queryData.Query, { $set: { 'chat': queryData.chat } })
-      })
-    } catch (e) {
-      console.error(e)
-    }
   }
 
   changePwd (collectionName, queryParams) {

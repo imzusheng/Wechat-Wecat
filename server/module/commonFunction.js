@@ -4,18 +4,9 @@ const jwt = new JsonWebToken()
 module.exports = {
   /**
    * 发送验证码邮件，返回Promise
-   * @param params
-   * @returns {Promise | Promise<unknown>}
    */
-  sendEmail: (params) => {
-    EmailServer(params).then(
-      resolve => {
-        return true
-      },
-      reject => {
-        return false
-      }
-    )
+  sendEmail: async (params) => {
+    return await EmailServer(params)
   },
   /**
    * 验证token
@@ -28,7 +19,8 @@ module.exports = {
     if (verify === 401) {
       ctx.body = {
         msg: '身份认证已过期',
-        error: true
+        error: true,
+        type: verify
       }
     } else {
       await next()

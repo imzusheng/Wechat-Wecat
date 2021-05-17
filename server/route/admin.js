@@ -5,7 +5,7 @@ const db = new MongoDB()
 /**
  * 获取用户信息列表
  */
-router.get('/api/admin/userList', async (ctx) => {
+router.get('/wechatAPI/admin/userList', async (ctx) => {
   const result = await db.find('user', '') // 查询数据
   ctx.body = {
     msg: 'success',
@@ -17,7 +17,7 @@ router.get('/api/admin/userList', async (ctx) => {
 /**
  * 搜索用户
  */
-router.get('/api/admin/userListFind', async (ctx) => {
+router.get('/wechatAPI/admin/userListFind', async (ctx) => {
   const queryData = {}
   if (ctx.query.selectAccess !== 'all') queryData.access = ctx.query.selectAccess
   if (ctx.query.input) {
@@ -44,7 +44,7 @@ router.get('/api/admin/userListFind', async (ctx) => {
 /**
  * 修改用户信息
  */
-router.post('/api/admin/userListModify', async (ctx) => {
+router.post('/wechatAPI/admin/userListModify', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
   await db.updateOne('user', { email: data.formData.email }, { $set: data.formData })
@@ -57,7 +57,7 @@ router.post('/api/admin/userListModify', async (ctx) => {
 /**
  * 删除用户
  */
-router.post('/api/admin/userListDelete', async (ctx) => {
+router.post('/wechatAPI/admin/userListDelete', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
   await db.deleteOneData('user', {
@@ -74,7 +74,7 @@ router.post('/api/admin/userListDelete', async (ctx) => {
  * 需要：所有用户名user、最近登录时间user、好友数量friend、好友总数friend、发送消息数量chatRecord、接受消息数量chatRecord
  * 不怕说，这段代码一周后回来自己看都看不懂，可别出了什么bug
  */
-router.get('/api/admin/chatRecordList', async (ctx) => {
+router.get('/wechatAPI/admin/chatRecordList', async (ctx) => {
   const userResult = await db.find('user', {})
   const friendResult = await db.find('friend', {})
   const chatRecord = await db.find('chatRecord', {})
@@ -125,7 +125,7 @@ router.get('/api/admin/chatRecordList', async (ctx) => {
 /**
  * 聊天记录细节
  */
-router.get('/api/admin/chatDetail', async (ctx) => {
+router.get('/wechatAPI/admin/chatDetail', async (ctx) => {
   const data = ctx.query
   const result = await db.find('chatRecord', {
     userID: data.uid,
@@ -143,9 +143,8 @@ router.get('/api/admin/chatDetail', async (ctx) => {
 /**
  * 聊天记录细节搜索
  */
-router.get('/api/admin/chatDetailFind', async (ctx) => {
+router.get('/wechatAPI/admin/chatDetailFind', async (ctx) => {
   const data = typeof ctx.query.data === 'object' ? ctx.query.data : JSON.parse(ctx.query.data)
-  console.log(data.startTime, data.endTime)
   const queryMatch = {
     $match: {
       userID: data.uid,
@@ -175,7 +174,6 @@ router.get('/api/admin/chatDetailFind', async (ctx) => {
       $lte: data.endTime
     }
   } */
-  console.log(queryMatch)
   /**
    * 查询内嵌数组并过滤：https://blog.csdn.net/u014756827/article/details/80677628
    * @type {({$unwind: string}|{$match: {'chat.msg': string, chatObj: string, userID: string}}|{$project: {chat: number}})[]}

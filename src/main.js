@@ -4,16 +4,26 @@ import router from './router/router'
 import store from './store'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
-
 import axios from 'axios'
 
 Vue.use(ElementUI)
 
-axios.defaults.baseURL = process.env.NODE_ENV === 'production' ? 'https://zusheng.club/api' : 'http://localhost:3000/wechatAPI'
+axios.defaults.baseURL = process.env.NODE_ENV === 'production' ? 'https://zusheng.club/wechatAPI' : 'http://localhost:3800/wechatAPI'
 axios.defaults.headers['Content-Type'] = 'application/json'
+// 请求拦截器
 axios.interceptors.request.use(config => {
   config.headers.Authorization = window.sessionStorage.getItem('token')
   return config
+})
+/** 响应拦截器如果放在new Vue上面的话，无法获取到$store */
+// 响应拦截器
+axios.interceptors.response.use(response => {
+  if (response.data.type === 401 && response.data.error) {
+    store.commit('authHandle', response)
+  }
+  return response
+}, error => {
+  console.error(error)
 })
 
 Vue.prototype.$axios = axios
@@ -24,6 +34,7 @@ new Vue({
   store,
   router,
   created () {
+    // 连接ws服务器
     this.$store.commit('linkWsServer')
   },
   render: h => h(App)

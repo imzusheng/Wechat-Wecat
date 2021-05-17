@@ -1,5 +1,6 @@
 <template>
   <div class="nav">
+    <!--  设置页面  s -->
     <div class="navSetting"
          :style="{transform: navSettingActive ? 'translateY(0%)' : 'translateY(-100%)', opacity: navSettingActive ? 1 : 0.2}">
       <div class="settingTitle">设置</div>
@@ -10,13 +11,23 @@
         </li>
         <li @click="$store.state.timeSwitch = !$store.state.timeSwitch">
           显示消息时间
-          <div class="timeSwitch" :class="{timeSwitchOn : $store.state.timeSwitch}">
+          <div class="timeSwitch" :class="{SwitchOn : $store.state.timeSwitch}">
             <div class="switchBtn"></div>
           </div>
+        </li>
+        <li @click="$store.state.sendKeyCode = !$store.state.sendKeyCode" title="Ctrl + Enter">
+          使用组合键发送
+          <div class="timeSwitch" :class="{SwitchOn : $store.state.sendKeyCode}">
+            <div class="switchBtn"></div>
+          </div>
+        </li>
+        <li>
+          <a style="color: #444444; height: 100%; width: 100%; display: inline-block;" href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
         </li>
         <li class="exit" @click="exit()">退出登录</li>
       </ul>
     </div>
+    <!--  设置页面  e -->
     <div class="top_bar">
       <div class="logo">
         <figure></figure>
@@ -36,13 +47,20 @@
              placeholder="搜索"
              @keyup="searchChange"
              @focus="searchActive = true"
-             @blur="!searchContent ? searchActive = false : searchActive = true"
+             @blur="!searchContent ? searchActive = false : searchActive = true;"
              v-model="searchContent">
+      <el-popover
+        placement="bottom"
+        width="200"
+        trigger="manual"
+        content="只允许输入数字、字母、字符@，不允许输入特殊字符。"
+        v-model="popoverVisible">
+      </el-popover>
       <div class="search_list" v-if="searchActive">
         {{ searchTips }}
         <ul class="searchResult" @click="addFriend">
           <li class="result_Title">全网搜索</li>
-          <li v-for="(item, i) in $store.state.searchResult" :key="i">
+          <li v-for="(item, i) in $store.state.globe.navigation.searchResult" :key="i">
             <div class="searchResultMask" :data-email="item.email" :data-nickname="item.nickName"
                  :data-avatar="item.avatar"></div>
             <figure><img :src="item.avatar" alt=""></figure>
@@ -79,9 +97,9 @@
       </li>
     </ul>
     <div class="list_container" ref="listContainer" v-if="!searchActive">
-      <chatHistory class="list_container_chatHistory noSelect" @getData="getData"/>
-      <contact class="list_container_contact noSelect" @getData="getData"/>
-      <group class="list_container_group noSelect" @getData="getData"/>
+      <chatHistory class="list_container_chatHistory noSelect"/>
+      <contact class="list_container_contact noSelect"/>
+      <group class="list_container_group noSelect"/>
     </div>
   </div>
 </template>
@@ -90,7 +108,8 @@
 import chatHistory from './nav_chatHistory'
 import contact from './nav_contact'
 import group from './nav_group'
-import axios from 'axios'
+import { apiService } from '@/assets/js/Functions'
+import { API_COMMON } from '@/assets/js/api'
 
 export default {
   name: 'indexNav',
@@ -101,102 +120,65 @@ export default {
   },
   data () {
     return {
-      uid: '',
+      uid: window.sessionStorage.getItem('uid'),
       searchContent: '',
       searchActive: false,
-      searchTips: '输入内容以查找',
+      searchTips: '查找好友开始聊天吧',
       btnActive: false,
       navSettingActive: false,
-      chatObj: ''
+      chatObj: '',
+      popoverVisible: false // 输入提示
     }
   },
   mounted () {
-    this.uid = window.sessionStorage.getItem('uid') || this.$store.state.uid
-    // 获取数据
-    this.$store.commit('navInit')
+    // 获取聊天记录数据
+    apiService.getData(API_COMMON.GET_COMMON_CHAT_HISTORY, {
+      email: this.uid
+    }).then(res => {
+      if (!res.data.error) {
+        this.$store.commit('navInit', res) // 初始化列表信息
+        this.$notify({
+          title: res.data.msg,
+          type: 'success',
+          message: ''
+        })
+      }
+    })
   },
   methods: {
-    addFriend (e) {
-      if (e.target.nodeName !== 'UL' && e.target.innerHTML !== this.$store.state.uid) { /** 事件委托，点击UL时不触发click */
-        if (this.$store.state.globe.navigation.contactList.includes(e.target.dataset.email)) {
-          this.chatObj = e.target.dataset.email
-          this.$store.commit('chatObjChange', this.chatObj)
-          // this.$emit('getData', 'chatRecord', this.chatObj)
-          // 收到或发送消息时，滚动条自动到达底部
-          this.$store.commit('scrollRec')
-          // 选中该好友时，清除该好友的未读消息列表
-          if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
-        } else if (!this.$store.state.globe.navigation.contactList.includes(e.target.dataset.email)) {
-          /** 当点击的对象已经是好友时，跳转到聊天界面 */
-          this.$store.commit('setAddFriend', {
-            email: e.target.dataset.email,
-            avatar: e.target.dataset.avatar,
-            nickName: e.target.dataset.nickname
-          })
-          this.$store.state.addFriState = true
-        }
-      }
-    },
+    /** 退出登录 */
     exit () {
       this.$store.state.ws.sendMsg({
         uid: this.$store.state.uid,
         type: 'exit'
       }, this.wsMsgGHandler)
-      window.sessionStorage.removeItem('uid')
       window.sessionStorage.removeItem('token')
-      this.$router.replace('login')
+      window.sessionStorage.removeItem('nickName')
+      window.sessionStorage.removeItem('email')
+      window.sessionStorage.removeItem('avatar')
+      window.sessionStorage.removeItem('uid')
+      window.location.reload()
+      // this.$router.replace('login')
     },
+    /** 搜索好友 */
     searchChange () {
       clearTimeout(this.timer)
-      const _that = this
-      this.searchTips = this.searchContent.length > 0 ? '' : '输入内容以搜索'
       if (this.searchContent.length === 0) {
-        this.$store.commit('clearNavSearch')
+        this.$store.state.globe.navigation.searchResult = '' // 清除搜索结果
       } else {
-        _that.timer = setTimeout(() => {
-          _that.$store.state.ws.sendMsg({
-            uid: _that.uid,
-            msg: _that.searchContent,
-            type: 'navSearch'
-          }, _that.wsMsgGHandler)
-        }, 100)
+        this.searchTips = ''
+        this.timer = setTimeout(() => {
+          apiService.getData(API_COMMON.GET_COMMON_NAV_SEARCH, {
+            email: this.searchContent,
+            nickName: this.searchContent,
+            userID: this.uid
+          }).then(res => {
+            this.$store.state.globe.navigation.searchResult = res.data.result
+          })
+        }, 200)
       }
     },
-    wsMsgGHandler (data) {
-      this.$store.commit('wsMsgGHandler', data)
-    },
-    /**
-     * @param type // 请求分组内数据的类型 chatHistory / contact / group
-     * @param chatObj
-     */
-    getData (type, chatObj) {
-      axios({
-        method: 'get',
-        url: `/${type}`,
-        params: {
-          uid: this.uid,
-          chatObj: chatObj
-        }
-      }).then(data => this.dataHandler(data)).catch(err => this.dataHandler(err.response))
-    },
-    dataHandler (data) {
-      if (data.config.method === 'get' && data.data !== 'OK') {
-        if (data.data.type === 'chatHistory') {
-          this.historyList = data.data.resultArr
-          this.$store.commit('chatRecordChange', data.data.resultArr)
-        } else if (data.data.type === 'contact') {
-          this.contactList = data.data.resultArr
-        } else if (data.data.type === 'group') {
-          this.groupList = data.data.resultArr
-        } else if (data.data.type === 'friendApply') {
-          this.$store.state.applyList = data.data.friendList
-        }
-      }
-    },
-    /**
-     * @param e // DOM
-     * 切换菜单面板的分类时
-     */
+    /** 切换菜单面板的分类时 */
     switchClass (e) {
       if (e.target.nodeName === 'INPUT') {
         const link = e.target.attributes['data-link'].value
@@ -213,11 +195,50 @@ export default {
             break
         }
       }
+    },
+    /** 添加好友 */
+    addFriend (e) {
+      /** 事件委托，点击UL时不触发click */
+      if (e.target.nodeName !== 'UL' && e.target.innerHTML !== this.$store.state.uid) {
+        if (this.$store.state.globe.navigation.contactList.includes(e.target.dataset.email)) {
+          this.chatObj = e.target.dataset.email
+          this.$store.commit('chatObjChange', this.chatObj)
+          // 收到或发送消息时，滚动条自动到达底部
+          this.$store.commit('scrollRec')
+          // 选中该好友时，清除该好友的未读消息列表
+          if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
+        } else if (!this.$store.state.globe.navigation.contactList.includes(e.target.dataset.email)) {
+          /** 当点击的对象已经是好友时，跳转到聊天界面 */
+          this.$store.commit('setAddFriend', {
+            email: e.target.dataset.email,
+            avatar: e.target.dataset.avatar,
+            nickName: e.target.dataset.nickname
+          })
+          this.$store.state.addFriState = true
+        }
+      }
     }
   },
   watch: {
     searchActive () {
-      this.$store.commit('clearNavSearch')
+      if (!this.searchActive) {
+        this.$store.state.globe.navigation.searchResult = '' // 清除搜索结果
+        this.searchTips = ''
+      } else {
+        this.searchTips = '查找好友开始聊天吧'
+      }
+    },
+    '$store.state.sendKeyCode': (e) => {
+      require('element-ui').Message.success({
+        message: e ? '当前使用 Ctrl + Enter 组合键发送消息' : '当前使用 Enter 键发送消息',
+        type: 'success'
+      })
+    },
+    '$store.state.timeSwitch': (e) => {
+      require('element-ui').Message.success({
+        message: e ? '已开启消息时间' : '已关闭消息时间',
+        type: 'success'
+      })
     }
   }
 }
@@ -337,11 +358,11 @@ export default {
   transition: all .2s;
 }
 
-.timeSwitchOn {
+.SwitchOn {
   background: #65C564;
 }
 
-.timeSwitchOn .switchBtn {
+.SwitchOn .switchBtn {
   transform: translateX(100%);
 }
 
