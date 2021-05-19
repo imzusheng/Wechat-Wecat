@@ -1,5 +1,8 @@
 <template>
-  <div class="mainPanel_wrap">
+  <div class="mainPanel_wrap"
+       :disabled="loading"
+       v-loading="loading"
+  >
     <!--    聊天对象名字-->
     <div class="mainPanel_name" @click="faceListActive = false">
       <figure><img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt="">
@@ -10,9 +13,14 @@
       </div>
     </div>
     <!--    聊天记录信息面板-->
-    <div class="mainPanel_msgContent" ref="msgContentBox" @click="faceListActive = false">
+    <div
+      class="mainPanel_msgContent"
+      ref="msgContentBox"
+      @click="faceListActive = false"
+      @scroll="scrollList($event)"
+    >
       <div class="msgContent" ref="msgContent">
-        <div v-for="(item, i) in $store.state.globe.navigation.historyList.chat[$store.state.chatObj].chat"
+        <div v-for="(item, i) in $store.state.globe.chat.chatList"
              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}" :key="i">
           <div :class="{My_Msg : item.say === 'me', You_Msg : item.say === 'you'}">{{ item.msg }}</div>
           <div class="msgTime" v-if="$store.state.timeSwitch">{{ item.time }}</div>
@@ -96,6 +104,7 @@ export default {
   name: 'mainPanel',
   data () {
     return {
+      loading: false,
       keyCodeArr: [],
       uid: '',
       input: '',
@@ -104,10 +113,22 @@ export default {
     }
   },
   mounted () {
-    this.$store.commit('scrollRec', this.$refs) //
     this.uid = window.sessionStorage.getItem('uid')
+    this.$store.commit('scrollRec', this.$refs)
+    this.$store.commit('loadChat')
   },
   methods: {
+    scrollList (evt) {
+      if (evt.target.scrollTop === 0 && this.loading === false) {
+        this.loading = true
+        setTimeout(() => {
+          this.loading = false
+          this.$store.state.globe.chat.current++
+          this.$store.commit('chatObjChange', this.$store.state.chatObj)
+          this.$store.commit('loadChat')
+        }, 1000)
+      }
+    },
     /**
      * 聊天面板选择表情包，并将光标移动到输入框末尾
      */
@@ -183,7 +204,16 @@ export default {
       }
     }
   },
-  watch: {}
+  watch: {
+    /*    '$store.state.chatObj': function () {
+      const chatOrigin = this.$store.state.globe.navigation.historyList.chat[this.$store.state.chatObj].chat
+      if (chatOrigin.length > this.$store.state.globe.chat.pageSize) {
+        this.$store.state.globe.chat = chatOrigin.splice(chatOrigin.length - this.$store.state.globe.chat.pageSize * this.$store.state.globe.chat.current, chatOrigin.length)
+      } else {
+        this.$store.state.globe.chat = chatOrigin
+      }
+    } */
+  }
 }
 </script>
 

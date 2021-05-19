@@ -4,31 +4,31 @@
     <handleApply :style="{visibility: $store.state.applyList.length?'visible':'hidden'}"/>
 
     <!--  左侧菜单  s -->
-    <indexNav :class="{'wrap_slide_left' : bgFade}"/>
+    <indexNav class="wrap_slide_left" v-if="navFade"/>
     <!--  左侧菜单  e -->
     <!--  中间聊天面板  s -->
     <mainPanel
-      class="mainPanel"
-      :class="{'wrap_scale' : bgFade}"
+      class="mainPanel wrap_scale"
       v-if="this.$store.state.chatObj.length > 0"
       @sendMsg="sendMsg"
     />
     <!--  中间聊天面板  e -->
     <!--  好友信息面板  s -->
     <friendInfo
-      class="friendInfo"
-      :class="{'wrap_slide_left' : bgFade}"
+      class="friendInfo wrap_slide_left"
       v-if="this.$store.state.chatObj.length > 0"
     />
     <!--  好友信息面板  e -->
     <!--  背景  s -->
-    <catsBg :bgFade="bgFade"/>
+    <staticBg :bgFade="bgFade"/>
+    <!--    <catsBg :bgFade="bgFade"/>-->
     <!--  背景  e -->
   </div>
 </template>
 
 <script>
-import catsBg from '../components/login/login_cats_bg'
+import staticBg from '@/components/login/staticBg'
+// import catsBg from '../components/login/login_cats_bg'
 import indexNav from '../components/navigation/nav'
 import mainPanel from '../components/main_middlePanel'
 import friendInfo from '../components/main_friendInfo'
@@ -39,7 +39,8 @@ import moment from 'moment'
 export default {
   name: 'home',
   components: {
-    catsBg,
+    // catsBg,
+    staticBg,
     mainPanel,
     friendInfo,
     indexNav,
@@ -49,6 +50,7 @@ export default {
   data () {
     return {
       uid: '',
+      navFade: false,
       bgFade: false,
       mainPanelFade: false
     }
@@ -56,6 +58,9 @@ export default {
   mounted () {
     this.uid = window.sessionStorage.getItem('uid') || this.$store.state.uid
     this.bgFade = true
+    setTimeout(() => {
+      this.navFade = true
+    }, 400)
   },
   methods: {
     sendMsg (input, chatObj, msgType) {

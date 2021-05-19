@@ -10,22 +10,33 @@
           :router="false"
           :unique-opened="true"
           :default-active="$router.history.current.name">
+
           <router-link :to="{ name: 'userList'}" replace>
             <el-menu-item index="userList">
               <i class="el-icon-s-custom"></i>
               <span slot="title">用户信息</span>
             </el-menu-item>
           </router-link>
+
           <router-link :to="{ name: 'chatRecord'}" replace>
             <el-menu-item index="chatRecord">
               <i class="el-icon-s-comment"></i>
               <span slot="title">聊天记录</span>
             </el-menu-item>
           </router-link>
+
+          <router-link :to="{ name: 'config'}" replace>
+            <el-menu-item index="config">
+              <i class="el-icon-s-platform"></i>
+              <span slot="title">后台配置</span>
+            </el-menu-item>
+          </router-link>
+
           <router-link :to="{ name: 'home'}" replace>
             <el-menu-item index="/home" class="goBack">
               返回用户界面
             </el-menu-item>
+
           </router-link>
         </el-menu>
       </el-aside>

@@ -137,11 +137,6 @@ export default {
     }).then(res => {
       if (!res.data.error) {
         this.$store.commit('navInit', res) // 初始化列表信息
-        this.$notify({
-          title: res.data.msg,
-          type: 'success',
-          message: ''
-        })
       }
     })
   },

@@ -9,6 +9,7 @@ import Forget from '../views/forget'
 import emailCheck from '../views/emailCheck'
 import userList from '../components/admin/userList'
 import chatRecord from '../components/admin/chatRecord'
+import config from '../components/admin/config'
 
 Vue.use(VueRouter)
 
@@ -48,6 +49,11 @@ const routes = [
         path: 'chatRecord',
         name: 'chatRecord',
         component: chatRecord
+      },
+      {
+        path: 'config',
+        name: 'config',
+        component: config
       }
     ]
   },
@@ -85,9 +91,6 @@ router.beforeEach((to, from, next) => {
   if (['/login', '/sign', '/forget', '/emailCheck'].includes(to.path)) {
     return next()
   }
-  // else if (to.path === '/emailCheck' && store.state.signStore.checkSuc) {
-  //   return next()
-  // }
   const token = window.sessionStorage.getItem('token')
   if (!token) {
     next('/login')

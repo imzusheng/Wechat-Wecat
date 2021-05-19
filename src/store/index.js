@@ -8,17 +8,6 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: () => ({
     wsAddress: process.env.NODE_ENV === 'production' ? 'wss://zusheng.club/wsServerV2' : 'ws://localhost:4800',
-    globe: {
-      navigation: {
-        searchResult: [], // nav搜索返回的结果
-        historyList: {
-          nameList: [],
-          chat: {}
-        },
-        contactList: [],
-        groupList: []
-      }
-    },
     chatObj: '', // 聊天对象
     uid: window.sessionStorage.getItem('uid'), // 用户名
     apply: [], // 好友申请
@@ -31,18 +20,60 @@ export default new Vuex.Store({
     timeSwitch: true, // 设置面板中显示消息时间开关
     sendKeyCode: false, // 设置菜单 - 使用组合键发送
     friendInfo: '',
-    addFriState: false
+    addFriState: false,
+    globe: {
+      navigation: {
+        searchResult: [], // nav搜索返回的结果
+        historyList: {
+          nameList: [],
+          chat: {}
+        },
+        contactList: [],
+        groupList: []
+      },
+      chat: { // 聊天面板用的
+        befScroll: 0,
+        curScroll: '',
+        chatList: '',
+        total: '',
+        current: 1, // 当前页数
+        pageSize: 5 // 每页多少个
+      }
+    }
   }),
   mutations: {
+    // 更新全局聊天对象
+    chatObjChange (state, playLoad) {
+      state.chatObj = playLoad // 这句是本函数主要功能，不能少
+    },
+    loadChat (state) {
+      state.globe.chat.total = state.globe.navigation.historyList.chat[state.chatObj].chat.length // 聊天记录总数
+      if (state.globe.chat.total > state.globe.chat.pageSize * state.globe.chat.current) { // 当还能刷新一次时
+        state.globe.chat.chatList = state.globe.navigation.historyList.chat[state.chatObj].chat
+          .slice(state.globe.chat.total - state.globe.chat.current * state.globe.chat.pageSize, state.globe.chat.total)
+        setTimeout(() => {
+          if (state.globe.chat.current >= 2) {
+            state.globe.chat.curScroll = state.refs.msgContentBox.scrollHeight
+            state.refs.msgContentBox.scrollTop = state.globe.chat.curScroll - state.globe.chat.befScroll
+            state.globe.chat.befScroll = state.refs.msgContentBox.scrollHeight
+          } else {
+            state.globe.chat.befScroll = state.refs.msgContent.offsetHeight
+            state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
+          }
+        }, 0)
+      } else { // 当剩余的聊天记录条数不足以刷新
+        state.globe.chat.chatList = state.globe.navigation.historyList.chat[state.chatObj].chat
+      }
+    },
     // 滚动条自动到底底部
     scrollRec (state, refs) {
       if (!state.chatObj) return
       if (refs) {
         state.refs = refs
       }
-      setTimeout(() => {
-        state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
-      }, 0)
+      state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
+      // setTimeout(() => {
+      // }, 0)
     },
     // 建立WebSocket连接
     linkWsServer (state) {
@@ -109,10 +140,6 @@ export default new Vuex.Store({
         })
         Vue.set(state.friends, value1.chatObj, value1.chat)
       })
-    },
-    // 更新全局聊天对象
-    chatObjChange (state, playLoad) {
-      state.chatObj = playLoad
     },
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {

@@ -90,13 +90,15 @@
         </div>
       </div>
     </transition>
-    <catsBg/>
+<!--    <catsBg/>-->
+    <staticBg/>
   </div>
 </template>
 
 <script>
 import LoadingLine from '../components/login/login_loading_line'
-import catsBg from '../components/login/login_cats_bg'
+// import catsBg from '../components/login/login_cats_bg'
+import staticBg from '@/components/login/staticBg'
 import catTitle from '../components/login/login_cat_title'
 import moment from 'moment'
 import { apiService } from '@/assets/js/Functions'
@@ -105,8 +107,9 @@ import { API_LOGIN } from '@/assets/js/api'
 export default {
   name: 'login',
   components: {
+    staticBg,
     LoadingLine, // 加载动画模板
-    catsBg, // 背景
+    // catsBg, // 背景
     catTitle // 标题logo
   },
   data () {
@@ -558,5 +561,12 @@ input:hover {
   cursor: pointer;
   outline: none;
   background: var(--common-color);
+}
+
+@media screen and (max-width: 750px) {
+  .login_container {
+    box-shadow: none;
+    background: #fff;
+  }
 }
 </style>
