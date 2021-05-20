@@ -90,7 +90,7 @@
         </div>
       </div>
     </transition>
-<!--    <catsBg/>-->
+    <!--    <catsBg/>-->
     <staticBg/>
   </div>
 </template>

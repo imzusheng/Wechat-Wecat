@@ -18,8 +18,6 @@ export default new Vuex.Store({
     unReadMsg: {}, // 保存未读消息的数量 {用户名：未读数量}
     ws: {}, // WebSocket 对象
     maxMsg: 50, // 聊天框显示消息的最大数量
-    timeSwitch: true, // 设置面板中显示消息时间开关
-    sendKeyCode: false, // 设置菜单 - 使用组合键发送
     friendInfo: '',
     addFriState: false,
     globe: {
@@ -37,8 +35,12 @@ export default new Vuex.Store({
         curScroll: 0,
         chatList: '',
         total: '',
-        current: 1, // 当前页数
-        pageSize: 10 // 每页多少个
+        current: 1// 当前页数
+      },
+      userConfig: {
+        timeSwitch: true, // 设置面板中显示消息时间开关
+        sendKeyCode: false, // 设置菜单 - 使用组合键发送
+        pageSize: 10 // 每页加载的消息数量
       }
     }
   }),
@@ -51,13 +53,13 @@ export default new Vuex.Store({
       state.globe.chat.curScroll = 0
       this.commit('loadChat')
     },
-    // 加载聊天记录
+    // 模拟懒加载聊天记录
     loadChat (state) {
       state.globe.chat.total = state.globe.navigation.historyList.chat[state.chatObj].chat.length // 聊天记录总数
       // 当剩余聊天记录总数大于一页时
-      if (state.globe.chat.total > state.globe.chat.pageSize * state.globe.chat.current) {
+      if (state.globe.chat.total > state.globe.userConfig.pageSize * state.globe.chat.current) {
         state.globe.chat.chatList = state.globe.navigation.historyList.chat[state.chatObj].chat
-          .slice(state.globe.chat.total - state.globe.chat.current * state.globe.chat.pageSize, state.globe.chat.total) // 裁剪部分展示
+          .slice(state.globe.chat.total - state.globe.chat.current * state.globe.userConfig.pageSize, state.globe.chat.total) // 裁剪部分展示
         setTimeout(() => {
           if (state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
             state.globe.chat.curScroll = state.refs.msgContentBox.scrollHeight // 保存当前的滚动条总高度

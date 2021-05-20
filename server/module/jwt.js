@@ -12,7 +12,6 @@ module.exports = class jwtClass {
     return new Promise((resolve, reject) => {
       const token = ctx.header.authorization
       jwt.verify(token, 'shhhhh', {}, function (err, decoded) {
-        console.log(err)
         if (err) resolve(401)
         else resolve(200)
       })

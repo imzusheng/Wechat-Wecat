@@ -4,6 +4,7 @@
     <div class="navSetting"
          :style="{transform: navSettingActive ? 'translateY(0%)' : 'translateY(-100%)', opacity: navSettingActive ? 1 : 0.2}">
       <div class="settingTitle">设置</div>
+      <!--  (TODO) 将每个用户的配置文件传到数据库保存起来,弄一个配置表  -->
       <ul class="settingItems">
 
         <li class="info_item">个人信息</li>
@@ -12,25 +13,26 @@
           <router-link to="admin" class="admin_item">管理员</router-link>
         </li>
 
-        <li @click="$store.state.timeSwitch = !$store.state.timeSwitch">
+        <li @click="$store.state.globe.userConfig.timeSwitch = !$store.state.globe.userConfig.timeSwitch">
           显示消息时间
-          <div class="timeSwitch" :class="{SwitchOn : $store.state.timeSwitch}">
+          <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.timeSwitch}">
             <div class="switchBtn"></div>
           </div>
         </li>
 
-        <li @click="$store.state.sendKeyCode = !$store.state.sendKeyCode" title="Ctrl + Enter">
+        <li @click="$store.state.globe.userConfig.sendKeyCode = !$store.state.globe.userConfig.sendKeyCode"
+            title="Ctrl + Enter">
           使用组合键发送
-          <div class="timeSwitch" :class="{SwitchOn : $store.state.sendKeyCode}">
+          <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.sendKeyCode}">
             <div class="switchBtn"></div>
           </div>
         </li>
 
         <li class="message_Loading_Slider">
-          消息一次加载 {{ $store.state.globe.chat.pageSize }} 条
+          聊天记录加载一次新增条数： {{ $store.state.globe.userConfig.pageSize }} 条
           <el-slider
             style="background: transparent"
-            v-model="$store.state.globe.chat.pageSize"
+            v-model="$store.state.globe.userConfig.pageSize"
             :step="10"
             :min="10"
             :max="50"
@@ -38,10 +40,10 @@
           ></el-slider>
         </li>
 
-        <!--        <li>
-                  <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
-                     href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
-                </li>-->
+        <li>
+          <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
+             href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
+        </li>
 
         <li class="exit" @click="exit()">退出登录</li>
       </ul>
@@ -150,6 +152,14 @@ export default {
     }
   },
   mounted () {
+    // 获取菜单配置
+    apiService.getData(API_COMMON.GET_COMMON_USER_CONFIG, {
+      uid: this.uid
+    }).then(res => {
+      if (!res.data.error) {
+        this.$store.state.globe.userConfig = res.data.config
+      }
+    })
     // 获取聊天记录数据
     apiService.getData(API_COMMON.GET_COMMON_CHAT_HISTORY, {
       email: this.uid
@@ -242,17 +252,24 @@ export default {
         this.searchTips = '查找好友开始聊天吧'
       }
     },
-    '$store.state.sendKeyCode': (e) => {
+    '$store.state.globe.userConfig.sendKeyCode': (evt) => {
       require('element-ui').Message.success({
-        message: e ? '当前使用 Ctrl + Enter 组合键发送消息' : '当前使用 Enter 键发送消息',
-        type: 'success'
+        message: evt ? '当前使用 Ctrl + Enter 组合键发送消息' : '当前使用 Enter 键发送消息'
       })
     },
-    '$store.state.timeSwitch': (e) => {
-      require('element-ui').Message.success({
-        message: e ? '已开启消息时间' : '已关闭消息时间',
-        type: 'success'
-      })
+    /** 监听配置文件修改，1秒钟无修改则提交到服务器 */
+    '$store.state.globe.userConfig': {
+      handler (evt) {
+        let timer = ''
+        clearTimeout(timer)
+        timer = setTimeout(() => {
+          apiService.updateData(API_COMMON.PUT_COMMON_USER_CONFIG, {
+            uid: this.uid,
+            config: evt
+          })
+        }, 1000)
+      },
+      deep: true // 深度监听
     }
   }
 }

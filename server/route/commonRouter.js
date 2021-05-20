@@ -7,6 +7,7 @@ const db = new MongoDB()
  * @apiName 1
  * @apiVersion 1.0.0
  * @apiGroup 通用
+ * @apiSampleRequest off
  */
 router.get('/wechatAPI/common/chatHistory', async (ctx) => {
   try {
@@ -58,7 +59,7 @@ router.get('/wechatAPI/common/chatHistory', async (ctx) => {
  * @apiName 2
  * @apiVersion 1.0.0
  * @apiGroup 通用
- *
+ * @apiSampleRequest off
  */
 router.get('/wechatAPI/common/navSearch', async (ctx) => {
   const data = ctx.query
@@ -91,57 +92,68 @@ router.get('/wechatAPI/common/navSearch', async (ctx) => {
   }
 })
 /**
- * @api {Get} /wechatAPI/common/chat 发送消息
+ * @api {Get} /wechatAPI/common/userConfig 获取用户配置
  * @apiName 3
  * @apiVersion 1.0.0
  * @apiGroup 通用
+ * @apiSampleRequest off
  *
+ * @apiExample 请求示例:
+ * {
+ *   "uid": "imzusheng@163.com"
+ * }
  */
-router.get('/wechatAPI/common/navSearch', async (ctx) => {
+router.get('/wechatAPI/common/userConfig', async (ctx) => {
   const data = ctx.query
   const queryMatch = {
     $match: {
-      $or: [
-        { email: { $regex: new RegExp(data.email) } },
-        { nickName: { $regex: new RegExp(data.nickName) } }
-      ],
-      email: { $nin: [data.userID] } // 搜索当然要不包括自己啦
+      uid: data.uid
     }
   }
 
   const queryProject = {
     $project: {
-      _id: 0,
-      pwd: 0,
-      access: 0,
-      time: 0,
-      RecentlyTime: 0,
-      address: 0
+      _id: 0
     }
   }
-  const result = await db.aggregate('user', [queryMatch, queryProject])
-  ctx.body = {
-    error: false,
-    msg: '查找成功',
-    result
+  const userConfigResult = await db.aggregate('userConfig', [queryMatch, queryProject])
+  if (userConfigResult.length === 0) {
+    // 查不出数据就给他一个默认值吧
+    ctx.body = {
+      error: false,
+      msg: '查找成功',
+      config: {
+        timeSwitch: true,
+        sendKeyCode: false,
+        pageSize: 10
+      }
+    }
+  } else {
+    ctx.body = {
+      error: false,
+      msg: '查找成功',
+      config: userConfigResult[0].config
+    }
   }
 })
+
 /**
- * @api {Get} /wechatAPI/common/addFriend 发送消息
+ * @api {Put} /wechatAPI/common/userConfig/put 获取用户配置
  * @apiName 4
  * @apiVersion 1.0.0
  * @apiGroup 通用
+ * @apiSampleRequest off
  *
+ * @apiExample 请求示例:
+ * {
+ *   "uid": "imzusheng@163.com",
+ *   "config": {}
+ * }
  */
-router.post('/wechatAPI/common/addFriend', async (ctx) => {
+router.put('/wechatAPI/common/userConfig/put', async (ctx) => {
   const data = ctx.request.body
-  let sendStatus = false // 消息是否发出，如果未发出则保存到未读消息表
-  require('../module/ws').getOnlineClients().forEach(value => {
-    if (value.userID === data.email) {
-      sendStatus = true
-    }
-  })
-  console.log(sendStatus)
+  const result = await db.updateOne('userConfig', { uid: data.uid }, { $set: { config: data.config } }, { upsert: true }).then()
+  if (!result) console.error('更新用户配置失败 -> router.put -> common/userConfig')
   ctx.body = {
     error: false,
     msg: '查找成功'

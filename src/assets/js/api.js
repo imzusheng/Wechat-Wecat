@@ -15,5 +15,7 @@ export const API_SIGN = {
 
 export const API_COMMON = {
   GET_COMMON_CHAT_HISTORY: '/common/chatHistory',
-  GET_COMMON_NAV_SEARCH: '/common/navSearch'
+  GET_COMMON_NAV_SEARCH: '/common/navSearch',
+  GET_COMMON_USER_CONFIG: '/common/userConfig',
+  PUT_COMMON_USER_CONFIG: '/common/userConfig/put'
 }

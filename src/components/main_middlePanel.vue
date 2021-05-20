@@ -23,7 +23,7 @@
         <div v-for="(item, i) in $store.state.globe.chat.chatList"
              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}" :key="i">
           <div :class="{My_Msg : item.say === 'me', You_Msg : item.say === 'you'}">{{ item.msg }}</div>
-          <div class="msgTime" v-if="$store.state.timeSwitch">{{ item.time }}</div>
+          <div class="msgTime" v-show="$store.state.userConfig.timeSwitch">{{ item.time }}</div>
         </div>
       </div>
     </div>
@@ -157,7 +157,7 @@ export default {
       if (KeyCode === 13 && this.keyCodeArr.includes(17)) {
         e.preventDefault()
         this.sendMsg()
-      } else if (KeyCode === 13 && !this.$store.state.sendKeyCode) {
+      } else if (KeyCode === 13 && !this.$store.state.userConfig.sendKeyCode) {
         e.preventDefault()
         this.sendMsg()
       }
