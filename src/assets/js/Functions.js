@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const apiService = {
+export const apiService = { // 请求方式封装
   getData: (url, params) => {
     return axios({
       method: 'get',

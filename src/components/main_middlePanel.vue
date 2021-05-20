@@ -115,18 +115,19 @@ export default {
   mounted () {
     this.uid = window.sessionStorage.getItem('uid')
     this.$store.commit('scrollRec', this.$refs)
-    this.$store.commit('loadChat')
+    this.$store.commit('loadChat') // 挂载时其实就是登陆后点击第一个好友时，加载聊天记录
   },
   methods: {
     scrollList (evt) {
-      if (evt.target.scrollTop === 0 && this.loading === false) {
+      /** 当滚动条到达顶部 && 不在加载状态时 && 已经加载的聊天记录条数不等于总条数时 */
+      if (evt.target.scrollTop === 0 && this.loading === false && this.$store.state.globe.chat.total !== this.$store.state.globe.chat.chatList.length) {
         this.loading = true
         setTimeout(() => {
-          this.loading = false
           this.$store.state.globe.chat.current++
-          this.$store.commit('chatObjChange', this.$store.state.chatObj)
           this.$store.commit('loadChat')
-        }, 1000)
+          this.befTime = Date.now()
+          this.loading = false
+        }, 400)
       }
     },
     /**

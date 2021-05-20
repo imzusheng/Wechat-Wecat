@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { WsServer } from '../assets/js/wsServer'
 import { Notification, Message } from 'element-ui'
+// import moment from 'moment'
 
 Vue.use(Vuex)
 
@@ -33,11 +34,11 @@ export default new Vuex.Store({
       },
       chat: { // 聊天面板用的
         befScroll: 0,
-        curScroll: '',
+        curScroll: 0,
         chatList: '',
         total: '',
         current: 1, // 当前页数
-        pageSize: 5 // 每页多少个
+        pageSize: 10 // 每页多少个
       }
     }
   }),
@@ -45,24 +46,34 @@ export default new Vuex.Store({
     // 更新全局聊天对象
     chatObjChange (state, playLoad) {
       state.chatObj = playLoad // 这句是本函数主要功能，不能少
+      state.globe.chat.current = 1
+      state.globe.chat.befScroll = 0
+      state.globe.chat.curScroll = 0
+      this.commit('loadChat')
     },
+    // 加载聊天记录
     loadChat (state) {
       state.globe.chat.total = state.globe.navigation.historyList.chat[state.chatObj].chat.length // 聊天记录总数
-      if (state.globe.chat.total > state.globe.chat.pageSize * state.globe.chat.current) { // 当还能刷新一次时
+      // 当剩余聊天记录总数大于一页时
+      if (state.globe.chat.total > state.globe.chat.pageSize * state.globe.chat.current) {
         state.globe.chat.chatList = state.globe.navigation.historyList.chat[state.chatObj].chat
-          .slice(state.globe.chat.total - state.globe.chat.current * state.globe.chat.pageSize, state.globe.chat.total)
+          .slice(state.globe.chat.total - state.globe.chat.current * state.globe.chat.pageSize, state.globe.chat.total) // 裁剪部分展示
         setTimeout(() => {
-          if (state.globe.chat.current >= 2) {
-            state.globe.chat.curScroll = state.refs.msgContentBox.scrollHeight
-            state.refs.msgContentBox.scrollTop = state.globe.chat.curScroll - state.globe.chat.befScroll
-            state.globe.chat.befScroll = state.refs.msgContentBox.scrollHeight
-          } else {
+          if (state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
+            state.globe.chat.curScroll = state.refs.msgContentBox.scrollHeight // 保存当前的滚动条总高度
+            state.refs.msgContentBox.scrollTop = state.globe.chat.curScroll - state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
+            state.globe.chat.befScroll = state.refs.msgContentBox.scrollHeight // 使用后
+          } else { // 当前页数在第一页时，作特殊处理
             state.globe.chat.befScroll = state.refs.msgContent.offsetHeight
             state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
           }
         }, 0)
-      } else { // 当剩余的聊天记录条数不足以刷新
+      } else { // 当剩余聊天记录总数不满一页时
         state.globe.chat.chatList = state.globe.navigation.historyList.chat[state.chatObj].chat
+        setTimeout(() => {
+          state.globe.chat.curScroll = state.refs.msgContentBox.scrollHeight
+          state.refs.msgContentBox.scrollTop = state.globe.chat.curScroll - state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
+        }, 0)
       }
     },
     // 滚动条自动到底底部

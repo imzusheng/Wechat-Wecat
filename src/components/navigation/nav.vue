@@ -5,25 +5,44 @@
          :style="{transform: navSettingActive ? 'translateY(0%)' : 'translateY(-100%)', opacity: navSettingActive ? 1 : 0.2}">
       <div class="settingTitle">设置</div>
       <ul class="settingItems">
+
         <li class="info_item">个人信息</li>
+
         <li class="info_item">
           <router-link to="admin" class="admin_item">管理员</router-link>
         </li>
+
         <li @click="$store.state.timeSwitch = !$store.state.timeSwitch">
           显示消息时间
           <div class="timeSwitch" :class="{SwitchOn : $store.state.timeSwitch}">
             <div class="switchBtn"></div>
           </div>
         </li>
+
         <li @click="$store.state.sendKeyCode = !$store.state.sendKeyCode" title="Ctrl + Enter">
           使用组合键发送
           <div class="timeSwitch" :class="{SwitchOn : $store.state.sendKeyCode}">
             <div class="switchBtn"></div>
           </div>
         </li>
-        <li>
-          <a style="color: #444444; height: 100%; width: 100%; display: inline-block;" href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
+
+        <li class="message_Loading_Slider">
+          消息一次加载 {{ $store.state.globe.chat.pageSize }} 条
+          <el-slider
+            style="background: transparent"
+            v-model="$store.state.globe.chat.pageSize"
+            :step="10"
+            :min="10"
+            :max="50"
+            :show-tooltip="false"
+          ></el-slider>
         </li>
+
+        <!--        <li>
+                  <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
+                     href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
+                </li>-->
+
         <li class="exit" @click="exit()">退出登录</li>
       </ul>
     </div>
@@ -681,5 +700,9 @@ export default {
   height: 100%;
   width: 100%;
   z-index: 9999;
+}
+
+.message_Loading_Slider {
+  height: 100px !important;
 }
 </style>

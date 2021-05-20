@@ -8,6 +8,7 @@
           :data="tableData.slice((pagination.current*pagination.pageSize-pagination.pageSize),pagination.current*pagination.pageSize)"
           height="calc(100vh - (48px * 4) - (20px * 2))"
           style="width: 100%">
+
           <el-table-column type="expand">
             <template slot-scope="props">
               <el-form label-position="left" inline class="demo-table-expand">
