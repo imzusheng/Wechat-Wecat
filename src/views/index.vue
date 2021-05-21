@@ -8,15 +8,17 @@
     <!--  左侧菜单  e -->
     <!--  中间聊天面板  s -->
     <mainPanel
-      class="mainPanel wrap_scale"
-      v-if="this.$store.state.chatObj.length > 0"
+      v-if="$store.state.globe.navigation.historyList.historyListStatus"
+      class="mainPanel"
+      :class="{'wrap_scale': $store.state.chatObj.length > 0}"
       @sendMsg="sendMsg"
     />
     <!--  中间聊天面板  e -->
     <!--  好友信息面板  s -->
     <friendInfo
-      class="friendInfo wrap_slide_left"
-      v-if="this.$store.state.chatObj.length > 0"
+      v-if="$store.state.globe.navigation.historyList.historyListStatus"
+      class="friendInfo"
+      :class="{'wrap_slide_left': $store.state.chatObj.length > 0}"
     />
     <!--  好友信息面板  e -->
     <!--  背景  s -->
@@ -60,7 +62,7 @@ export default {
     this.bgFade = true
     setTimeout(() => {
       this.navFade = true
-    }, 400)
+    }, 300)
   },
   methods: {
     sendMsg (input, chatObj, msgType) {
@@ -137,6 +139,7 @@ export default {
 }
 
 .mainPanel {
+  opacity: 0;
   min-width: 480px;
   width: 56%;
   height: calc(100% - var(--common-margin) * 2);
@@ -147,6 +150,7 @@ export default {
 }
 
 .friendInfo {
+  opacity: 0;
   height: 100%;
   width: calc(100% - calc(22% - var(--common-margin)) - 56%);
   background: #F7F9FA;

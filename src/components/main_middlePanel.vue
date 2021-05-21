@@ -5,7 +5,8 @@
   >
     <!--    聊天对象名字-->
     <div class="mainPanel_name" @click="faceListActive = false">
-      <figure><img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt="">
+      <figure v-if="this.chatObj.length > 0">
+        <img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt="">
       </figure>
       <div class="chatObj">
         <div class="chatObjName">{{ chatObj }}</div>
@@ -118,18 +119,19 @@ export default {
     return {
       loading: false,
       keyCodeArr: [],
-      uid: '',
+      uid: window.sessionStorage.getItem('uid'),
       input: '',
       faceListActive: false,
       visible: true
     }
   },
   mounted () {
-    this.uid = window.sessionStorage.getItem('uid')
     this.$store.commit('scrollRec', this.$refs)
-    this.$store.commit('loadChat') // 挂载时其实就是登陆后点击第一个好友时，加载聊天记录
   },
   methods: {
+    /**
+     * 模拟懒加载
+     */
     scrollList (evt) {
       /** 当滚动条到达顶部 && 不在加载状态时 && 已经加载的聊天记录条数不等于总条数时 */
       if (evt.target.scrollTop === 0 && this.loading === false && this.$store.state.globe.chat.total !== this.$store.state.globe.chat.chatList.length) {
@@ -137,7 +139,6 @@ export default {
         setTimeout(() => {
           this.$store.state.globe.chat.current++
           this.$store.commit('loadChat')
-          this.befTime = Date.now()
           this.loading = false
         }, 400)
       }
@@ -176,10 +177,10 @@ export default {
     },
     sendMsg (e) {
       this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
-      this.faceListActive = false
+      this.faceListActive = false // 点击发送关闭表情包选择面板
       const input = this.$refs.textBox.innerText.replace(/\n$/, '') // 匹配结尾的回车符号并替换
       const replaceSpace = input.replace(/\s+/g, '') // 不知道是干嘛的，匹配空格？
-      if (replaceSpace.length === 0) {
+      if (replaceSpace.length === 0) { // 如果内容全为空格，判定为空
         this.$message('说点什么啊！')
         return
       }
@@ -199,10 +200,10 @@ export default {
       this.$store.commit('scrollRec')
     },
     textBoxFocus () {
-      // console.log('正在输入...')
+      console.log('正在输入...')
     },
     textBoxBlur () {
-      // console.log('取消')
+      console.log('取消')
     }
   },
   computed: {
@@ -218,11 +219,6 @@ export default {
     }
   },
   watch: {
-    /*    '$store.state.globe.chatObjChangeFlag': function () {
-      setTimeout(() => {
-        this.$store.state.globe.chatObjChangeFlag.changeChatObj = false
-      }, 300)
-    } */
   }
 }
 </script>
@@ -245,7 +241,7 @@ export default {
   /*输入栏宽高*/
   --inputContent-height: 80px;
   --inputContent-width: 100%;
-  --transTime: .3s
+  --transTime: .2s
 }
 
 .mainPanel_name {
@@ -465,6 +461,7 @@ export default {
     transform: translate(-30%, 0);
   }
 }
+
 .myMsgContentFadeIn {
   animation: myMsgContentFadeIn var(--transTime) forwards;
 }

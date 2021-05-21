@@ -166,6 +166,7 @@ export default {
     }).then(res => {
       if (!res.data.error) {
         this.$store.commit('navInit', res) // 初始化列表信息
+        this.$store.state.globe.navigation.historyList.historyListStatus = true
       }
     })
   },

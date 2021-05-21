@@ -24,6 +24,7 @@ export default new Vuex.Store({
       navigation: {
         searchResult: [], // nav搜索返回的结果
         historyList: {
+          historyListStatus: false, // historyList 是否已经从服务器获取到了数据
           nameList: [],
           chat: {}
         },
@@ -81,13 +82,10 @@ export default new Vuex.Store({
     },
     // 滚动条自动到底底部
     scrollRec (state, refs) {
-      if (!state.chatObj) return
       if (refs) {
         state.refs = refs
       }
       state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
-      // setTimeout(() => {
-      // }, 0)
     },
     // 建立WebSocket连接
     linkWsServer (state) {

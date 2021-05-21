@@ -42,7 +42,7 @@ export default {
             this.sendMsg(this.chatObj)
           }
           this.$store.state.globe.chatObjChangeFlag = false
-        }, 300)
+        }, 200)
       }
     },
     sendMsg (chatObj) {
