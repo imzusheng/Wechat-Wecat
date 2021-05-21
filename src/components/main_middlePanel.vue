@@ -9,7 +9,11 @@
         <img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt="">
       </figure>
       <div class="chatObj">
-        <div class="chatObjName">{{ chatObj }}</div>
+        <div class="chatObjName">{{ chatObj }}
+          <span
+            style="margin-left: 40px; opacity: .7; font-size: 20px;font-weight: normal; ">
+            {{ inputStatus ? '对方正在输入...' : '' }}
+          </span></div>
         <div class="chatObjNickName">{{ chatObj }}</div>
       </div>
     </div>
@@ -200,10 +204,24 @@ export default {
       this.$store.commit('scrollRec')
     },
     textBoxFocus () {
-      console.log('正在输入...')
+      this.$store.state.ws.sendMsg({
+        from: this.uid,
+        to: this.chatObj,
+        inputStatus: true,
+        type: 'inputStatus'
+      }, (data) => {
+        this.$store.commit('wsMsgGHandler', data)
+      })
     },
     textBoxBlur () {
-      console.log('取消')
+      this.$store.state.ws.sendMsg({
+        from: this.uid,
+        to: this.chatObj,
+        inputStatus: false,
+        type: 'inputStatus'
+      }, (data) => {
+        this.$store.commit('wsMsgGHandler', data)
+      })
     }
   },
   computed: {
@@ -212,14 +230,18 @@ export default {
         return this.$store.state.chatObj
       }
     },
+    inputStatus: {
+      get () {
+        return this.$store.state.inputStatus
+      }
+    },
     friends: {
       get () {
         return this.$store.state.friends[this.chatObj]
       }
     }
   },
-  watch: {
-  }
+  watch: {}
 }
 </script>
 

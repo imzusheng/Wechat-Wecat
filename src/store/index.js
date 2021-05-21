@@ -10,6 +10,7 @@ export default new Vuex.Store({
   state: () => ({
     wsAddress: process.env.NODE_ENV === 'production' ? 'wss://zusheng.club/wsServerV2' : 'ws://localhost:4800',
     chatObj: '', // 聊天对象
+    inputStatus: false, // 好友输入状态
     uid: window.sessionStorage.getItem('uid'), // 用户名
     apply: [], // 好友申请
     applyList: [],
@@ -50,6 +51,7 @@ export default new Vuex.Store({
     // 更新全局聊天对象
     chatObjChange (state, playLoad) {
       state.chatObj = playLoad // 这句是本函数主要功能，不能少
+      state.inputStatus = false // 好友输入状态要初始化
       state.globe.chat.current = 1
       state.globe.chat.befScroll = 0
       state.globe.chat.curScroll = 0
@@ -172,18 +174,6 @@ export default new Vuex.Store({
     wsMsgGHandler (state, data) {
       const msgObj = typeof data.data === 'object' ? data.data : JSON.parse(data.data)
       switch (msgObj.type) {
-        case 'addFriend':
-          /** 好友请求发送成功后 */
-          Message({
-            type: msgObj.error ? 'error' : 'success',
-            message: msgObj.message
-          })
-          return
-        case 'exit':
-          return this.$message({
-            type: 'success',
-            message: '退出登录'
-          })
         case 'chat':
           this.commit('chatRecordAdd', msgObj)
           // 重置滚动条到底部
@@ -192,6 +182,21 @@ export default new Vuex.Store({
           if (msgObj.from !== state.chatObj) {
             this.commit('unReadMsg', msgObj.from)
           }
+          break
+        case 'inputStatus':
+          state.inputStatus = msgObj.inputStatus
+          break
+        case 'exit':
+          return this.$message({
+            type: 'success',
+            message: '退出登录'
+          })
+        case 'addFriend':
+          /** 好友请求发送成功后 */
+          Message({
+            type: msgObj.error ? 'error' : 'success',
+            message: msgObj.message
+          })
       }
     }
   },

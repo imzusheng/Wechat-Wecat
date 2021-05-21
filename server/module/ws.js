@@ -31,7 +31,8 @@ module.exports = {
           exit,
           clearUnReadMsg,
           addFriend,
-          addFriendReply
+          addFriendReply,
+          inputStatus
         }
         const routeArr = []
         Object.keys(route).forEach(value => routeArr.push(value))
@@ -377,5 +378,28 @@ async function addFriendReply (msgObj, wss) {
   }
   wss.clients.forEach(client => {
     if (client.userID === msgObj.from || client.userID === msgObj.to) client.send(JSON.stringify(Msg))
+  })
+}
+
+/**
+ * @api {WebSocket} wss://zusheng.club/wsServer 聊天面板输入状态
+ * @apiName 7
+ * @apiVersion 1.0.0
+ * @apiGroup WebSocket
+ * @apiSampleRequest off
+ *
+ * @apiExample 请求示例:
+ * {
+ *   "from": "imzusheng@163.com", // 消息发送人
+ *   "to": "test@163.com",        // 接收人
+ *   "inputStatus": false,             // 输入状态
+ *   "type": "inputStatus"        // 类型
+ * }
+ */
+async function inputStatus (msgObj, wss) {
+  wss.clients.forEach(client => {
+    if (client.userID === msgObj.to) {
+      client.send(JSON.stringify(msgObj))
+    }
   })
 }
