@@ -46,7 +46,7 @@ module.exports = {
         client.isAlive = false // 重置所有客户端存活状态为false
         client.ping() // ping客户端，马上就会收到客户端发回的pong，如果没则客户端断开连接
       })
-    }, 30000) // 30秒检测一次客户端是否在线
+    }, 15000) // 15秒检测一次客户端是否在线
 
     /** 连接关闭时激活，一般情况下不会关闭wss */
     wss.on('close', () => {

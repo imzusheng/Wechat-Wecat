@@ -9,7 +9,9 @@
         </figure>
         <div class="group">
           <div class="friName">{{ item }}</div>
-          <div class="tempChat"><span>{{ $store.state.globe.navigation.historyList.chat[item].chat[$store.state.globe.navigation.historyList.chat[item].chat.length - 1].msg }}</span></div>
+          <div class="tempChat"><span>{{
+              $store.state.globe.navigation.historyList.chat[item].chat[$store.state.globe.navigation.historyList.chat[item].chat.length - 1].msg
+            }}</span></div>
         </div>
       </div>
     </li>
@@ -28,15 +30,19 @@ export default {
   methods: {
     selectFriend (e) {
       if (e.target.nodeName === 'INPUT' && this.chatObj !== e.target.attributes['data-friend-name'].value) {
-        this.chatObj = e.target.attributes['data-friend-name'].value
-        setTimeout(() => this.$store.commit('chatObjChange', this.chatObj), 0)
-        this.$store.commit('scrollRec') // 收到或发送消息时，滚动条自动到达底部
-        if (this.$store.state.unReadMsg[this.chatObj] > 0) {
-          // 选中该好友时，清除该好友的未读消息列表
-          this.$store.commit('clearUnRead', this.chatObj)
-          // 清除服务器未读消息列表
-          this.sendMsg(this.chatObj)
-        }
+        this.$store.state.globe.chatObjChangeFlag = true
+        setTimeout(() => {
+          this.chatObj = e.target.attributes['data-friend-name'].value
+          setTimeout(() => this.$store.commit('chatObjChange', this.chatObj), 0)
+          this.$store.commit('scrollRec') // 收到或发送消息时，滚动条自动到达底部
+          if (this.$store.state.unReadMsg[this.chatObj] > 0) {
+            // 选中该好友时，清除该好友的未读消息列表
+            this.$store.commit('clearUnRead', this.chatObj)
+            // 清除服务器未读消息列表
+            this.sendMsg(this.chatObj)
+          }
+          this.$store.state.globe.chatObjChangeFlag = false
+        }, 300)
       }
     },
     sendMsg (chatObj) {

@@ -29,12 +29,12 @@
         </li>
 
         <li class="message_Loading_Slider">
-          聊天记录加载一次新增条数： {{ $store.state.globe.userConfig.pageSize }} 条
+          聊天记录加载一次新增： {{ $store.state.globe.userConfig.pageSize }} 条
           <el-slider
             style="background: transparent"
             v-model="$store.state.globe.userConfig.pageSize"
-            :step="10"
-            :min="10"
+            :step="5"
+            :min="5"
             :max="50"
             :show-tooltip="false"
           ></el-slider>

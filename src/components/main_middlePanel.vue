@@ -20,10 +20,22 @@
       @scroll="scrollList($event)"
     >
       <div class="msgContent" ref="msgContent">
-        <div v-for="(item, i) in $store.state.globe.chat.chatList"
-             :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}" :key="i">
-          <div :class="{My_Msg : item.say === 'me', You_Msg : item.say === 'you'}">{{ item.msg }}</div>
-          <div class="msgTime" v-show="$store.state.userConfig.timeSwitch">{{ item.time }}</div>
+        <div
+          v-for="(item, i) in $store.state.globe.chat.chatList"
+          :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
+          :key="i"
+        >
+          <div
+            :class="{
+            'My_Msg myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,
+             'You_Msg youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,
+            'My_Msg myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,
+             'You_Msg youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag
+          }"
+          >
+            {{ item.msg }}
+          </div>
+          <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
         </div>
       </div>
     </div>
@@ -206,13 +218,10 @@ export default {
     }
   },
   watch: {
-    /*    '$store.state.chatObj': function () {
-      const chatOrigin = this.$store.state.globe.navigation.historyList.chat[this.$store.state.chatObj].chat
-      if (chatOrigin.length > this.$store.state.globe.chat.pageSize) {
-        this.$store.state.globe.chat = chatOrigin.splice(chatOrigin.length - this.$store.state.globe.chat.pageSize * this.$store.state.globe.chat.current, chatOrigin.length)
-      } else {
-        this.$store.state.globe.chat = chatOrigin
-      }
+    /*    '$store.state.globe.chatObjChangeFlag': function () {
+      setTimeout(() => {
+        this.$store.state.globe.chatObjChangeFlag.changeChatObj = false
+      }, 300)
     } */
   }
 }
@@ -236,6 +245,7 @@ export default {
   /*输入栏宽高*/
   --inputContent-height: 80px;
   --inputContent-width: 100%;
+  --transTime: .3s
 }
 
 .mainPanel_name {
@@ -409,6 +419,66 @@ export default {
   border: 1px solid transparent;
   box-sizing: border-box;
   padding-bottom: 100px;
+  overflow: hidden;
+}
+
+@keyframes myMsgContentFadeIn {
+  0% {
+    opacity: 0;
+    transform: translate(30%, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes youMsgContentFadeIn {
+  0% {
+    opacity: 0;
+    transform: translate(-30%, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes myMsgContentFadeOut {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(30%, 0);
+  }
+}
+
+@keyframes youMsgContentFadeOut {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-30%, 0);
+  }
+}
+.myMsgContentFadeIn {
+  animation: myMsgContentFadeIn var(--transTime) forwards;
+}
+
+.youMsgContentFadeIn {
+  animation: youMsgContentFadeIn var(--transTime) forwards;
+}
+
+.myMsgContentFadeOut {
+  animation: myMsgContentFadeOut var(--transTime) forwards;
+}
+
+.youMsgContentFadeOut {
+  animation: youMsgContentFadeOut var(--transTime) forwards;
 }
 
 .My_MsgContent {

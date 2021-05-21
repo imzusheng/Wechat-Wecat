@@ -40,8 +40,9 @@ export default new Vuex.Store({
       userConfig: {
         timeSwitch: true, // 设置面板中显示消息时间开关
         sendKeyCode: false, // 设置菜单 - 使用组合键发送
-        pageSize: 10 // 每页加载的消息数量
-      }
+        pageSize: 5 // 每页加载的消息数量
+      },
+      chatObjChangeFlag: false
     }
   }),
   mutations: {
