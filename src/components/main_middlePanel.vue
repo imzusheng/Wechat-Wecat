@@ -24,7 +24,7 @@
       @click="faceListActive = false"
       @scroll="scrollList($event)"
     >
-      <div class="msgContent" ref="msgContent">
+      <div class="msgContent" ref="msgContent" :style="{paddingBottom: sendFile.filePreview ? '180px':'100px'}">
         <div
           v-for="(item, i) in $store.state.globe.chat.chatList"
           :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
@@ -37,8 +37,8 @@
             'My_Msg myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,
              'You_Msg youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag
           }"
+            v-html="item.msg"
           >
-            {{ item.msg }}
           </div>
           <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
         </div>
@@ -95,16 +95,46 @@
     </transition>
     <!--    输入框-->
     <div class="mainPanel_inputContent">
+      <div class="filePreviewContont" disabled>
+        <div class="filePreview">
+          <img
+            style="height: 100px; border: 1px solid #96d46c; border-radius: 4px"
+            v-for="(item, i) in sendFile.uploadList"
+            :src="item"
+            :key="i"
+            alt=""
+          />
+        </div>
+      </div>
       <div class="textBoxContent">
-        <div
+        <!--        <div
+                  class="textBox"
+                  contenteditable="true"
+                  ref="textBox"
+                  @input="test"
+                  @drop.stop.prevent="dragFile($event)"
+                  @paste="pasteHandle"
+                  @click="faceListActive = false"
+                  @focus="textBoxFocus"
+                  @blur="textBoxBlur"
+                  @keydown="keyCodeCheck"
+                  @keyup="keyCodeArr = []"
+                >
+                  &lt;!&ndash; (TODO) 干脆发送图片时，拖动直接发送，不允许输入文字了。还更方便判断修改聊天框样式 &ndash;&gt;
+                  &lt;!&ndash;          <img :src="`http://localhost:3800/wechatAPI/static?filename=files-1621604477471-boy.png`" alt=""/>&ndash;&gt;
+                </div>-->
+        <div class="textarea_Container">{{ textAreaInput }}</div>
+        <textarea
           class="textBox"
-          contenteditable="true"
           ref="textBox"
+          v-model="textAreaInput"
+          @drop.stop.prevent="dragFile($event)"
+          @paste="pasteHandle"
           @click="faceListActive = false"
           @focus="textBoxFocus"
           @blur="textBoxBlur"
           @keydown="keyCodeCheck"
-          @keyup="keyCodeArr = []"></div>
+          @keyup="keyCodeArr = []"/>
         <div class="btnGroup">
           <div class="face textBoxBtn" title="发送表情" @click="faceListActive = !faceListActive"></div>
           <div class="send textBoxBtn" @click="sendMsg"></div>
@@ -116,23 +146,119 @@
 
 <script>
 import moment from 'moment'
+import { apiUpload } from '@/assets/js/Functions'
+import { API_COMMON } from '@/assets/js/api'
 
 export default {
   name: 'mainPanel',
   data () {
     return {
+      textAreaInput: '',
       loading: false,
       keyCodeArr: [],
       uid: window.sessionStorage.getItem('uid'),
       input: '',
       faceListActive: false,
-      visible: true
+      visible: true,
+      sendFile: { // 发送文件相关
+        allowFile: ['png', 'jpeg', 'jpg', 'svg', 'icon'], // 允许上传的文件格式
+        uploadList: [],
+        forms: {},
+        filePreview: true
+      }, // 文件预览框框
+      flag: true
     }
   },
   mounted () {
     this.$store.commit('scrollRec', this.$refs)
   },
   methods: {
+    test (evt) {
+    },
+    /** 处理copy事件，一般是微信复制的图片粘贴到输入框。 再将略缩图显示出来 */
+    async pasteHandle (evt) {
+      const paste = evt.clipboardData
+      let fileFlag = false
+      paste.types.forEach(type => {
+        if (type === 'Files') fileFlag = true // 当粘贴的是文件时
+      })
+      if (fileFlag) { // 粘贴内容是文件时，加载略缩图
+        const files = paste.files
+        let upload = ''
+        let flag = true
+        files.forEach(file => {
+          if (!this.sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length))) { // 检测是否为图片格式
+            flag = false
+          }
+        })
+        if (!flag) { // 文件格式错误处理
+          return this.$message({
+            type: 'error',
+            message: `允许上传的格式：${[...this.sendFile.allowFile]}`
+          })
+        }
+
+        const forms = new FormData()
+        for (let i = 0; i < files.length; i++) {
+          forms.append('files', files[i])
+          upload = await this.readFileAsync(files[i])
+          this.sendFile.uploadList.push(upload)
+        }
+        this.sendFile.forms = forms
+      }
+    },
+    readFileAsync (file) { // 略缩图处理，转换为URL
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = evt => resolve(evt.target.result) // onload是指readAsDataURL处理完后
+        reader.readAsDataURL(file)
+      })
+    },
+    /** 将base64转换成file文件对象 */
+    dataURLtoFile (dataurl) {
+      // 获取到base64编码
+      const arr = dataurl.split(',')
+      // 将base64编码转为字符串
+      const bstr = window.atob(arr[1])
+      let n = bstr.length
+      const u8arr = new Uint8Array(n) // 创建初始化为0的，包含length个元素的无符号整型数组
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n)
+      }
+      return new File(
+        [u8arr],
+        `${Date.now()}.${arr[0].replace(new RegExp(/data:image\/|base64/g), '')}`,
+        {
+          type: arr[0].replace(new RegExp(/data:|base64/g), '')
+        })
+    },
+    /** 处理拖拽上传图片 */
+    async dragFile (evt) {
+      const files = evt.dataTransfer.files
+      let upload = ''
+      let flag = true // 检测是否为图片格式
+
+      files.forEach(file => { // 检查文件格式
+        if (!this.sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length))) {
+          flag = false
+        }
+      })
+
+      if (!flag) { // 文件格式错误处理
+        return this.$message({
+          type: 'error',
+          message: `允许上传的格式：${[...this.sendFile.allowFile]}`
+        })
+      }
+
+      const forms = new FormData()
+      for (let i = 0; i < files.length; i++) {
+        forms.append('files', files[i])
+        upload = await this.readFileAsync(files[i])
+        this.sendFile.uploadList.push(upload)
+      }
+      this.sendFile.forms = forms
+    },
     /**
      * 模拟懒加载
      */
@@ -154,46 +280,52 @@ export default {
       // 事件委托到ul 导致拖动ul会全选表情。所以在触发的时候判断一下是不是点击单个li
       if (face.target.nodeName.toLowerCase() === 'li') {
         const faceContent = face.target.innerHTML
-        this.$refs.textBox.innerHTML += faceContent
-        console.log(faceContent)
+        this.textAreaInput += faceContent
         // 将光标移动到末尾
-        const range = document.createRange()
-        range.selectNodeContents(this.$refs.textBox)
-        range.collapse(false)
-        const sel = window.getSelection()
-        sel.removeAllRanges()
-        sel.addRange(range)
+        // const range = document.createRange()
+        // range.selectNodeContents(this.$refs.textBox)
+        // range.collapse(false)
+        // const sel = window.getSelection()
+        // sel.removeAllRanges()
+        // sel.addRange(range)
       }
     },
     /**
      * 检测 ctrl + enter 组合键发送消息
+     * keyCode 13 = enter
+     * keyCode 17 = ctrl
      */
     keyCodeCheck (e) {
       const KeyCode = e.keyCode || e.which || e.charCode
       if (KeyCode === 17 && !this.keyCodeArr.includes(KeyCode)) return this.keyCodeArr.push(KeyCode)
-      if (KeyCode === 13 && this.keyCodeArr.includes(17)) {
-        e.preventDefault()
-        this.sendMsg()
-      } else if (KeyCode === 13 && !this.$store.state.userConfig.sendKeyCode) {
+
+      if (KeyCode === 13 && this.keyCodeArr.includes(17)) { // 组合键发送
         e.preventDefault()
         this.sendMsg()
       }
     },
-    sendMsg (e) {
+    async sendMsg (e) {
       this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
       this.faceListActive = false // 点击发送关闭表情包选择面板
       const input = this.$refs.textBox.innerText.replace(/\n$/, '') // 匹配结尾的回车符号并替换
+      const html = this.$refs.textBox.innerHTML.replace(/<br>/g, '')
       const replaceSpace = input.replace(/\s+/g, '') // 不知道是干嘛的，匹配空格？
-      if (replaceSpace.length === 0) { // 如果内容全为空格，判定为空
+      if (replaceSpace.length === 0 && !html) { // 如果内容全为空格，判定为空
         this.$message('说点什么啊！')
         return
       }
+      // 发送图片到服务器
+      const res = await apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD, this.sendFile.forms, (progress) => {
+        console.log(`上传进度：${((progress.loaded / progress.total) * 100).toFixed(2)}%`)
+      })
+      console.log(res.data.result)
+      if (this.flag) return
       // 发送消息给对方
-      this.$emit('sendMsg', input, this.chatObj, 'chat')
+      this.$emit('sendMsg', html, this.chatObj, 'chat')
       // 更新store
       this.$store.commit('chatRecordAdd', {
         chat: {
-          msg: input,
+          msg: html,
           say: 'me',
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
         },
@@ -201,7 +333,9 @@ export default {
       })
       this.$refs.textBox.innerHTML = ''
       // 收到或发送消息时，滚动条自动到达底部
-      this.$store.commit('scrollRec')
+      setTimeout(() => {
+        this.$store.commit('scrollRec')
+      }, 0)
     },
     textBoxFocus () {
       this.$store.state.ws.sendMsg({
@@ -325,32 +459,49 @@ export default {
   box-shadow: 20px -2px 22px rgba(210, 210, 210, .9),
   20px -2px 22px #ffffff;
   position: relative;
-  overflow: hidden;
   z-index: 3;
   /*输入框高度*/
 }
 
 .textBoxContent {
-  display: flex;
+  position: relative;
 }
 
 .textBoxContent .textBox {
-  margin: calc(var(--inputContent-height) * 0.15) 0 calc(var(--inputContent-height) * 0.15) 3%;
+  /*margin: calc(var(--inputContent-height) * 0.15) 0 calc(var(--inputContent-height) * 0.15) 3%;*/
   min-height: calc(var(--inputContent-height) * 0.7);
   width: 75%;
+  height: 100%;
   padding: 6px 12px 4px;
   box-sizing: border-box;
   border-radius: 12px;
   border: none;
   background: rgba(200, 200, 200, .15);
-  /*line-height: 24px;*/
   color: #444444;
   outline: none;
+  line-height: 24px;
   max-height: 400px;
-  overflow-y: auto;
-  /*resize: none;
-  word-break: keep-all;
-  white-space: pre-wrap;*/
+  overflow-y: hidden;
+  resize: none;
+  position: absolute;
+  top: 50%;
+  left: 3%;
+  transform: translate(0, -50%);
+  /*  word-break: keep-all;
+    white-space: pre-wrap;*/
+}
+
+.textarea_Container {
+  margin: calc(var(--inputContent-height) * 0.15) 0 calc(var(--inputContent-height) * 0.15) 3%;
+  min-height: calc(var(--inputContent-height) * 0.7);
+  width: 75%;
+  height: 100%;
+  padding: 6px 12px 4px;
+  box-sizing: border-box;
+  border: none;
+  line-height: 24px;
+  max-height: 400px;
+  visibility: hidden;
 }
 
 .textBoxContent .textBox::-webkit-scrollbar {
@@ -362,11 +513,14 @@ export default {
   min-width: 110px;
   height: 48px;
   display: flex;
-  position: absolute;
   justify-content: space-between;
-  margin-left: 80.4%;
-  margin-top: calc(var(--inputContent-height) * 0.2);
+  position: absolute;
   bottom: calc(var(--inputContent-height) * 0.2);
+  left: 80.4%;
+  top: 50%;
+  transform: translate(0, -50%);
+  /*margin-left: 80.4%;*/
+  /*margin-top: calc(var(--inputContent-height) * 0.2);*/
 }
 
 .textBoxBtn {
@@ -436,8 +590,8 @@ export default {
   width: 100%;
   border: 1px solid transparent;
   box-sizing: border-box;
-  padding-bottom: 100px;
   overflow: hidden;
+  transition: all .3s;
 }
 
 @keyframes myMsgContentFadeIn {
@@ -564,5 +718,21 @@ export default {
   box-shadow: -4px 4px 8px #c3c5c6,
   4px -4px 8px #ffffff;
   margin: 0 0 0 20px;
+}
+
+.filePreviewContont {
+  height: 100px;
+  width: 100%;
+  position: absolute;
+  top: -100px;
+  left: 0;
+  border: 1px solid red;
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+.filePreview {
+  height: 100%;
+  width: auto;
 }
 </style>

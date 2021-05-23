@@ -159,6 +159,7 @@ export default new Vuex.Store({
     chatRecordAdd (state, playLoad) {
       if (playLoad.type === 'send') {
         state.globe.navigation.historyList.chat[state.chatObj].chat.push(playLoad.chat)
+        state.globe.chat.chatList.push(playLoad.chat)
       } else {
         Notification.success({
           title: playLoad.from,
@@ -169,6 +170,7 @@ export default new Vuex.Store({
           say: 'you',
           time: playLoad.msg.time
         })
+        state.globe.chat.chatList.push(playLoad.chat) // 困扰了超级久的bug，忘记了聊天记录面板循环的state.globe.chat.chatList,而不是原来的history
       }
     },
     wsMsgGHandler (state, data) {

@@ -33,3 +33,17 @@ export const apiService = { // 请求方式封装
     })
   }
 }
+
+export const apiUpload = {
+  upload: (url, params, cb) => {
+    return axios({
+      method: 'post',
+      url: url,
+      data: params,
+      headers: { 'Content-type': 'multipart/form-data;' },
+      onUploadProgress: function (progressEvent) {
+        cb(progressEvent)
+      }
+    })
+  }
+}

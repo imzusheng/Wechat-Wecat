@@ -13,7 +13,7 @@ module.exports = {
    */
   verifyToken: async (ctx, next) => {
     ctx.set('Content-Type', 'application/json')
-    if (/(login|sign)/g.test(ctx.url)) return next()
+    if (/(login|sign|static)/g.test(ctx.url)) return next()
     const verify = await jwt.tokenVerify(ctx)
     ctx.status = 200
     if (verify === 401) {

@@ -66,7 +66,7 @@ export default {
   },
   methods: {
     sendMsg (input, chatObj, msgType) {
-      console.log('index.vue_sendMsg-------发送消息')
+      console.log('index.vue_sendMsg-------发送消息', input)
       this.$store.state.ws.sendMsg({
         msg: {
           content: input,
