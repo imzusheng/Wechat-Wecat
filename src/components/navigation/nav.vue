@@ -75,7 +75,7 @@
         width="200"
         trigger="manual"
         content="只允许输入数字、字母、字符@，不允许输入特殊字符。"
-        v-model="popoverVisible">
+        v-if="popoverVisible">
       </el-popover>
       <div class="search_list" v-if="searchActive">
         {{ searchTips }}

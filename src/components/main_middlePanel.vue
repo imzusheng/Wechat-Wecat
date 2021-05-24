@@ -366,6 +366,9 @@ export default {
       if (KeyCode === 13 && this.keyCodeArr.includes(17)) { // 组合键发送
         e.preventDefault()
         this.sendMsg()
+      } else if (KeyCode === 13 && !this.$store.state.globe.userConfig.sendKeyCode) {
+        e.preventDefault()
+        this.sendMsg()
       }
     },
     // (TODO) 点击发送-> 上传文件-> 服务器传回保存的文件名字-> 将文件名作为聊天记录发送

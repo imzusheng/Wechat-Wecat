@@ -20,15 +20,23 @@ module.exports = class MongoDB {
   }
 
   // 管道，高级查询
-  aggregate (collectionName, queryParams) {
+  aggregate (collectionName, queryParams, sort) {
     const _that = this
     return new Promise((resolve, reject) => {
       this.connectDB().then(() => {
-        _that.db.collection(collectionName).aggregate(queryParams).toArray((err, result) => {
-          if (err) throw err
-          resolve(result)
-        })
-      })
+          if (sort) {
+            _that.db.collection(collectionName).aggregate(queryParams).sort(sort).toArray((err, result) => {
+              if (err) throw err
+              resolve(result)
+            })
+          } else {
+            _that.db.collection(collectionName).aggregate(queryParams).toArray((err, result) => {
+              if (err) throw err
+              resolve(result)
+            })
+          }
+        }
+      )
     })
   }
 

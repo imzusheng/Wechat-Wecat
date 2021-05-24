@@ -1,10 +1,9 @@
 <template>
   <ul class="chatList" @click="selectFriend">
     <li v-for="(item, i) in $store.state.globe.navigation.historyList.nameList" :key="i">
-      <input type="radio" name="chatListRadio" :data-friend-name="item">
+      <input type="radio" name="chatListRadio" v-model="$store.state.globe.navigation.historyList.picked" :value="item" :data-friend-name="item">
       <div class="chatListContent">
         <figure>
-          <span v-html="friendListFilter(item)"></span>
           <img :src="$store.state.globe.navigation.historyList.chat[item].friendInfo.avatar" draggable="false" alt=""/>
           <span class="unReadMsg" v-if="$store.state.unReadMsg[item] > 0">{{ $store.state.unReadMsg[item] }}</span>
         </figure>
@@ -27,8 +26,6 @@ export default {
     }
   },
   mounted () {
-    setTimeout(() => {
-    }, 1000)
   },
   methods: {
     selectFriend (e) {
@@ -60,11 +57,9 @@ export default {
       if (!item) return ''
       return this.$store.state.globe.navigation.historyList.chat[item].chat[this.$store.state.globe.navigation.historyList.chat[item].chat.length - 1].type === 'file'
         ? '[图片消息]' : this.$store.state.globe.navigation.historyList.chat[item].chat[this.$store.state.globe.navigation.historyList.chat[item].chat.length - 1].msg
-    },
-    friendListFilter (item) {
-      return new Date(this.$store.state.globe.navigation.historyList.chat[item].chat.slice(-1)[0].time)
     }
   },
+  computed: {},
   watch: {
     '$store.state.unReadMsg': () => {
     }

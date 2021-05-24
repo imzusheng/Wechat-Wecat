@@ -27,7 +27,8 @@ export default new Vuex.Store({
         historyList: {
           historyListStatus: false, // historyList 是否已经从服务器获取到了数据
           nameList: [],
-          chat: {}
+          chat: {},
+          picked: '' // 选中的好友
         },
         contactList: [],
         groupList: []
@@ -56,6 +57,7 @@ export default new Vuex.Store({
       state.globe.chat.befScroll = 0
       state.globe.chat.curScroll = 0
       this.commit('loadChat')
+      // console.log(state.globe.chat.chatList[state.globe.chat.chatList.length - 1].msg)
     },
     // 模拟懒加载聊天记录
     loadChat (state) {
@@ -159,10 +161,14 @@ export default new Vuex.Store({
     },
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {
-      console.log(playLoad)
       if (playLoad.type === 'send') { // 发送消息
         state.globe.navigation.historyList.chat[state.chatObj].chat.push(playLoad.chat)
-        state.globe.chat.chatList.push(playLoad.chat)
+        state.globe.navigation.historyList.nameList.forEach((value, index) => { // 发消息给谁，就把这个人置顶
+          if (value === state.chatObj) state.globe.navigation.historyList.nameList.splice(index, 1)
+        })
+        state.globe.navigation.historyList.nameList.unshift(state.chatObj)
+        state.globe.navigation.historyList.picked = state.chatObj
+        // state.globe.chat.chatList.push(playLoad.chat)
       } else { // 收到消息
         Notification.success({
           title: playLoad.from,
@@ -174,16 +180,19 @@ export default new Vuex.Store({
           time: playLoad.msg.time,
           type: playLoad.file ? 'file' : 'chat'
         })
-        if (state.chatObj) {
-          state.globe.chat.chatList.push({ // 困扰了超级久的bug，忘记了聊天记录面板循环的state.globe.chat.chatList,而不是原来的history
-            msg: playLoad.msg.content,
-            say: 'you',
-            time: playLoad.msg.time,
-            type: playLoad.file ? 'file' : 'chat'
-          })
-        }
+        // if (state.chatObj) {
+        //   state.globe.chat.chatList.push({ // 困扰了超级久的bug，忘记了聊天记录面板循环的state.globe.chat.chatList,而不是原来的history
+        //     msg: playLoad.msg.content,
+        //     say: 'you',
+        //     time: playLoad.msg.time,
+        //     type: playLoad.file ? 'file' : 'chat'
+        //   })
+        // }
       }
-      this.commit('scrollRec')
+      state.globe.chat.current = 1
+      state.globe.chat.befScroll = 0
+      state.globe.chat.curScroll = 0
+      this.commit('loadChat')
     },
     wsMsgGHandler (state, data) {
       const msgObj = typeof data.data === 'object' ? data.data : JSON.parse(data.data)

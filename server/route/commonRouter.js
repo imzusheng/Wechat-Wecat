@@ -39,7 +39,7 @@ router
         }
       }
       /** 查询聊天记录 */
-      const chatRecordResult = await db.aggregate('chatRecord', [queryMatch, queryProject])
+      const chatRecordResult = await db.aggregate('chatRecord', [queryMatch, queryProject], { currentChatDate: -1 })
       const queryParams = {
         $match: {
           $or: []
@@ -52,6 +52,7 @@ router
           email: value.chatObj
         })
       })
+      // (TODO) 这里搞反了，应该用用户信息来查找聊天记录。万一聊天记录被删除完了呢
       /** 查询对应的用户信息 */
       const userInfoResult = await db.aggregate('user', [queryParams, queryProject])
       userInfoResult.forEach((value) => {

@@ -176,8 +176,22 @@ async function chat (MsgObj, wss) {
     type: MsgObj.file ? 'file' : 'chat',
     status: MsgObj.status
   }
-  db.updateOne('chatRecord', myQuery, { $push: { chat: myChat } }, { upsert: true }).then()
-  db.updateOne('chatRecord', youQuery, { $push: { chat: youChat } }, { upsert: true }).then()
+  db.updateOne(
+    'chatRecord',
+    myQuery,
+    {
+      $push: { chat: myChat },
+      $set: { currentChatDate: MsgObj.msg.time }
+    },
+    { upsert: true }).then()
+  db.updateOne(
+    'chatRecord',
+    youQuery,
+    {
+      $push: { chat: youChat },
+      $set: { currentChatDate: MsgObj.msg.time }
+    },
+    { upsert: true }).then()
   if (unRead) { // 当消息是未读状态的时候，更新未读消息条数
     db.updateOne('unReadMessage',
       {
