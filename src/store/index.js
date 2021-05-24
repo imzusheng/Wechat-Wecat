@@ -33,6 +33,7 @@ export default new Vuex.Store({
         contactList: [],
         groupList: []
       },
+      mainPanelMask: false, // 拖动文件进来时触发
       chat: { // 聊天面板用的
         befScroll: 0,
         curScroll: 0,
@@ -42,8 +43,10 @@ export default new Vuex.Store({
       },
       userConfig: {
         timeSwitch: true, // 设置面板中显示消息时间开关
+        friendInfoPanel: true, // 好友信息面板
         sendKeyCode: false, // 设置菜单 - 使用组合键发送
-        pageSize: 5 // 每页加载的消息数量
+        pageSize: 5, // 每页加载的消息数量
+        previewImgHeight: 400
       },
       chatObjChangeFlag: false
     }
@@ -163,11 +166,13 @@ export default new Vuex.Store({
     chatRecordAdd (state, playLoad) {
       if (playLoad.type === 'send') { // 发送消息
         state.globe.navigation.historyList.chat[state.chatObj].chat.push(playLoad.chat)
-        state.globe.navigation.historyList.nameList.forEach((value, index) => { // 发消息给谁，就把这个人置顶
-          if (value === state.chatObj) state.globe.navigation.historyList.nameList.splice(index, 1)
-        })
-        state.globe.navigation.historyList.nameList.unshift(state.chatObj)
-        state.globe.navigation.historyList.picked = state.chatObj
+        if (state.globe.navigation.historyList.nameList[0] !== state.chatObj) { // 发消息给谁，就把这个人置顶
+          state.globe.navigation.historyList.nameList.forEach((value, index) => {
+            if (value === state.chatObj) state.globe.navigation.historyList.nameList.splice(index, 1)
+          })
+          state.globe.navigation.historyList.nameList.unshift(state.chatObj)
+          state.globe.navigation.historyList.picked = state.chatObj
+        }
         // state.globe.chat.chatList.push(playLoad.chat)
       } else { // 收到消息
         Notification.success({

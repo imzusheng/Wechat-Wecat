@@ -20,6 +20,13 @@
           </div>
         </li>
 
+        <li @click="$store.state.globe.userConfig.friendInfoPanel = !$store.state.globe.userConfig.friendInfoPanel">
+          好友信息面板
+          <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.friendInfoPanel}">
+            <div class="switchBtn"></div>
+          </div>
+        </li>
+
         <li @click="$store.state.globe.userConfig.sendKeyCode = !$store.state.globe.userConfig.sendKeyCode"
             title="Ctrl + Enter">
           使用组合键发送
@@ -36,6 +43,18 @@
             :step="5"
             :min="5"
             :max="50"
+            :show-tooltip="false"
+          ></el-slider>
+        </li>
+
+        <li class="message_Loading_Slider">
+          预览图片尺寸： {{ $store.state.globe.userConfig.previewImgHeight }} px
+          <el-slider
+            style="background: transparent"
+            v-model="$store.state.globe.userConfig.previewImgHeight"
+            :step="50"
+            :min="150"
+            :max="450"
             :show-tooltip="false"
           ></el-slider>
         </li>

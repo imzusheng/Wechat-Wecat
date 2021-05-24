@@ -14,7 +14,8 @@ export default {
     window.onblur = function () {
       document.title = '记得回来！'
     }
-  }
+  },
+  methods: {}
 }
 </script>
 
@@ -74,14 +75,14 @@ html, body {
 }
 
 .el-message {
-  min-width: 0px!important;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1))!important;
+  min-width: 0px !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1)) !important;
   box-shadow: 4px 4px 20px rgb(225, 225, 235),
-  -4px -4px 20px rgba(235, 235, 235, 1)!important;
-  padding: 18px 20px!important;
+  -4px -4px 20px rgba(235, 235, 235, 1) !important;
+  padding: 18px 20px !important;
   box-sizing: border-box;
-  border: none!important;
-  border-radius: 10px!important;
+  border: none !important;
+  border-radius: 10px !important;
 }
 
 </style>

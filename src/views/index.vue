@@ -10,13 +10,14 @@
     <mainPanel
       v-if="$store.state.globe.navigation.historyList.historyListStatus"
       class="mainPanel"
+      :style="{width: $store.state.globe.userConfig.friendInfoPanel ? '56%' :'100%'}"
       :class="{'wrap_scale': $store.state.chatObj.length > 0}"
       @sendMsg="sendMsg"
     />
     <!--  中间聊天面板  e -->
     <!--  好友信息面板  s -->
     <friendInfo
-      v-if="$store.state.globe.navigation.historyList.historyListStatus"
+      v-if="$store.state.globe.navigation.historyList.historyListStatus && $store.state.globe.userConfig.friendInfoPanel"
       class="friendInfo"
       :class="{'wrap_slide_left': $store.state.chatObj.length > 0}"
     />

@@ -1,19 +1,26 @@
 <template>
   <div class="mainPanel_wrap"
+       @drop.stop.prevent="showPreImg($event, 'drop')"
        :disabled="loading"
        v-loading="loading"
+       @dragenter="uploadDragenter($event)"
+       @dragleave="uploadDragleave($event)"
   >
-    <div class="previewImg" v-if="previewStatus">
-      <div class="title">
-        <h5 style="display: inline-block; font-size: 14px">预览：</h5>{{ sendFile.filePreview.previewName }}
-        <i class="el-icon-close" @click="previewStatus = false"></i>
+    <!--  图片预览 -->
+    <transition name="faceListActive">
+      <div class="previewImg" v-if="previewStatus">
+        <div class="title">
+          {{ sendFile.filePreview.previewName }}
+          <i class="el-icon-close" @click="previewStatus = false"></i>
+        </div>
+        <img
+          :style="{height: `${$store.state.globe.userConfig.previewImgHeight}px`}"
+          :src="sendFile.filePreview.previewSrc"
+          alt=""
+        />
       </div>
-      <img
-        :src="sendFile.filePreview.previewSrc"
-        alt=""
-      />
-    </div>
-    <!--    聊天对象名字-->
+    </transition>
+    <!--  聊天对象名字 -->
     <div class="mainPanel_name" @click="faceListActive = false">
       <figure v-if="this.chatObj.length > 0">
         <img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt="">
@@ -27,15 +34,14 @@
         <div class="chatObjNickName">{{ chatObj }}</div>
       </div>
     </div>
-    <!--    聊天记录信息面板-->
-    <div
-      class="mainPanel_msgContent"
-      ref="msgContentBox"
-      @click="faceListActive = false"
-      @scroll="scrollList($event)"
+    <!--    聊天记录信息面板  -->
+    <div class="mainPanel_msgContent"
+         ref="msgContentBox"
+         @click="faceListActive = false"
+         @scroll="scrollList($event)"
     >
       <div class="msgContent" ref="msgContent"
-           :style="{paddingBottom: previewStatus ? '180px':'100px'}">
+           :style="{paddingBottom: sendFile.uploadList.length > 0 ? '180px':'100px'}">
         <div
           v-for="(item, i) in $store.state.globe.chat.chatList"
           :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
@@ -57,8 +63,9 @@
           >
             {{ item.type === 'file' ? '' : item.msg }}
             <img
+              @click="chatRecordShowPre(`${server.httpServer}/static?filename=${item.msg}`)"
               v-if="item.type === 'file'"
-              style="height: 150px"
+              style="height: 150px; cursor: pointer"
               :src="`${server.httpServer}/static?filename=${item.msg}`"
               alt=""/>
           </div>
@@ -68,7 +75,7 @@
     </div>
     <!--    表情包面板-->
     <transition name="faceListActive">
-      <ul class="face-list noSelect" @click="selectFace" v-if="faceListActive">
+      <ul class="face-list noSelect" @click="selectFace" v-show="faceListActive">
         <li title="睁眼笑">&#x1F603;</li>
         <li title="咪眼笑">&#x1F604;</li>
         <li title="大笑">&#x1F606;</li>
@@ -117,17 +124,22 @@
     </transition>
     <!--    输入框-->
     <div class="mainPanel_inputContent">
+      <div class="mainPanel_mask" v-if="$store.state.globe.mainPanelMask"><i class="el-icon-upload"></i>拖动到这里上传！！</div>
       <!--   发送文件的略缩图 s   -->
       <div class="filePreviewContont" disabled>
         <ul>
           <li
             v-for="(file, i) in sendFile.uploadList"
             :key="i"
-            :class="sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length)) ? 'fileStatus_img' : 'fileStatus_file'"
-            @click="previewSwitch(file)"
+            class="fileStatus_upload"
+            @mouseenter="uploadMouseenter(file)"
+            @mouseleave="uploadMouseleave(file)"
           >
             <span>{{ file.name }}</span>
             <i class="el-icon-close" @click.stop="removeFileTab(i)"></i>
+            <div
+              :style="{clipPath: `polygon(0% 100%, ${sendFile.uploading}% 100%, ${sendFile.uploading}% 0%, 0% 0%)`}"
+              :class="sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length)) ? 'fileStatus_img fileLoading' : 'fileLoading fileStatus_file'"></div>
           </li>
         </ul>
         <!--
@@ -162,7 +174,6 @@
           class="textBox"
           ref="textBox"
           v-model.trim="textAreaInput"
-          @drop.stop.prevent="showPreImg($event, 'drop')"
           @paste="pasteHandle"
           @click="faceListActive = false"
           @focus="textBoxFocus"
@@ -193,7 +204,6 @@ export default {
       keyCodeArr: [],
       uid: window.sessionStorage.getItem('uid'),
       faceListActive: false,
-      visible: true,
       sendFile: { // 发送文件相关
         allowFile: ['png', 'jpeg', 'jpg', 'svg', 'ico'], // 允许上传的文件格式
         uploadList: [], // 预览图tabs
@@ -202,21 +212,56 @@ export default {
           previewStatus: false, // tabs面板展开状态
           previewSrc: '', // 预览图的图片路径
           previewName: ''
-        }
+        },
+        uploading: 0 // 上传进度
       }, // 文件预览框框
+      timer: '',
       flag: true // 以下测试
     }
   },
   mounted () {
     this.$store.commit('scrollRec', this.$refs)
+    this.$store.state.globe.mainPanelMask = false
   },
   methods: {
+    chatRecordShowPre (file) {
+      this.sendFile.filePreview.previewStatus = true
+      this.sendFile.filePreview.previewName = ''
+      this.sendFile.filePreview.previewSize = ''
+      this.sendFile.filePreview.previewSrc = file
+    },
+    /** 鼠标移入标签 */
+    uploadMouseenter (file) {
+      clearTimeout(this.timer)
+      this.sendFile.filePreview.previewStatus = true
+      this.sendFile.filePreview.previewSrc = file.imgSrc
+      this.sendFile.filePreview.previewName = file.name
+      this.sendFile.filePreview.previewSize = file.size
+    },
+    /** 鼠标移出标签 */
+    uploadMouseleave () {
+      clearTimeout(this.timer)
+      this.timer = setTimeout(() => {
+        this.previewStatus = false
+      }, 1500)
+    },
+    /** 拖入文件 */
+    uploadDragenter (evt) {
+      this.testE = evt.target.className
+      this.$store.state.globe.mainPanelMask = true
+    },
+    /** 拖出文件 */
+    uploadDragleave (evt) {
+      if (this.testE === evt.target.className) this.$store.state.globe.mainPanelMask = false
+    },
+    /** 发送图片到服务器 */
     async sendFileHandle () {
-      this.sendFile.uploadList = []
-      // 发送图片到服务器
       const res = await apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD, this.sendFile.forms, (progress) => {
         console.log(`上传进度：${((progress.loaded / progress.total) * 100).toFixed(2)}%`)
+        this.sendFile.uploading = ((progress.loaded / progress.total) * 100).toFixed(2)
       })
+      this.sendFile.uploadList = []
+      this.sendFile.uploading = 0
       res.data.result.forEach(value => {
         this.$store.commit('chatRecordAdd', {
           chat: {
@@ -243,31 +288,31 @@ export default {
         })
       })
     },
-    previewSwitch (file) {
-      this.sendFile.filePreview.previewStatus = true
-      this.sendFile.filePreview.previewSrc = file.imgSrc
-      this.sendFile.filePreview.previewName = file.name
-      this.sendFile.filePreview.previewSize = file.size
-    },
     /** 删除预览图标签 */
     removeFileTab (index) { // 阻止事件冒泡，以免触发previewSwitch()
       this.sendFile.filePreview.previewStatus = false
       this.sendFile.uploadList.splice(index, 1)
     },
     /** 处理copy事件，一般是微信复制的图片粘贴到输入框。 再将略缩图显示出来 */
-    async pasteHandle (evt) {
+    pasteHandle (evt) {
       const paste = evt.clipboardData
       let fileFlag = false
       paste.types.forEach(type => {
         if (type === 'Files') fileFlag = true // 当粘贴的是文件时
       })
       if (fileFlag) { // 粘贴内容是文件时，加载略缩图
-        const files = paste.files
-        this.showPreImg(files, 'paste')
+        const forms = new FormData()
+        paste.files.forEach(async file => {
+          forms.append('files', file)
+          file.imgSrc = await this.readFileAsync(file)
+          this.sendFile.uploadList.push(file)
+        })
+        this.sendFile.forms = forms
       }
     },
     /** 上传图片,显示略缩图 */
     async showPreImg (evt, type) {
+      this.$store.state.globe.mainPanelMask = false
       let files
       if (type === 'drop') {
         files = evt.dataTransfer.files
@@ -429,7 +474,8 @@ export default {
     },
     previewStatus: {
       get () {
-        return this.sendFile.uploadList.length > 0 ? this.sendFile.filePreview.previewStatus : false
+        return this.sendFile.filePreview.previewStatus
+        // return this.sendFile.uploadList.length > 0 ? this.sendFile.filePreview.previewStatus : false
       },
       set (evt) {
         this.sendFile.filePreview.previewStatus = evt
@@ -540,6 +586,25 @@ export default {
   /*输入框高度*/
 }
 
+.mainPanel_mask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 99;
+  background: #65C564;
+  opacity: .7;
+}
+
+.mainPanel_mask .el-icon-upload {
+  font-size: 28px;
+  margin-right: 6px;
+}
+
 .textBoxContent {
   position: relative;
 }
@@ -586,14 +651,14 @@ export default {
 }
 
 .textBoxContent .btnGroup {
-  width: calc(var(--inputContent-width) * 0.130);
+  width: calc(var(--inputContent-width) * 0.12);
   min-width: 110px;
   height: 48px;
   display: flex;
   justify-content: space-between;
   position: absolute;
   bottom: calc(var(--inputContent-height) * 0.2);
-  left: 80.4%;
+  left: 83.4%;
   top: 50%;
   transform: translate(0, -50%);
   /*margin-left: 80.4%;*/
@@ -820,10 +885,19 @@ export default {
   padding: 0 22px 0 12px;
   box-sizing: border-box;
   line-height: 40px;
-  opacity: .9;
+  opacity: .5;
+  overflow: hidden;
   position: relative;
   border-radius: 8px 8px 0 0;
   border-right: 1px solid #a8e382;
+  transition: all .2s;
+}
+
+.filePreviewContont li:hover {
+  height: 60px;
+  line-height: 60px;
+  margin-top: -20px;
+  opacity: 1;
 }
 
 .filePreviewContont .previewImg {
@@ -836,6 +910,8 @@ export default {
 }
 
 .filePreviewContont li span {
+  position: relative;
+  z-index: 5;
   height: 100%;
   width: 100%;
   overflow: hidden;
@@ -843,6 +919,15 @@ export default {
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
+}
+
+.filePreviewContont li .fileLoading {
+  position: absolute;
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
 }
 
 /* 绿色 图片*/
@@ -867,21 +952,19 @@ export default {
 
 .filePreviewContont .el-icon-close {
   position: absolute;
+  z-index: 4;
   right: 12px;
   top: 50%;
   transform: translate(0, -50%);
 }
 
 .previewImg {
-  /*border: 2px solid #bafb90;*/
-  border-radius: 18px 0 18px 18px;
+  border-radius: 0 0 5% 5%;
   background: #f2f2f2;
-  box-shadow: 7px 7px 15px #e6e6e6,
-  -7px -7px 15px #fefefe;
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 2;
+  z-index: 3;
   transform: translate(-50%, -50%);
 }
 
@@ -909,6 +992,5 @@ export default {
 
 .previewImg img {
   pointer-events: none;
-  height: 300px;
 }
 </style>
