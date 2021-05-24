@@ -9,9 +9,9 @@
     <!--  图片预览 -->
     <transition name="faceListActive">
       <div class="previewImg" v-if="previewStatus">
-        <div class="title">
+        <div class="title" @click="previewStatus = false">
           {{ sendFile.filePreview.previewName }}
-          <i class="el-icon-close" @click="previewStatus = false"></i>
+          <i class="el-icon-close"></i>
         </div>
         <img
           :style="{height: `${$store.state.globe.userConfig.previewImgHeight}px`}"
@@ -255,6 +255,7 @@ export default {
       if (this.testE === evt.target.className) this.$store.state.globe.mainPanelMask = false
     },
     /** 发送图片到服务器 */
+    // (TODO) 把apiUpload.upload换成循环，一个文件一个forms分开发送，就可以实现每个文件都有单独的进度条
     async sendFileHandle () {
       const res = await apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD, this.sendFile.forms, (progress) => {
         console.log(`上传进度：${((progress.loaded / progress.total) * 100).toFixed(2)}%`)

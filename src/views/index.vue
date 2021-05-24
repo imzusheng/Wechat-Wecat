@@ -10,7 +10,7 @@
     <mainPanel
       v-if="$store.state.globe.navigation.historyList.historyListStatus"
       class="mainPanel"
-      :style="{width: $store.state.globe.userConfig.friendInfoPanel ? '56%' :'100%'}"
+      :style="{width: $store.state.globe.userConfig.friendInfoPanel ? '56%' :'78%'}"
       :class="{'wrap_scale': $store.state.chatObj.length > 0}"
       @sendMsg="sendMsg"
     />
