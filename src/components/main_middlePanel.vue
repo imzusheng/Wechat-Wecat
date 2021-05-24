@@ -3,6 +3,16 @@
        :disabled="loading"
        v-loading="loading"
   >
+    <div class="previewImg" v-if="previewStatus">
+      <div class="title">
+        <h5 style="display: inline-block; font-size: 14px">预览：</h5>{{ sendFile.filePreview.previewName }}
+        <i class="el-icon-close" @click="previewStatus = false"></i>
+      </div>
+      <img
+        :src="sendFile.filePreview.previewSrc"
+        alt=""
+      />
+    </div>
     <!--    聊天对象名字-->
     <div class="mainPanel_name" @click="faceListActive = false">
       <figure v-if="this.chatObj.length > 0">
@@ -24,21 +34,33 @@
       @click="faceListActive = false"
       @scroll="scrollList($event)"
     >
-      <div class="msgContent" ref="msgContent" :style="{paddingBottom: sendFile.filePreview ? '180px':'100px'}">
+      <div class="msgContent" ref="msgContent"
+           :style="{paddingBottom: previewStatus ? '180px':'100px'}">
         <div
           v-for="(item, i) in $store.state.globe.chat.chatList"
           :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
           :key="i"
         >
           <div
+            :style="{
+             height: item.type === 'file' ? '150px' : 'auto',
+             padding: item.type === 'file' ? '0' : '15px 25px',
+             // background: item.type === 'file' ? 'transparent' : 'linear-gradient(225deg, #96d46c, #b3fb80)',
+             // boxShadow:  item.type === 'file' ? 'none' : '-4px 4px 8px #c3c5c6, 4px -4px 8px #ffffff'
+          }"
             :class="{
             'My_Msg myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,
-             'You_Msg youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,
+            'You_Msg youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,
             'My_Msg myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,
-             'You_Msg youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag
+            'You_Msg youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag
           }"
-            v-html="item.msg"
           >
+            {{ item.type === 'file' ? '' : item.msg }}
+            <img
+              v-if="item.type === 'file'"
+              style="height: 150px"
+              :src="`${server.httpServer}/static?filename=${item.msg}`"
+              alt=""/>
           </div>
           <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
         </div>
@@ -95,16 +117,30 @@
     </transition>
     <!--    输入框-->
     <div class="mainPanel_inputContent">
+      <!--   发送文件的略缩图 s   -->
       <div class="filePreviewContont" disabled>
+        <ul>
+          <li
+            v-for="(file, i) in sendFile.uploadList"
+            :key="i"
+            :class="sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length)) ? 'fileStatus_img' : 'fileStatus_file'"
+            @click="previewSwitch(file)"
+          >
+            <span>{{ file.name }}</span>
+            <i class="el-icon-close" @click.stop="removeFileTab(i)"></i>
+          </li>
+        </ul>
+        <!--
         <div class="filePreview">
           <img
             style="height: 100px; border: 1px solid #96d46c; border-radius: 4px"
             v-for="(item, i) in sendFile.uploadList"
-            :src="item"
+            :src="item.imgSrc"
             :key="i"
             alt=""
           />
         </div>
+        -->
       </div>
       <div class="textBoxContent">
         <!--        <div
@@ -112,7 +148,7 @@
                   contenteditable="true"
                   ref="textBox"
                   @input="test"
-                  @drop.stop.prevent="dragFile($event)"
+                  @drop.stop.prevent="showPreImg($event)"
                   @paste="pasteHandle"
                   @click="faceListActive = false"
                   @focus="textBoxFocus"
@@ -120,15 +156,13 @@
                   @keydown="keyCodeCheck"
                   @keyup="keyCodeArr = []"
                 >
-                  &lt;!&ndash; (TODO) 干脆发送图片时，拖动直接发送，不允许输入文字了。还更方便判断修改聊天框样式 &ndash;&gt;
-                  &lt;!&ndash;          <img :src="`http://localhost:3800/wechatAPI/static?filename=files-1621604477471-boy.png`" alt=""/>&ndash;&gt;
                 </div>-->
         <div class="textarea_Container">{{ textAreaInput }}</div>
         <textarea
           class="textBox"
           ref="textBox"
-          v-model="textAreaInput"
-          @drop.stop.prevent="dragFile($event)"
+          v-model.trim="textAreaInput"
+          @drop.stop.prevent="showPreImg($event, 'drop')"
           @paste="pasteHandle"
           @click="faceListActive = false"
           @focus="textBoxFocus"
@@ -148,6 +182,7 @@
 import moment from 'moment'
 import { apiUpload } from '@/assets/js/Functions'
 import { API_COMMON } from '@/assets/js/api'
+import config from '@/assets/js/config'
 
 export default {
   name: 'mainPanel',
@@ -157,23 +192,67 @@ export default {
       loading: false,
       keyCodeArr: [],
       uid: window.sessionStorage.getItem('uid'),
-      input: '',
       faceListActive: false,
       visible: true,
       sendFile: { // 发送文件相关
-        allowFile: ['png', 'jpeg', 'jpg', 'svg', 'icon'], // 允许上传的文件格式
-        uploadList: [],
-        forms: {},
-        filePreview: true
+        allowFile: ['png', 'jpeg', 'jpg', 'svg', 'ico'], // 允许上传的文件格式
+        uploadList: [], // 预览图tabs
+        forms: {}, // 模拟FormData
+        filePreview: { // 预览图相关
+          previewStatus: false, // tabs面板展开状态
+          previewSrc: '', // 预览图的图片路径
+          previewName: ''
+        }
       }, // 文件预览框框
-      flag: true
+      flag: true // 以下测试
     }
   },
   mounted () {
     this.$store.commit('scrollRec', this.$refs)
   },
   methods: {
-    test (evt) {
+    async sendFileHandle () {
+      this.sendFile.uploadList = []
+      // 发送图片到服务器
+      const res = await apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD, this.sendFile.forms, (progress) => {
+        console.log(`上传进度：${((progress.loaded / progress.total) * 100).toFixed(2)}%`)
+      })
+      res.data.result.forEach(value => {
+        this.$store.commit('chatRecordAdd', {
+          chat: {
+            msg: value.filename,
+            say: 'me',
+            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+            type: 'file',
+            statuc: value.status
+          },
+          type: 'send'
+        })
+        this.$store.state.ws.sendMsg({
+          msg: {
+            content: value.filename,
+            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+          },
+          status: value.status,
+          file: true,
+          from: this.uid,
+          to: this.chatObj,
+          type: 'chat'
+        }, (data) => {
+          this.$store.commit('wsMsgGHandler', data)
+        })
+      })
+    },
+    previewSwitch (file) {
+      this.sendFile.filePreview.previewStatus = true
+      this.sendFile.filePreview.previewSrc = file.imgSrc
+      this.sendFile.filePreview.previewName = file.name
+      this.sendFile.filePreview.previewSize = file.size
+    },
+    /** 删除预览图标签 */
+    removeFileTab (index) { // 阻止事件冒泡，以免触发previewSwitch()
+      this.sendFile.filePreview.previewStatus = false
+      this.sendFile.uploadList.splice(index, 1)
     },
     /** 处理copy事件，一般是微信复制的图片粘贴到输入框。 再将略缩图显示出来 */
     async pasteHandle (evt) {
@@ -184,28 +263,44 @@ export default {
       })
       if (fileFlag) { // 粘贴内容是文件时，加载略缩图
         const files = paste.files
-        let upload = ''
-        let flag = true
-        files.forEach(file => {
-          if (!this.sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length))) { // 检测是否为图片格式
-            flag = false
-          }
-        })
-        if (!flag) { // 文件格式错误处理
-          return this.$message({
-            type: 'error',
-            message: `允许上传的格式：${[...this.sendFile.allowFile]}`
-          })
-        }
-
-        const forms = new FormData()
-        for (let i = 0; i < files.length; i++) {
-          forms.append('files', files[i])
-          upload = await this.readFileAsync(files[i])
-          this.sendFile.uploadList.push(upload)
-        }
-        this.sendFile.forms = forms
+        this.showPreImg(files, 'paste')
       }
+    },
+    /** 上传图片,显示略缩图 */
+    async showPreImg (evt, type) {
+      let files
+      if (type === 'drop') {
+        files = evt.dataTransfer.files
+      } else if (type === 'paste') {
+        files = evt
+      }
+      if (this.sendFile.uploadList.length + files.length > 10) { // 文件不能超过10个
+        return this.$message({
+          type: 'error',
+          message: '一次最多只能发送十个文件'
+        })
+      }
+      let flag = true // 检测是否为图片格式
+      files.forEach(file => { // 检查文件格式
+        if (!this.sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length))) {
+          flag = false
+        }
+      })
+
+      if (!flag) { // 文件格式错误处理
+        return this.$message({
+          type: 'error',
+          message: `允许上传的格式：${[...this.sendFile.allowFile]}`
+        })
+      }
+
+      const forms = new FormData()
+      for (let i = 0; i < files.length; i++) {
+        forms.append('files', files[i])
+        files[i].imgSrc = await this.readFileAsync(files[i])
+        this.sendFile.uploadList.push(files[i])
+      }
+      this.sendFile.forms = forms
     },
     readFileAsync (file) { // 略缩图处理，转换为URL
       return new Promise((resolve, reject) => {
@@ -232,36 +327,7 @@ export default {
           type: arr[0].replace(new RegExp(/data:|base64/g), '')
         })
     },
-    /** 处理拖拽上传图片 */
-    async dragFile (evt) {
-      const files = evt.dataTransfer.files
-      let upload = ''
-      let flag = true // 检测是否为图片格式
-
-      files.forEach(file => { // 检查文件格式
-        if (!this.sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length))) {
-          flag = false
-        }
-      })
-
-      if (!flag) { // 文件格式错误处理
-        return this.$message({
-          type: 'error',
-          message: `允许上传的格式：${[...this.sendFile.allowFile]}`
-        })
-      }
-
-      const forms = new FormData()
-      for (let i = 0; i < files.length; i++) {
-        forms.append('files', files[i])
-        upload = await this.readFileAsync(files[i])
-        this.sendFile.uploadList.push(upload)
-      }
-      this.sendFile.forms = forms
-    },
-    /**
-     * 模拟懒加载
-     */
+    /** 模拟懒加载 */
     scrollList (evt) {
       /** 当滚动条到达顶部 && 不在加载状态时 && 已经加载的聊天记录条数不等于总条数时 */
       if (evt.target.scrollTop === 0 && this.loading === false && this.$store.state.globe.chat.total !== this.$store.state.globe.chat.chatList.length) {
@@ -273,9 +339,7 @@ export default {
         }, 400)
       }
     },
-    /**
-     * 聊天面板选择表情包，并将光标移动到输入框末尾
-     */
+    /** 聊天面板选择表情包，并将光标移动到输入框末尾 */
     selectFace (face) {
       // 事件委托到ul 导致拖动ul会全选表情。所以在触发的时候判断一下是不是点击单个li
       if (face.target.nodeName.toLowerCase() === 'li') {
@@ -304,39 +368,35 @@ export default {
         this.sendMsg()
       }
     },
-    async sendMsg (e) {
+    // (TODO) 点击发送-> 上传文件-> 服务器传回保存的文件名字-> 将文件名作为聊天记录发送
+    sendMsg (e) {
       this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
       this.faceListActive = false // 点击发送关闭表情包选择面板
-      const input = this.$refs.textBox.innerText.replace(/\n$/, '') // 匹配结尾的回车符号并替换
-      const html = this.$refs.textBox.innerHTML.replace(/<br>/g, '')
-      const replaceSpace = input.replace(/\s+/g, '') // 不知道是干嘛的，匹配空格？
-      if (replaceSpace.length === 0 && !html) { // 如果内容全为空格，判定为空
-        this.$message('说点什么啊！')
-        return
+      const input = this.textAreaInput.replace(/\n$|\s+/, '') // 匹配结尾的回车符号并替换
+      if (input.length === 0 && this.sendFile.uploadList.length === 0) { // 如果内容全为空格，判定为空
+        return this.$message('说点什么吧！')
       }
-      // 发送图片到服务器
-      const res = await apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD, this.sendFile.forms, (progress) => {
-        console.log(`上传进度：${((progress.loaded / progress.total) * 100).toFixed(2)}%`)
-      })
-      console.log(res.data.result)
-      if (this.flag) return
-      // 发送消息给对方
-      this.$emit('sendMsg', html, this.chatObj, 'chat')
-      // 更新store
-      this.$store.commit('chatRecordAdd', {
-        chat: {
-          msg: html,
-          say: 'me',
-          time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-        },
-        type: 'send'
-      })
-      this.$refs.textBox.innerHTML = ''
-      // 收到或发送消息时，滚动条自动到达底部
-      setTimeout(() => {
+      if (this.sendFile.uploadList.length > 0) this.sendFileHandle()
+      if (input.length > 0) {
+        // 发送消息给对方
+        this.$emit('sendMsg', input, this.chatObj, 'chat')
+        // 更新store
+        this.$store.commit('chatRecordAdd', {
+          chat: {
+            msg: input,
+            say: 'me',
+            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+            type: 'chat',
+            static: 'true'
+          },
+          type: 'send'
+        })
+        this.textAreaInput = ''
+        // 收到或发送消息时，滚动条自动到达底部
         this.$store.commit('scrollRec')
-      }, 0)
+      }
     },
+    /** 输入框获得焦点时，发送当前输入状态 */
     textBoxFocus () {
       this.$store.state.ws.sendMsg({
         from: this.uid,
@@ -359,6 +419,19 @@ export default {
     }
   },
   computed: {
+    server: {
+      get () {
+        return config.server
+      }
+    },
+    previewStatus: {
+      get () {
+        return this.sendFile.uploadList.length > 0 ? this.sendFile.filePreview.previewStatus : false
+      },
+      set (evt) {
+        this.sendFile.filePreview.previewStatus = evt
+      }
+    },
     chatObj: {
       get () {
         return this.$store.state.chatObj
@@ -390,6 +463,7 @@ export default {
 
 .mainPanel_wrap {
   display: flex;
+  position: relative;
   flex-direction: column;
   justify-content: space-between;
   /*顶栏高度*/
@@ -454,7 +528,7 @@ export default {
 .mainPanel_inputContent {
   min-height: var(--inputContent-height);
   width: var(--inputContent-width);
-  background-color: rgba(255, 255, 255, 1);
+  /*background-color: rgba(255, 255, 255, 1);*/
   background: linear-gradient(to right, #F7F9FA, #ffffff);
   box-shadow: 20px -2px 22px rgba(210, 210, 210, .9),
   20px -2px 22px #ffffff;
@@ -721,18 +795,117 @@ export default {
 }
 
 .filePreviewContont {
-  height: 100px;
+  height: 40px;
   width: 100%;
   position: absolute;
   top: -100px;
   left: 0;
-  border: 1px solid red;
-  overflow-x: scroll;
-  overflow-y: hidden;
 }
 
-.filePreview {
+.filePreviewContont ul {
+  height: 40px;
+  width: calc(100% - 8px);
+  margin-top: 60px;
+  display: flex;
+}
+
+.filePreviewContont li {
+  cursor: pointer;
+  color: #444444;
+  height: 40px;
+  flex: 1;
+  padding: 0 22px 0 12px;
+  box-sizing: border-box;
+  line-height: 40px;
+  opacity: .9;
+  position: relative;
+  border-radius: 8px 8px 0 0;
+  border-right: 1px solid #a8e382;
+}
+
+.filePreviewContont .previewImg {
+  position: absolute;
+  top: -220px;
+  left: -200px;
+  height: 200px;
+  border: 1px solid #96d46c;
+  border-radius: 4px
+}
+
+.filePreviewContont li span {
   height: 100%;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+/* 绿色 图片*/
+.fileStatus_img {
+  background: #bafb90;
+}
+
+/* 蓝色 文件 */
+.fileStatus_file {
+  background: #b5ebff;
+}
+
+/* 灰色 上传中*/
+.fileStatus_upload {
+  background: #d6d3d3;
+}
+
+/* 红色 上传失败 */
+.fileStatus_error {
+  background: #ff6666;
+}
+
+.filePreviewContont .el-icon-close {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+.previewImg {
+  /*border: 2px solid #bafb90;*/
+  border-radius: 18px 0 18px 18px;
+  background: #f2f2f2;
+  box-shadow: 7px 7px 15px #e6e6e6,
+  -7px -7px 15px #fefefe;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+}
+
+.previewImg .title {
+  position: absolute;
+  box-shadow: 7px -7px 15px #e6e6e6,
+  -7px -7px 15px #fefefe;
+  background: linear-gradient(to bottom, #bafb90, #f2f2f2);
+  font-size: 14px;
+  font-family: Microsoft YaHei;
   width: auto;
+  height: 36px;
+  line-height: 36px;
+  border-radius: 8px 8px 0 0;
+  box-sizing: border-box;
+  padding: 0 22px;
+  top: -36px;
+  right: 0;
+}
+
+.previewImg .el-icon-close {
+  cursor: pointer;
+  margin-left: 20px;
+}
+
+.previewImg img {
+  pointer-events: none;
+  height: 300px;
 }
 </style>

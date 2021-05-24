@@ -2,10 +2,11 @@ const router = require('@koa/router')()
 const MongoDB = require('../module/mongodb')
 const db = new MongoDB()
 const fs = require('fs')
+const config = require('../config')
 const multer = require('@koa/multer')
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, './upload')
+    cb(null, config.staticPath)
   },
   filename: function (req, file, cb) {
     cb(null, `${file.fieldname}-${Date.now()}-${file.originalname}`)
@@ -196,7 +197,8 @@ router.post('/wechatAPI/common/upload',
     const result = ctx.request.files.files.map(file => {
       return {
         originalname: file.originalname,
-        filename: file.filename
+        filename: file.filename,
+        status: true
       }
     })
     ctx.body = {
@@ -215,7 +217,7 @@ router.post('/wechatAPI/common/upload',
  */
 router.get('/wechatAPI/static', async (ctx) => {
   ctx.response.type = 'Content-Type : image/png; charset=UTF-8'
-  const data = await fs.readFileSync('./upload/' + ctx.query.filename)
+  const data = await fs.readFileSync(config.staticPath + ctx.query.filename)
   ctx.body = data
 })
 /**

@@ -165,12 +165,16 @@ async function chat (MsgObj, wss) {
   const myChat = {
     msg: MsgObj.msg.content,
     time: MsgObj.msg.time,
-    say: 'me'
+    say: 'me',
+    type: MsgObj.file ? 'file' : 'chat',
+    status: MsgObj.status
   }
   const youChat = {
     time: MsgObj.msg.time,
     msg: MsgObj.msg.content,
-    say: 'you'
+    say: 'you',
+    type: MsgObj.file ? 'file' : 'chat',
+    status: MsgObj.status
   }
   db.updateOne('chatRecord', myQuery, { $push: { chat: myChat } }, { upsert: true }).then()
   db.updateOne('chatRecord', youQuery, { $push: { chat: youChat } }, { upsert: true }).then()

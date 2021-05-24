@@ -10,5 +10,6 @@ module.exports = {
     pass: 'HNPJUKBWLOXHVQMT',
     port: 25,
     secure: false
-  }
+  },
+  staticPath: './upload/' // 静态资源路径
 }

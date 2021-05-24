@@ -87,7 +87,9 @@ export default new Vuex.Store({
       if (refs) {
         state.refs = refs
       }
-      state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
+      setTimeout(() => {
+        state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
+      }, 0)
     },
     // 建立WebSocket连接
     linkWsServer (state) {
@@ -157,21 +159,31 @@ export default new Vuex.Store({
     },
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {
-      if (playLoad.type === 'send') {
+      console.log(playLoad)
+      if (playLoad.type === 'send') { // 发送消息
         state.globe.navigation.historyList.chat[state.chatObj].chat.push(playLoad.chat)
         state.globe.chat.chatList.push(playLoad.chat)
-      } else {
+      } else { // 收到消息
         Notification.success({
           title: playLoad.from,
-          message: playLoad.msg.content
+          message: playLoad.file ? '收到一条图片消息' : playLoad.msg.content
         })
         state.globe.navigation.historyList.chat[playLoad.from].chat.push({
           msg: playLoad.msg.content,
           say: 'you',
-          time: playLoad.msg.time
+          time: playLoad.msg.time,
+          type: playLoad.file ? 'file' : 'chat'
         })
-        state.globe.chat.chatList.push(playLoad.chat) // 困扰了超级久的bug，忘记了聊天记录面板循环的state.globe.chat.chatList,而不是原来的history
+        if (state.chatObj) {
+          state.globe.chat.chatList.push({ // 困扰了超级久的bug，忘记了聊天记录面板循环的state.globe.chat.chatList,而不是原来的history
+            msg: playLoad.msg.content,
+            say: 'you',
+            time: playLoad.msg.time,
+            type: playLoad.file ? 'file' : 'chat'
+          })
+        }
       }
+      this.commit('scrollRec')
     },
     wsMsgGHandler (state, data) {
       const msgObj = typeof data.data === 'object' ? data.data : JSON.parse(data.data)

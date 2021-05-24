@@ -12,7 +12,6 @@ module.exports = {
    * 验证token
    */
   verifyToken: async (ctx, next) => {
-    ctx.set('Content-Type', 'application/json')
     if (/(login|sign|static)/g.test(ctx.url)) return next()
     const verify = await jwt.tokenVerify(ctx)
     ctx.status = 200

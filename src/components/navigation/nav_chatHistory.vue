@@ -4,14 +4,13 @@
       <input type="radio" name="chatListRadio" :data-friend-name="item">
       <div class="chatListContent">
         <figure>
+          <span v-html="friendListFilter(item)"></span>
           <img :src="$store.state.globe.navigation.historyList.chat[item].friendInfo.avatar" draggable="false" alt=""/>
           <span class="unReadMsg" v-if="$store.state.unReadMsg[item] > 0">{{ $store.state.unReadMsg[item] }}</span>
         </figure>
         <div class="group">
           <div class="friName">{{ item }}</div>
-          <div class="tempChat"><span>{{
-              $store.state.globe.navigation.historyList.chat[item].chat[$store.state.globe.navigation.historyList.chat[item].chat.length - 1].msg
-            }}</span></div>
+          <div class="tempChat"><span v-html="tempChatFilter(item)"></span></div>
         </div>
       </div>
     </li>
@@ -26,6 +25,10 @@ export default {
     return {
       chatObj: ''
     }
+  },
+  mounted () {
+    setTimeout(() => {
+    }, 1000)
   },
   methods: {
     selectFriend (e) {
@@ -51,6 +54,15 @@ export default {
         type: 'clearUnReadMsg',
         uid: window.sessionStorage.getItem('uid') || this.$store.state.uid
       }, data => this.$store.commit('wsMsgGHandler', data))
+    },
+    /** 显示最近聊天记录，当最近聊天记录时图片时，显示为[图片消息] */
+    tempChatFilter (item) {
+      if (!item) return ''
+      return this.$store.state.globe.navigation.historyList.chat[item].chat[this.$store.state.globe.navigation.historyList.chat[item].chat.length - 1].type === 'file'
+        ? '[图片消息]' : this.$store.state.globe.navigation.historyList.chat[item].chat[this.$store.state.globe.navigation.historyList.chat[item].chat.length - 1].msg
+    },
+    friendListFilter (item) {
+      return new Date(this.$store.state.globe.navigation.historyList.chat[item].chat.slice(-1)[0].time)
     }
   },
   watch: {

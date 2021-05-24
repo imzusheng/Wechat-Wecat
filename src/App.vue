@@ -4,6 +4,20 @@
   </div>
 </template>
 
+<script>
+export default {
+  mounted () {
+    window.onfocus = function () {
+      document.title = 'WeCat - 开始聊天把！'
+    }
+
+    window.onblur = function () {
+      document.title = '记得回来！'
+    }
+  }
+}
+</script>
+
 <style>
 * {
   font-family: Microsoft YaHei, sans-serif, monospace;

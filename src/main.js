@@ -19,7 +19,7 @@ axios.interceptors.request.use(config => {
 // 响应拦截器
 axios.interceptors.response.use(response => {
   if (response.data.type === 401 && response.data.error) {
-    store.commit('authHandle', response)
+    return store.commit('authHandle', response)
   }
   return response
 }, error => {
