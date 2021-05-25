@@ -15,6 +15,7 @@ const storage = multer.diskStorage({
 const upload = multer({ // 源码中multer是一个函数，所以需要执行
   storage: storage
 })
+const MIME = require('../MIME.js')
 
 /**
  * @api {Get} /wechatAPI/common/chatHistory 获取历史聊天记录
@@ -223,9 +224,13 @@ router.post('/wechatAPI/common/upload', upload.fields([
  *
  */
 router.get('/wechatAPI/static', async (ctx) => {
-  // ctx.response.type = 'Content-Type : image/png; charset=UTF-8'
-  const data = await fs.readFileSync(config.staticPath + ctx.query.filename)
-  ctx.body = data
+  const postfix = ctx.query.filename.slice(ctx.query.filename.indexOf('.'), ctx.query.filename.length)
+  const fileName = encodeURIComponent(ctx.query.filename)
+  ctx.set({
+    'Content-Type': `${MIME[postfix]}`,
+    'Content-Disposition': `attachment; filename=${fileName}`
+  })
+  ctx.body = await fs.readFileSync(config.staticPath + ctx.query.filename)
 })
 /**
  * @api {Get} /wechatAPI/common/contact 获取好友列表
@@ -300,20 +305,6 @@ router.get('/wechatAPI/common/contact', async (ctx) => {
     error: false,
     msg: 'success'
   }
-})
-
-/**
- * @api {Put} /wechatAPI/common/upload 读取静态资源
- * @apiName 6
- * @apiVersion 1.0.0
- * @apiGroup 通用
- * @apiSampleRequest off
- *
- */
-router.get('/wechatAPI/static', async (ctx) => {
-  // ctx.response.type = 'Content-Type : image/png; charset=UTF-8'
-  const data = await fs.readFileSync(config.staticPath + ctx.query.filename)
-  ctx.body = data
 })
 /**
  * @api {Get} /wechatAPI/common/deleteAllRecord 删除所有聊天记录，仅保留一条

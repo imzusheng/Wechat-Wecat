@@ -80,7 +80,13 @@
               v-if="sendFile.allowFile.includes(item.postfix)"
               :class="item.say === 'me' ? 'myfilePreview' : 'youfilePreview'"
             >
-              <div v-if="item.say === 'me'">
+              <!--  保持文件图片始终靠向中间 s  -->
+              <a
+                v-if="item.say === 'me'"
+                :href="`${server.httpServer}/static?filename=${item.msg}`"
+                target="_blank"
+                :download="`${item.msg}`"
+              >
                 <div class="filePreview_img">
                   <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
                        xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
@@ -90,8 +96,13 @@
                   </svg>
                 </div>
                 <div class="filePreview_filename">{{ item.msg }}</div>
-              </div>
-              <div v-else>
+              </a>
+              <a
+                v-else
+                :href="`${server.httpServer}/static?filename=${item.msg}`"
+                target="_blank"
+                :download="`${item.msg}`"
+              >
                 <div class="filePreview_filename">{{ item.msg }}</div>
                 <div class="filePreview_img">
                   <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -101,7 +112,7 @@
                       p-id="2890" fill="#65C564"></path>
                   </svg>
                 </div>
-              </div>
+              </a>
             </div>
           </div>
           <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
@@ -1070,8 +1081,8 @@ export default {
   background: rgba(180, 190, 200, .3);
 }
 
-.youfilePreview div,
-.myfilePreview div{
+.youfilePreview a,
+.myfilePreview a {
   display: flex;
 }
 
