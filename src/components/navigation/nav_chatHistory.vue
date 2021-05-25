@@ -59,8 +59,9 @@ export default {
     /** 显示最近聊天记录，当最近聊天记录时图片时，显示为[图片消息] */
     tempChatFilter (item) {
       if (!item) return ''
-      return this.$store.state.globe.navigation.historyList.nameList[item].chat[this.$store.state.globe.navigation.historyList.nameList[item].chat.length - 1].type === 'file'
-        ? '[图片消息]' : this.$store.state.globe.navigation.historyList.nameList[item].chat[this.$store.state.globe.navigation.historyList.nameList[item].chat.length - 1].msg
+      const chat = this.$store.state.globe.navigation.historyList.nameList[item].chat
+      if (!chat[chat.length - 1].type) chat[chat.length - 1].type = 'chat'
+      return chat[chat.length - 1].type === 'file' ? '[图片消息]' : chat[chat.length - 1].msg
     }
   },
   computed: {},

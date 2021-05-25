@@ -2,13 +2,13 @@
   <div>
     <div class="Avatar_container" v-if="$store.state.chatObj.length > 0">
       <figure>
-        <img :src=$store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.avatar alt=""
+        <img :src=$store.state.globe.navigation.contactList.nameList[$store.state.chatObj].friendInfo.avatar alt=""
              draggable="false"/>
       </figure>
     </div>
     <div class="Avatar_Info" v-if="$store.state.chatObj.length > 0">
       <div class="Avatar_name">
-        {{ $store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.nickName }}
+        {{ $store.state.globe.navigation.contactList.nameList[$store.state.chatObj].friendInfo.nickName }}
       </div>
       <div class="Avatar_outline">你抡我啊！</div>
     </div>
@@ -19,7 +19,7 @@
           <span>最近登录：</span>
         </div>
         <div class="info_position">
-          {{ $store.state.globe.navigation.historyList.chat[$store.state.chatObj].friendInfo.RecentlyTime }}
+          {{ $store.state.globe.navigation.contactList.nameList[$store.state.chatObj].friendInfo.RecentlyTime }}
         </div>
       </li>
       <li>
@@ -28,9 +28,7 @@
           <span>最近聊天：</span>
         </div>
         <div class="info_phone">
-          {{
-            $store.state.globe.navigation.historyList.chat[$store.state.chatObj].chat[$store.state.globe.navigation.historyList.chat[$store.state.chatObj].chat.length - 1].time
-          }}
+          {{ currentChat }}
         </div>
       </li>
       <li>
@@ -39,9 +37,7 @@
           <span>登录地点：</span>
         </div>
         <div class="info_email">
-          {{
-            address
-          }}
+          {{ address }}
         </div>
       </li>
     </ul>
@@ -58,11 +54,16 @@ export default {
   },
   methods: {},
   computed: {
+    currentChat () {
+      const chat = this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].chat
+      return chat[chat.length - 1].time
+    },
     address () { // 需要做复杂逻辑判断
-      return this.$store.state.globe.navigation.historyList.chat[this.$store.state.chatObj].friendInfo.address
-        ? this.$store.state.globe.navigation.historyList.chat[this.$store.state.chatObj].friendInfo.address.Country + ' - ' +
-        this.$store.state.globe.navigation.historyList.chat[this.$store.state.chatObj].friendInfo.address.Province + ' - ' +
-        this.$store.state.globe.navigation.historyList.chat[this.$store.state.chatObj].friendInfo.address.City : '暂无'
+      const friendInfo = this.$store.state.globe.navigation.contactList.nameList[this.$store.state.chatObj].friendInfo
+      return friendInfo.address
+        ? friendInfo.address.Country + ' - ' +
+        friendInfo.address.Province + ' - ' +
+        friendInfo.address.City : '暂无'
     }
   }
 }

@@ -4,73 +4,96 @@
     <div class="navSetting"
          :style="{transform: navSettingActive ? 'translateY(0%)' : 'translateY(-100%)', opacity: navSettingActive ? 1 : 0.2}">
       <div class="settingTitle">设置</div>
-      <!--  (TODO) 将每个用户的配置文件传到数据库保存起来,弄一个配置表  -->
-      <ul class="settingItems">
+      <div class="settingContainer">
+        <ul class="settingItems">
 
-        <li class="info_item">个人信息</li>
+          <li class="info_item">个人信息</li>
 
-        <li class="info_item">
-          <router-link to="admin" class="admin_item">管理员</router-link>
-        </li>
+          <li class="info_item">
+            <router-link to="admin" class="admin_item">管理员</router-link>
+          </li>
 
-        <li @click="$store.state.globe.userConfig.timeSwitch = !$store.state.globe.userConfig.timeSwitch">
-          显示消息时间
-          <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.timeSwitch}">
-            <div class="switchBtn"></div>
-          </div>
-        </li>
+          <li @click="$store.state.globe.userConfig.timeSwitch = !$store.state.globe.userConfig.timeSwitch">
+            显示消息时间
+            <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.timeSwitch}">
+              <div class="switchBtn"></div>
+            </div>
+          </li>
 
-        <li @click="$store.state.globe.userConfig.friendInfoPanel = !$store.state.globe.userConfig.friendInfoPanel">
-          好友信息面板
-          <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.friendInfoPanel}">
-            <div class="switchBtn"></div>
-          </div>
-        </li>
+          <li @click="$store.state.globe.userConfig.friendInfoPanel = !$store.state.globe.userConfig.friendInfoPanel">
+            好友信息面板
+            <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.friendInfoPanel}">
+              <div class="switchBtn"></div>
+            </div>
+          </li>
 
-        <li @click="$store.state.globe.userConfig.sendKeyCode = !$store.state.globe.userConfig.sendKeyCode"
-            title="Ctrl + Enter">
-          使用组合键发送
-          <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.sendKeyCode}">
-            <div class="switchBtn"></div>
-          </div>
-        </li>
+          <li @click="$store.state.globe.userConfig.sendKeyCode = !$store.state.globe.userConfig.sendKeyCode"
+              title="Ctrl + Enter">
+            使用组合键发送
+            <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.sendKeyCode}">
+              <div class="switchBtn"></div>
+            </div>
+          </li>
 
-        <li class="message_Loading_Slider">
-          聊天记录加载一次新增： {{ $store.state.globe.userConfig.pageSize }} 条
-          <el-slider
-            style="background: transparent"
-            v-model="$store.state.globe.userConfig.pageSize"
-            :step="5"
-            :min="5"
-            :max="50"
-            :show-tooltip="false"
-          ></el-slider>
-        </li>
+          <li class="message_Loading_Slider">
+            聊天记录加载一次新增： {{ $store.state.globe.userConfig.pageSize }} 条
+            <el-slider
+              style="background: transparent"
+              v-model="$store.state.globe.userConfig.pageSize"
+              :step="5"
+              :min="5"
+              :max="50"
+              :show-tooltip="false"
+            ></el-slider>
+          </li>
 
-        <li class="message_Loading_Slider">
-          预览图片尺寸： {{ $store.state.globe.userConfig.previewImgHeight }} px
-          <el-slider
-            style="background: transparent"
-            v-model="$store.state.globe.userConfig.previewImgHeight"
-            :step="50"
-            :min="200"
-            :max="800"
-            :show-tooltip="false"
-          ></el-slider>
-        </li>
+          <li class="message_Loading_Slider">
+            预览图片尺寸： {{ $store.state.globe.userConfig.previewImgHeight }} px
+            <el-slider
+              style="background: transparent"
+              v-model="$store.state.globe.userConfig.previewImgHeight"
+              :step="50"
+              :min="200"
+              :max="800"
+              :show-tooltip="false"
+            ></el-slider>
+          </li>
 
-        <li>
-          <a style="color: #444444; height: 100%; width: 100%; display: inline-block;" @click="clearChatRecord">
-            清空所有用户聊天记录 Beta</a>
-        </li>
+          <li>
+            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;" @click="clearChatRecord">
+              清空所有用户聊天记录 Beta</a>
+          </li>
 
-        <li>
-          <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
-             href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
-        </li>
+          <li>
+            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
+               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc Beta</a>
+          </li>
 
-        <li class="exit" @click="exit()">退出登录</li>
-      </ul>
+          <li>
+            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
+               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc Beta</a>
+          </li>
+
+          <li>
+            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
+               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc Beta</a>
+          </li>
+
+          <li>
+            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
+               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc Beta</a>
+          </li>
+
+          <li>
+            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
+               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
+          </li>
+
+          <li class="exitContainer" @click="exit()">
+            <div class="exit">退出登录</div>
+          </li>
+        </ul>
+      </div>
     </div>
     <!--  设置页面  e -->
     <div class="top_bar">
@@ -356,10 +379,12 @@ export default {
   border-bottom: 1px solid #cccccc;
 }
 
-.settingItems {
+.settingContainer {
   height: calc(100% - 90px);
+  padding-bottom: 140px;
   width: 100%;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .settingItems li:not(:last-child) {
@@ -440,7 +465,19 @@ export default {
   border-radius: 50%;
 }
 
+.exitContainer {
+  cursor: auto !important;
+  position: absolute !important;
+  width: calc(100% - 12px);
+  height: 140px;
+  background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, .1));
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .exit {
+  cursor: pointer !important;
   width: 60%;
   bottom: 30px;
   left: 50%;
