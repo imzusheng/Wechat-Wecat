@@ -17,7 +17,9 @@ export const API_COMMON = {
   GET_COMMON_STATIC: '/static',
   POST_COMMON_UPLOAD: '/common/upload',
   GET_COMMON_CHAT_HISTORY: '/common/chatHistory',
+  GET_COMMON_CONTACT: '/common/contact',
   GET_COMMON_NAV_SEARCH: '/common/navSearch',
   GET_COMMON_USER_CONFIG: '/common/userConfig',
-  PUT_COMMON_USER_CONFIG: '/common/userConfig/put'
+  PUT_COMMON_USER_CONFIG: '/common/userConfig/put',
+  GET_COMMON_DELETE_CHAT_RECORD: '/common/deleteAllRecord'
 }

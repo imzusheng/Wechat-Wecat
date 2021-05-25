@@ -23,53 +23,67 @@ const upload = multer({ // 源码中multer是一个函数，所以需要执行
  * @apiGroup 通用
  * @apiSampleRequest off
  */
-router
-  .get('/wechatAPI/common/chatHistory', async (ctx) => {
-    try {
-    /** 从聊天记录中查询数据 */
-      const queryMatch = {
-        $match: {
-          userID: ctx.query.email
-        }
-      }
-
-      const queryProject = {
-        $project: {
-          _id: 0
-        }
-      }
-      /** 查询聊天记录 */
-      const chatRecordResult = await db.aggregate('chatRecord', [queryMatch, queryProject], { currentChatDate: -1 })
-      const queryParams = {
-        $match: {
-          $or: []
-        }
-      }
-      const friendList = {}
-      chatRecordResult.forEach(value => {
-        friendList[value.chatObj] = value
-        queryParams.$match.$or.push({
-          email: value.chatObj
-        })
-      })
-      // (TODO) 这里搞反了，应该用用户信息来查找聊天记录。万一聊天记录被删除完了呢
-      /** 查询对应的用户信息 */
-      const userInfoResult = await db.aggregate('user', [queryParams, queryProject])
-      userInfoResult.forEach((value) => {
-        friendList[value.email].friendInfo = value
-      })
-      ctx.body = {
-        data: friendList,
-        error: false,
-        msg: '获取聊天记录成功'
-      }
-    } catch (e) {
-      ctx.body = {
-        error: true,
-        msg: '获取聊天记录失败'
-      }
+router.get('/wechatAPI/common/chatHistory', async (ctx) => {
+  const data = ctx.query
+  const queryMatch = {
+    $match: {
+      userID: data.email
     }
+  }
+
+  const queryProject = {
+    $project: {
+      _id: 0,
+      userID: 0
+    }
+  }
+
+  const queryLookup = {
+    $lookup: {
+      from: 'user', // 和user表关联查询
+      let: {
+        email: '$chatObj'
+      },
+      pipeline: [ // 管道
+        {
+          $match:
+            {
+              $expr: { // 使用let中的变量
+                $and:
+                  [{ $eq: ['$email', '$$email'] }] // $eq 相等  $email是user表中的email，$$email是let中的变量
+              }
+            }
+        },
+        {
+          $project: {
+            _id: 0,
+            pwd: 0
+          }
+        }
+      ],
+      as: 'friendInfo'
+    }
+  }
+
+  const queryUnwind = {
+    $unwind: {
+      path: '$friendInfo',
+      preserveNullAndEmptyArrays: true
+    }
+  }
+
+  /** 查询聊天记录 */
+  const chatRecordResult = await db.aggregate('chatRecord', [queryMatch, queryProject, queryLookup, queryUnwind], { currentChatDate: -1 })
+  const result = {}
+  chatRecordResult.forEach(Obj => {
+    result[Obj.chatObj] = Obj
   })
+  ctx.body = {
+    result,
+    error: false,
+    msg: '获取聊天记录成功'
+  }
+})
 /**
  * @api {Get} /wechatAPI/common/navSearch 全局搜索用户
  * @apiName 2
@@ -77,37 +91,36 @@ router
  * @apiGroup 通用
  * @apiSampleRequest off
  */
-router
-  .get('/wechatAPI/common/navSearch', async (ctx) => {
-    const data = ctx.query
-    if (!data.email) return
-    const queryMatch = {
-      $match: {
-        $or: [
-          { email: { $regex: new RegExp(data.email) } },
-          { nickName: { $regex: new RegExp(data.nickName) } }
-        ],
-        email: { $nin: [data.userID] } // 搜索当然要不包括自己啦
-      }
+router.get('/wechatAPI/common/navSearch', async (ctx) => {
+  const data = ctx.query
+  if (!data.email) return
+  const queryMatch = {
+    $match: {
+      $or: [
+        { email: { $regex: new RegExp(data.email) } },
+        { nickName: { $regex: new RegExp(data.nickName) } }
+      ],
+      email: { $nin: [data.userID] } // 搜索当然要不包括自己啦
     }
+  }
 
-    const queryProject = {
-      $project: {
-        _id: 0,
-        pwd: 0,
-        access: 0,
-        time: 0,
-        RecentlyTime: 0,
-        address: 0
-      }
+  const queryProject = {
+    $project: {
+      _id: 0,
+      pwd: 0,
+      access: 0,
+      time: 0,
+      RecentlyTime: 0,
+      address: 0
     }
-    const result = await db.aggregate('user', [queryMatch, queryProject])
-    ctx.body = {
-      error: false,
-      msg: '查找成功',
-      result
-    }
-  })
+  }
+  const result = await db.aggregate('user', [queryMatch, queryProject])
+  ctx.body = {
+    error: false,
+    msg: '查找成功',
+    result
+  }
+})
 /**
  * @api {Get} /wechatAPI/common/userConfig 获取用户配置
  * @apiName 3
@@ -120,41 +133,39 @@ router
  *   "uid": "imzusheng@163.com"
  * }
  */
-router
-  .get('/wechatAPI/common/userConfig', async (ctx) => {
-    const data = ctx.query
-    const queryMatch = {
-      $match: {
-        uid: data.uid
-      }
+router.get('/wechatAPI/common/userConfig', async (ctx) => {
+  const data = ctx.query
+  const queryMatch = {
+    $match: {
+      uid: data.uid
     }
+  }
 
-    const queryProject = {
-      $project: {
-        _id: 0
-      }
+  const queryProject = {
+    $project: {
+      _id: 0
     }
-    const userConfigResult = await db.aggregate('userConfig', [queryMatch, queryProject])
-    if (userConfigResult.length === 0) {
+  }
+  const userConfigResult = await db.aggregate('userConfig', [queryMatch, queryProject])
+  if (userConfigResult.length === 0) {
     // 查不出数据就给他一个默认值吧
-      ctx.body = {
-        error: false,
-        msg: '查找成功',
-        config: {
-          timeSwitch: true,
-          sendKeyCode: false,
-          pageSize: 10
-        }
-      }
-    } else {
-      ctx.body = {
-        error: false,
-        msg: '查找成功',
-        config: userConfigResult[0].config
+    ctx.body = {
+      error: false,
+      msg: '查找成功',
+      config: {
+        timeSwitch: true,
+        sendKeyCode: false,
+        pageSize: 10
       }
     }
-  })
-
+  } else {
+    ctx.body = {
+      error: false,
+      msg: '查找成功',
+      config: userConfigResult[0].config
+    }
+  }
+})
 /**
  * @api {Put} /wechatAPI/common/userConfig/put 修改用户配置
  * @apiName 4
@@ -168,17 +179,15 @@ router
  *   "config": {}
  * }
  */
-router
-  .put('/wechatAPI/common/userConfig/put', async (ctx) => {
-    const data = ctx.request.body
-    const result = await db.updateOne('userConfig', { uid: data.uid }, { $set: { config: data.config } }, { upsert: true }).then()
-    if (!result) console.error('更新用户配置失败 -> router.put -> common/userConfig')
-    ctx.body = {
-      error: false,
-      msg: '查找成功'
-    }
-  })
-
+router.put('/wechatAPI/common/userConfig/put', async (ctx) => {
+  const data = ctx.request.body
+  const result = await db.updateOne('userConfig', { uid: data.uid }, { $set: { config: data.config } }, { upsert: true }).then()
+  if (!result) console.error('更新用户配置失败 -> router.put -> common/userConfig')
+  ctx.body = {
+    error: false,
+    msg: '查找成功'
+  }
+})
 /**
  * @api {Put} /wechatAPI/common/upload 上传文件
  * @apiName 5
@@ -187,26 +196,111 @@ router
  * @apiSampleRequest off
  *
  */
-router.post('/wechatAPI/common/upload',
-  upload.fields([
-    {
-      name: 'files',
-      maxCount: 10
-    }
-  ]),
-  async (ctx) => {
-    const result = ctx.request.files.files.map(file => {
-      return {
-        originalname: file.originalname,
-        filename: file.filename,
-        status: true
-      }
-    })
-    ctx.body = {
-      error: false,
-      result: result
+router.post('/wechatAPI/common/upload', upload.fields([
+  {
+    name: 'files',
+    maxCount: 10
+  }
+]), async (ctx) => {
+  const result = ctx.request.files.files.map(file => {
+    return {
+      originalname: file.originalname,
+      filename: file.filename,
+      status: true
     }
   })
+  ctx.body = {
+    error: false,
+    result: result
+  }
+})
+/**
+ * @api {Put} /wechatAPI/common/upload 读取静态资源
+ * @apiName 6
+ * @apiVersion 1.0.0
+ * @apiGroup 通用
+ * @apiSampleRequest off
+ *
+ */
+router.get('/wechatAPI/static', async (ctx) => {
+  // ctx.response.type = 'Content-Type : image/png; charset=UTF-8'
+  const data = await fs.readFileSync(config.staticPath + ctx.query.filename)
+  ctx.body = data
+})
+/**
+ * @api {Get} /wechatAPI/common/contact 获取好友列表
+ * @apiName 7
+ * @apiVersion 1.0.0
+ * @apiGroup 通用
+ * @apiSampleRequest off
+ */
+router.get('/wechatAPI/common/contact', async (ctx) => {
+  const queryMatch = {
+    $match: {
+      UID: ctx.query.email
+    }
+  }
+
+  const queryProject = {
+    $project: {
+      _id: 0
+    }
+  }
+
+  // const queryLookup = {
+  //   $lookup: {
+  //     from: 'user', // 关联到order表
+  //     localField: 'Friend', // user 表关联的字段
+  //     foreignField: 'email', // order 表关联的字段
+  //     as: 'friendInfo'
+  //   }
+  // }
+
+  const queryLookup = {
+    $lookup: {
+      from: 'user', // 和user表关联查询
+      let: {
+        email: '$Friend' // 把源表查询出的Friend赋值给email
+      },
+      pipeline: [ // 管道
+        {
+          $match:
+            {
+              $expr: { // 使用let中的变量
+                $and:
+                  [{ $eq: ['$email', '$$email'] }] // $eq 相等
+              }
+            }
+        },
+        {
+          $project: {
+            _id: 0,
+            pwd: 0
+          }
+        }
+      ],
+      as: 'friendInfo'
+    }
+  }
+
+  const queryUnwind = {
+    $unwind: {
+      path: '$friendInfo',
+      preserveNullAndEmptyArrays: true
+    }
+  }
+
+  const friendResult = await db.aggregate('friend', [queryMatch, queryProject, queryLookup, queryUnwind])
+  const result = {}
+  friendResult.forEach(Obj => {
+    result[Obj.Friend] = Obj
+  })
+  ctx.body = {
+    result,
+    error: false,
+    msg: 'success'
+  }
+})
 
 /**
  * @api {Put} /wechatAPI/common/upload 读取静态资源
@@ -217,9 +311,29 @@ router.post('/wechatAPI/common/upload',
  *
  */
 router.get('/wechatAPI/static', async (ctx) => {
-  ctx.response.type = 'Content-Type : image/png; charset=UTF-8'
+  // ctx.response.type = 'Content-Type : image/png; charset=UTF-8'
   const data = await fs.readFileSync(config.staticPath + ctx.query.filename)
   ctx.body = data
+})
+/**
+ * @api {Get} /wechatAPI/common/deleteAllRecord 删除所有聊天记录，仅保留一条
+ * @apiName 8
+ * @apiVersion 1.0.0
+ * @apiGroup 通用
+ * @apiSampleRequest off
+ */
+router.get('/wechatAPI/common/deleteAllRecord', async (ctx) => {
+  // { $pull: { fruits: { $in: [ "apples", "oranges" ] }, vegetables: "carrots" } },
+  db.updateMany('chatRecord',
+    {},
+    {
+      $pull: { chat: { msg: { $nin: ['已通过好友申请'] } } }
+    }
+  ).then()
+  ctx.body = {
+    error: false,
+    msg: 'success'
+  }
 })
 /**
  * 分割线

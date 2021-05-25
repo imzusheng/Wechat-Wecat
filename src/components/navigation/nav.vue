@@ -60,6 +60,11 @@
         </li>
 
         <li>
+          <a style="color: #444444; height: 100%; width: 100%; display: inline-block;" @click="clearChatRecord">
+            清空所有用户聊天记录 Beta</a>
+        </li>
+
+        <li>
           <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
              href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
         </li>
@@ -183,13 +188,22 @@ export default {
     apiService.getData(API_COMMON.GET_COMMON_CHAT_HISTORY, {
       email: this.uid
     }).then(res => {
-      if (!res.data.error) {
-        this.$store.commit('navInit', res) // 初始化列表信息
-        this.$store.state.globe.navigation.historyList.historyListStatus = true
-      }
+      res.navInitType = 'historyList'
+      this.$store.commit('navInit', res) // 初始化列表信息
+      this.$store.state.globe.navigation.historyList.historyListStatus = true
+    })
+    apiService.getData(API_COMMON.GET_COMMON_CONTACT, {
+      email: this.uid
+    }).then(res => {
+      res.navInitType = 'contact'
+      this.$store.commit('navInit', res) // 初始化列表信息
+      this.$store.state.globe.navigation.contactList.contactListStatus = true
     })
   },
   methods: {
+    clearChatRecord () {
+      apiService.getData(API_COMMON.GET_COMMON_DELETE_CHAT_RECORD, {}).then()
+    },
     /** 退出登录 */
     exit () {
       this.$store.state.ws.sendMsg({

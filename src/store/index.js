@@ -27,10 +27,13 @@ export default new Vuex.Store({
         historyList: {
           historyListStatus: false, // historyList 是否已经从服务器获取到了数据
           nameList: [],
-          chat: {},
+          sortList: [], // 仅包含好友姓名，为了排序好友
           picked: '' // 选中的好友
         },
-        contactList: [],
+        contactList: {
+          contactListStatus: false,
+          nameList: []
+        },
         groupList: []
       },
       mainPanelMask: false, // 拖动文件进来时触发
@@ -62,12 +65,27 @@ export default new Vuex.Store({
       this.commit('loadChat')
       // console.log(state.globe.chat.chatList[state.globe.chat.chatList.length - 1].msg)
     },
+    navInit (state, res) {
+      const type = res.navInitType
+      switch (type) {
+        case 'historyList':
+          state.globe.navigation.historyList.nameList = res.data.result
+          state.globe.navigation.historyList.sortList = [] // push之前先重置一下，防止出事
+          Object.keys(res.data.result).forEach(obj => {
+            state.globe.navigation.historyList.sortList.push(obj)
+          })
+          break
+        case 'contact':
+          state.globe.navigation.contactList.nameList = res.data.result
+          break
+      }
+    },
     // 模拟懒加载聊天记录
     loadChat (state) {
-      state.globe.chat.total = state.globe.navigation.historyList.chat[state.chatObj].chat.length // 聊天记录总数
+      state.globe.chat.total = state.globe.navigation.historyList.nameList[state.chatObj].chat.length // 聊天记录总数
       // 当剩余聊天记录总数大于一页时
       if (state.globe.chat.total > state.globe.userConfig.pageSize * state.globe.chat.current) {
-        state.globe.chat.chatList = state.globe.navigation.historyList.chat[state.chatObj].chat
+        state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
           .slice(state.globe.chat.total - state.globe.chat.current * state.globe.userConfig.pageSize, state.globe.chat.total) // 裁剪部分展示
         setTimeout(() => {
           if (state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
@@ -80,7 +98,7 @@ export default new Vuex.Store({
           }
         }, 0)
       } else { // 当剩余聊天记录总数不满一页时
-        state.globe.chat.chatList = state.globe.navigation.historyList.chat[state.chatObj].chat
+        state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
         setTimeout(() => {
           state.globe.chat.curScroll = state.refs.msgContentBox.scrollHeight
           state.refs.msgContentBox.scrollTop = state.globe.chat.curScroll - state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
@@ -101,17 +119,6 @@ export default new Vuex.Store({
       state.ws = new WsServer(state.wsAddress, (data) => {
         this.commit('wsMsgGHandler', data)
       })
-    },
-    navInit (state, chatHistoryResult) {
-      if (!chatHistoryResult.data.error) {
-        const friendNameList = []
-        Object.keys(chatHistoryResult.data.data).forEach(value => {
-          friendNameList.push(value)
-        })
-        state.globe.navigation.contactList = friendNameList
-        state.globe.navigation.historyList.nameList = friendNameList
-        state.globe.navigation.historyList.chat = chatHistoryResult.data.data
-      }
     },
     // token过期时
     authHandle (state, response) {
@@ -165,15 +172,14 @@ export default new Vuex.Store({
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {
       if (playLoad.type === 'send') { // 发送消息
-        state.globe.navigation.historyList.chat[state.chatObj].chat.push(playLoad.chat)
-        if (state.globe.navigation.historyList.nameList[0] !== state.chatObj) { // 发消息给谁，就把这个人置顶
-          state.globe.navigation.historyList.nameList.forEach((value, index) => {
-            if (value === state.chatObj) state.globe.navigation.historyList.nameList.splice(index, 1)
+        state.globe.navigation.historyList.nameList[state.chatObj].chat.push(playLoad.chat)
+        if (state.globe.navigation.historyList.sortList[0] !== state.chatObj) { // 发消息给谁，就把这个人置顶
+          state.globe.navigation.historyList.sortList.forEach((value, index) => {
+            if (value === state.chatObj) state.globe.navigation.historyList.sortList.splice(index, 1)
           })
-          state.globe.navigation.historyList.nameList.unshift(state.chatObj)
+          state.globe.navigation.historyList.sortList.unshift(state.chatObj)
           state.globe.navigation.historyList.picked = state.chatObj
         }
-        // state.globe.chat.chatList.push(playLoad.chat)
       } else { // 收到消息
         Notification.success({
           title: playLoad.from,

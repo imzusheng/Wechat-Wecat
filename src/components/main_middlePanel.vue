@@ -1,8 +1,8 @@
 <template>
   <div class="mainPanel_wrap"
-       @drop.stop.prevent="showPreImg($event, 'drop')"
        :disabled="loading"
        v-loading="loading"
+       @drop.stop.prevent="showPreImg($event, 'drop')"
        @dragenter="uploadDragenter($event)"
        @dragleave="uploadDragleave($event)"
   >
@@ -23,7 +23,7 @@
     <!--  聊天对象名字 -->
     <div class="mainPanel_name" @click="faceListActive = false">
       <figure v-if="this.chatObj.length > 0">
-        <img :src="$store.state.globe.navigation.historyList.chat[this.chatObj].friendInfo.avatar" alt="">
+        <img :src="$store.state.globe.navigation.contactList.nameList[this.chatObj].friendInfo.avatar" alt="">
       </figure>
       <div class="chatObj">
         <div class="chatObjName">{{ chatObj }}
@@ -47,13 +47,9 @@
           :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
           :key="i"
         >
+          <!--   正常聊天框 s   -->
           <div
-            :style="{
-             height: item.type === 'file' ? '150px' : 'auto',
-             padding: item.type === 'file' ? '0' : '15px 25px',
-             // background: item.type === 'file' ? 'transparent' : 'linear-gradient(225deg, #96d46c, #b3fb80)',
-             // boxShadow:  item.type === 'file' ? 'none' : '-4px 4px 8px #c3c5c6, 4px -4px 8px #ffffff'
-          }"
+            v-if="item.type !== 'file'"
             :class="{
             'My_Msg myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,
             'You_Msg youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,
@@ -61,13 +57,57 @@
             'You_Msg youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag
           }"
           >
-            {{ item.type === 'file' ? '' : item.msg }}
+            {{ item.msg }}
+          </div>
+          <!--   文件聊天框 s   -->
+          <div
+            :class="{
+            'myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,
+            'youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,
+            'myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,
+            'youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag
+             }"
+            v-else>
             <img
-              @click="chatRecordShowPre(`${server.httpServer}/static?filename=${item.msg}`)"
-              v-if="item.type === 'file'"
-              style="height: 150px; cursor: pointer"
+              v-if="sendFile.allowImg.includes(item.postfix)"
+              @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
+              style="height: 150px; cursor: pointer; margin-top: 30px; border: 1px solid #ccc; margin-right: 20px"
               :src="`${server.httpServer}/static?filename=${item.msg}`"
               alt=""/>
+            <div
+              v-if="sendFile.allowFile.includes(item.postfix)"
+              class="filePreview"
+            >
+              <div class="filePreview_img">
+                <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                     xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                  <path
+                    d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
+                    p-id="2890" fill="#65C564"></path>
+                </svg>
+              </div>
+              <div class="filePreview_filename">{{ item.msg }}</div>
+              <div></div>
+            </div>
+            <!--            <svg
+                          v-if="item.type === 'file' && !sendFile.allowImg.includes(item.postfix)"
+                          t="1621913053985"
+                          class="icon"
+                          viewBox="0 0 1024 1024"
+                          version="1.1"
+                          xmlns="http://www.w3.org/2000/svg"
+                          p-id="8999"
+                          width="100"
+                          height="100">
+                          <path
+                            d="M873.9 873.8H136.1c-20.6 0-37.4-16.7-37.4-37.4V198.3c0-29.2 23.7-52.9 52.9-52.9h187.8c10.3 0 20.1 4.2 27.1 11.7l119.6 126.1c7.1 7.4 16.9 11.7 27.1 11.7h360.6c29.2 0 52.9 23.7 52.9 52.9V821c0.1 29.1-23.6 52.8-52.8 52.8z"
+                            p-id="9000" fill="#bafb90"></path>
+                        </svg>
+                        <span
+                          class="iconInfo"
+                          v-if="item.type === 'file' && sendFile.allowFile.includes(item.postfix)">
+                                      {{ item.msg }}
+                                    </span>-->
           </div>
           <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
         </div>
@@ -124,51 +164,37 @@
     </transition>
     <!--    输入框-->
     <div class="mainPanel_inputContent">
-      <div class="mainPanel_mask" v-if="$store.state.globe.mainPanelMask"><i class="el-icon-upload"></i>拖动到这里上传！！</div>
-      <!--   发送文件的略缩图 s   -->
+      <div
+        class="mainPanel_mask"
+        v-if="$store.state.globe.mainPanelMask"
+      >
+        <i class="el-icon-upload"></i>
+        拖动到这里上传！！
+      </div>
+      <!--   文件预览标签 s   -->
       <div class="filePreviewContont" disabled>
         <ul>
           <li
             v-for="(file, i) in sendFile.uploadList"
             :key="i"
             class="fileStatus_upload"
-            @mouseenter="uploadMouseenter(file)"
-            @mouseleave="uploadMouseleave(file)"
+            @click="showPre(file)"
           >
+            <!--            @mouseenter="uploadMouseenter(file)"-->
+            <!--            @mouseleave="uploadMouseleave(file)"-->
             <span>{{ file.name }}</span>
+            <!-- (TODO) 把这个叉叉弄大一点，太小了 -->
             <i class="el-icon-close" @click.stop="removeFileTab(i)"></i>
             <div
-              :style="{clipPath: `polygon(0% 100%, ${sendFile.uploading}% 100%, ${sendFile.uploading}% 0%, 0% 0%)`}"
-              :class="sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length)) ? 'fileStatus_img fileLoading' : 'fileLoading fileStatus_file'"></div>
+              :style="{clipPath: `polygon(0% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 0%, 0% 0%)`}"
+              :class="sendFile.uploading[i] !== '100' ? 'fileLoading fileStatus_yellow' : 'fileLoading fileStatus_green'"
+            >
+            </div>
           </li>
         </ul>
-        <!--
-        <div class="filePreview">
-          <img
-            style="height: 100px; border: 1px solid #96d46c; border-radius: 4px"
-            v-for="(item, i) in sendFile.uploadList"
-            :src="item.imgSrc"
-            :key="i"
-            alt=""
-          />
-        </div>
-        -->
       </div>
+      <!--   输入框和按钮组 s  -->
       <div class="textBoxContent">
-        <!--        <div
-                  class="textBox"
-                  contenteditable="true"
-                  ref="textBox"
-                  @input="test"
-                  @drop.stop.prevent="showPreImg($event)"
-                  @paste="pasteHandle"
-                  @click="faceListActive = false"
-                  @focus="textBoxFocus"
-                  @blur="textBoxBlur"
-                  @keydown="keyCodeCheck"
-                  @keyup="keyCodeArr = []"
-                >
-                </div>-->
         <div class="textarea_Container">{{ textAreaInput }}</div>
         <textarea
           class="textBox"
@@ -205,15 +231,16 @@ export default {
       uid: window.sessionStorage.getItem('uid'),
       faceListActive: false,
       sendFile: { // 发送文件相关
-        allowFile: ['png', 'jpeg', 'jpg', 'svg', 'ico'], // 允许上传的文件格式
+        allowImg: ['png', 'jpeg', 'jpg', 'svg', 'ico'], // 允许上传的图片格式
+        allowFile: ['zip', 'tar', '7z', 'mp4', 'mp3', 'txt', 'doc', 'docx', 'pdf'],
         uploadList: [], // 预览图tabs
-        forms: {}, // 模拟FormData
+        forms: [], // 模拟FormData
         filePreview: { // 预览图相关
           previewStatus: false, // tabs面板展开状态
           previewSrc: '', // 预览图的图片路径
           previewName: ''
         },
-        uploading: 0 // 上传进度
+        uploading: {} // 上传进度
       }, // 文件预览框框
       timer: '',
       flag: true // 以下测试
@@ -224,26 +251,29 @@ export default {
     this.$store.state.globe.mainPanelMask = false
   },
   methods: {
-    chatRecordShowPre (file) {
-      this.sendFile.filePreview.previewStatus = true
-      this.sendFile.filePreview.previewName = ''
-      this.sendFile.filePreview.previewSize = ''
-      this.sendFile.filePreview.previewSrc = file
-    },
     /** 鼠标移入标签 */
-    uploadMouseenter (file) {
-      clearTimeout(this.timer)
-      this.sendFile.filePreview.previewStatus = true
-      this.sendFile.filePreview.previewSrc = file.imgSrc
-      this.sendFile.filePreview.previewName = file.name
-      this.sendFile.filePreview.previewSize = file.size
-    },
+    // uploadMouseenter (file) {
+    //   clearTimeout(this.timer)
+    //   this.sendFile.filePreview.previewStatus = true
+    //   this.sendFile.filePreview.previewSrc = file.imgSrc
+    //   this.sendFile.filePreview.previewName = file.name
+    //   this.sendFile.filePreview.previewSize = file.size
+    // },
     /** 鼠标移出标签 */
-    uploadMouseleave () {
-      clearTimeout(this.timer)
-      this.timer = setTimeout(() => {
-        this.previewStatus = false
-      }, 1500)
+    // uploadMouseleave () {
+    //   clearTimeout(this.timer)
+    //   this.timer = setTimeout(() => {
+    //     this.previewStatus = false
+    //   }, 1500)
+    // },
+    /** 显示预览图 */
+    showPre (file) {
+      if (this.sendFile.allowImg.includes(file.postfix)) {
+        this.sendFile.filePreview.previewStatus = true
+        this.sendFile.filePreview.previewSrc = file.imgSrc
+        this.sendFile.filePreview.previewName = file.name ? file.name : ''
+        this.sendFile.filePreview.previewSize = file.size ? file.size : ''
+      }
     },
     /** 拖入文件 */
     uploadDragenter (evt) {
@@ -255,37 +285,50 @@ export default {
       if (this.testE === evt.target.className) this.$store.state.globe.mainPanelMask = false
     },
     /** 发送图片到服务器 */
-    // (TODO) 把apiUpload.upload换成循环，一个文件一个forms分开发送，就可以实现每个文件都有单独的进度条
-    async sendFileHandle () {
-      const res = await apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD, this.sendFile.forms, (progress) => {
-        console.log(`上传进度：${((progress.loaded / progress.total) * 100).toFixed(2)}%`)
-        this.sendFile.uploading = ((progress.loaded / progress.total) * 100).toFixed(2)
-      })
-      this.sendFile.uploadList = []
-      this.sendFile.uploading = 0
-      res.data.result.forEach(value => {
-        this.$store.commit('chatRecordAdd', {
-          chat: {
-            msg: value.filename,
-            say: 'me',
-            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-            type: 'file',
-            statuc: value.status
-          },
-          type: 'send'
-        })
-        this.$store.state.ws.sendMsg({
-          msg: {
-            content: value.filename,
-            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-          },
-          status: value.status,
-          file: true,
-          from: this.uid,
-          to: this.chatObj,
-          type: 'chat'
-        }, (data) => {
-          this.$store.commit('wsMsgGHandler', data)
+    sendFileHandle () {
+      const flagObj = {}
+      this.sendFile.uploadList.forEach((file, index) => {
+        // 开始上传，添加一个属性标记
+        flagObj[index] = false
+        // 创建formData模拟表单数据
+        const formData = new FormData()
+        formData.append('files', file)
+        this.sendFile.forms.push(formData)
+        // 发送数据
+        apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD, formData, (progress) => {
+          this.sendFile.uploading[index] = ((progress.loaded / progress.total) * 100).toFixed(0)
+        }).then(res => {
+          this.$store.commit('chatRecordAdd', {
+            chat: {
+              msg: res.data.result[0].filename,
+              say: 'me',
+              time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+              type: 'file',
+              postfix: file.postfix,
+              statuc: res.data.result[0].status
+            },
+            type: 'send'
+          })
+          this.$store.state.ws.sendMsg({
+            msg: {
+              content: res.data.result[0].filename,
+              time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+            },
+            status: res.data.result[0].status,
+            postfix: file.postfix,
+            file: true,
+            from: this.uid,
+            to: this.chatObj,
+            type: 'chat'
+          }, (data) => {
+            this.$store.commit('wsMsgGHandler', data)
+          })
+          delete flagObj[index] // 上传完成一个，删除一个属性
+          if (Object.keys(flagObj).length === 0) { // 所有都上传完成，执行清空
+            this.sendFile.uploadList = []
+            this.sendFile.forms = []
+            this.sendFile.uploading = {}
+          }
         })
       })
     },
@@ -302,33 +345,39 @@ export default {
         if (type === 'Files') fileFlag = true // 当粘贴的是文件时
       })
       if (fileFlag) { // 粘贴内容是文件时，加载略缩图
-        const forms = new FormData()
-        paste.files.forEach(async file => {
-          forms.append('files', file)
-          file.imgSrc = await this.readFileAsync(file)
-          this.sendFile.uploadList.push(file)
+        paste.files.forEach(file => {
+          this.readFileAsync(fileUrl => {
+            file.imgSrc = fileUrl
+            this.sendFile.uploadList.push(file)
+          })
         })
-        this.sendFile.forms = forms
       }
     },
     /** 上传图片,显示略缩图 */
-    async showPreImg (evt, type) {
-      this.$store.state.globe.mainPanelMask = false
-      let files
+    showPreImg (evt, type) {
+      this.$store.state.globe.mainPanelMask = false // 上传提示蒙版关闭
+      let files = '' // 传入文件列表
+      let flag = true // 检测是否为允许上传的格式
+
       if (type === 'drop') {
         files = evt.dataTransfer.files
-      } else if (type === 'paste') {
-        files = evt
       }
+
       if (this.sendFile.uploadList.length + files.length > 10) { // 文件不能超过10个
         return this.$message({
           type: 'error',
           message: '一次最多只能发送十个文件'
         })
       }
-      let flag = true // 检测是否为图片格式
-      files.forEach(file => { // 检查文件格式
-        if (!this.sendFile.allowFile.includes(file.name.slice(file.name.indexOf('.') + 1, file.name.length))) {
+
+      files.forEach(file => {
+        // 图片格式fileType = img, 文件格式fileType = file, 都不满足标记一下flag = false不允许上传
+        const postfix = file.name.slice(file.name.indexOf('.') + 1, file.name.length)
+        if (this.sendFile.allowImg.includes(postfix)) {
+          file.postfix = postfix
+        } else if (this.sendFile.allowFile.includes(postfix)) {
+          file.postfix = postfix
+        } else {
           flag = false
         }
       })
@@ -336,17 +385,18 @@ export default {
       if (!flag) { // 文件格式错误处理
         return this.$message({
           type: 'error',
-          message: `允许上传的格式：${[...this.sendFile.allowFile]}`
+          message: `允许上传的格式：${[...this.sendFile.allowImg, ...this.sendFile.allowFile]}`
         })
       }
 
-      const forms = new FormData()
       for (let i = 0; i < files.length; i++) {
-        forms.append('files', files[i])
-        files[i].imgSrc = await this.readFileAsync(files[i])
-        this.sendFile.uploadList.push(files[i])
+        if (this.sendFile.allowImg.includes(files[i].postfix)) { // 图片才需要转换成base64
+          this.readFileAsync(files[i]).then(fileUrl => {
+            files[i].imgSrc = fileUrl
+            this.sendFile.uploadList.push(files[i])
+          })
+        }
       }
-      this.sendFile.forms = forms
     },
     readFileAsync (file) { // 略缩图处理，转换为URL
       return new Promise((resolve, reject) => {
@@ -891,7 +941,7 @@ export default {
   position: relative;
   border-radius: 8px 8px 0 0;
   border-right: 1px solid #a8e382;
-  transition: all .2s;
+  transition: all .1s;
 }
 
 .filePreviewContont li:hover {
@@ -899,6 +949,7 @@ export default {
   line-height: 60px;
   margin-top: -20px;
   opacity: 1;
+  border: none
 }
 
 .filePreviewContont .previewImg {
@@ -932,12 +983,17 @@ export default {
 }
 
 /* 绿色 图片*/
-.fileStatus_img {
+.fileStatus_green {
   background: #bafb90;
 }
 
+/* 黄色 上传中*/
+.fileStatus_yellow {
+  background: #fbf090;
+}
+
 /* 蓝色 文件 */
-.fileStatus_file {
+.fileStatus_blue {
   background: #b5ebff;
 }
 
@@ -994,4 +1050,54 @@ export default {
 .previewImg img {
   pointer-events: none;
 }
+
+.filePreview {
+  cursor: pointer;
+  display: flex;
+  margin: 30px 20px 0 0;
+  height: 80px;
+  min-width: 300px;
+  border-radius: 6px;
+  background: rgba(180, 190, 200, .3);
+}
+
+.filePreview .filePreview_img {
+  /*opacity: .8;*/
+}
+
+.filePreview .filePreview_filename {
+  box-sizing: border-box;
+  padding: 15px 20px 0 15px;
+  color: #333;
+
+}
+
+/*.myfilePreviewIcon {*/
+/*  height: auto !important;*/
+/*  background: none !important;*/
+/*  box-shadow: none;*/
+/*  position: relative !important;*/
+/*  text-align: right !important;*/
+/*}*/
+
+/*.youfilePreviewIcon {*/
+/*  height: auto !important;*/
+/*  background: none !important;*/
+/*  box-shadow: none;*/
+/*  position: relative !important;*/
+/*  text-align: left !important;*/
+/*}*/
+
+/*.myfilePreviewIcon .icon,*/
+/*.youfilePreviewIcon .icon {*/
+/*  margin: 20px 0 0px;*/
+/*}*/
+
+/*.myfilePreviewIcon .iconInfo,*/
+/*.youfilePreviewIcon .iconInfo {*/
+/*  display: block;*/
+/*  color: #777;*/
+/*  margin-top: -27px;*/
+/*  font-size: 12px;*/
+/*}*/
 </style>

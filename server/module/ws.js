@@ -166,12 +166,14 @@ async function chat (MsgObj, wss) {
     msg: MsgObj.msg.content,
     time: MsgObj.msg.time,
     say: 'me',
+    postfix: MsgObj.postfix,
     type: MsgObj.file ? 'file' : 'chat',
     status: MsgObj.status
   }
   const youChat = {
     time: MsgObj.msg.time,
     msg: MsgObj.msg.content,
+    postfix: MsgObj.postfix,
     say: 'you',
     type: MsgObj.file ? 'file' : 'chat',
     status: MsgObj.status

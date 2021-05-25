@@ -1,14 +1,18 @@
 <template>
   <ul class="chatList" @click="selectFriend">
-    <li v-for="(item, i) in $store.state.globe.navigation.historyList.nameList" :key="i">
-      <input type="radio" name="chatListRadio" v-model="$store.state.globe.navigation.historyList.picked" :value="item" :data-friend-name="item">
+    <li v-for="(item, i) in $store.state.globe.navigation.historyList.sortList" :key="i">
+      <input type="radio" name="chatListRadio" v-model="$store.state.globe.navigation.historyList.picked" :value="item"
+             :data-friend-name="item">
       <div class="chatListContent">
         <figure>
-          <img :src="$store.state.globe.navigation.historyList.chat[item].friendInfo.avatar" draggable="false" alt=""/>
+          <img
+            :src="$store.state.globe.navigation.historyList.nameList[item].friendInfo.avatar"
+            draggable="false"
+            alt=""/>
           <span class="unReadMsg" v-if="$store.state.unReadMsg[item] > 0">{{ $store.state.unReadMsg[item] }}</span>
         </figure>
         <div class="group">
-          <div class="friName">{{ item }}</div>
+          <div class="friName">{{ $store.state.globe.navigation.historyList.nameList[item].friendInfo.email }}</div>
           <div class="tempChat"><span v-html="tempChatFilter(item)"></span></div>
         </div>
       </div>
@@ -55,8 +59,8 @@ export default {
     /** 显示最近聊天记录，当最近聊天记录时图片时，显示为[图片消息] */
     tempChatFilter (item) {
       if (!item) return ''
-      return this.$store.state.globe.navigation.historyList.chat[item].chat[this.$store.state.globe.navigation.historyList.chat[item].chat.length - 1].type === 'file'
-        ? '[图片消息]' : this.$store.state.globe.navigation.historyList.chat[item].chat[this.$store.state.globe.navigation.historyList.chat[item].chat.length - 1].msg
+      return this.$store.state.globe.navigation.historyList.nameList[item].chat[this.$store.state.globe.navigation.historyList.nameList[item].chat.length - 1].type === 'file'
+        ? '[图片消息]' : this.$store.state.globe.navigation.historyList.nameList[item].chat[this.$store.state.globe.navigation.historyList.nameList[item].chat.length - 1].msg
     }
   },
   computed: {},
