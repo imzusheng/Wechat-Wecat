@@ -349,8 +349,9 @@ export default {
       })
       if (fileFlag) { // 粘贴内容是文件时，加载略缩图
         paste.files.forEach(file => {
-          this.readFileAsync(fileUrl => {
+          this.readFileAsync(file).then(fileUrl => {
             file.imgSrc = fileUrl
+            file.postfix = 'png'
             this.sendFile.uploadList.push(file)
           })
         })
@@ -424,9 +425,7 @@ export default {
       return new File(
         [u8arr],
         `${Date.now()}.${arr[0].replace(new RegExp(/data:image\/|base64/g), '')}`,
-        {
-          type: arr[0].replace(new RegExp(/data:|base64/g), '')
-        })
+        { type: arr[0].replace(new RegExp(/data:|base64/g), '') })
     },
     /** 模拟懒加载 */
     scrollList (evt) {
@@ -947,13 +946,13 @@ export default {
   position: relative;
   border-radius: 8px 8px 0 0;
   border-right: 1px solid #a8e382;
-  transition: all .1s;
+  transition: all .2s;
 }
 
 .filePreviewContont li:hover {
-  height: 60px;
-  line-height: 60px;
-  margin-top: -20px;
+  height: 40px;
+  line-height: 40px;
+  margin-top: 0px;
   opacity: 1;
   border: none
 }
@@ -1027,7 +1026,7 @@ export default {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 3;
+  z-index: 999;
   transform: translate(-50%, -50%);
 }
 

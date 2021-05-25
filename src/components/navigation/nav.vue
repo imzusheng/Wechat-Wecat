@@ -53,8 +53,8 @@
             style="background: transparent"
             v-model="$store.state.globe.userConfig.previewImgHeight"
             :step="50"
-            :min="150"
-            :max="450"
+            :min="200"
+            :max="800"
             :show-tooltip="false"
           ></el-slider>
         </li>
