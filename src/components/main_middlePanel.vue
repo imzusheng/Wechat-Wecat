@@ -1,10 +1,11 @@
 <template>
+  <!--  @drop.stop.prevent="showPreImg($event, 'drop')"-->
   <div class="mainPanel_wrap"
        :disabled="loading"
        v-loading="loading"
-       @drop.stop.prevent="showPreImg($event, 'drop')"
        @dragenter="uploadDragenter($event)"
        @dragleave="uploadDragleave($event)"
+       @drop.stop.prevent="showPreImg($event, 'drop')"
   >
     <!--  图片预览 -->
     <transition name="faceListActive">
@@ -194,9 +195,11 @@
         </ul>
       </div>
       <!--   输入框和按钮组 s  -->
-      <div class="textBoxContent">
+      <div
+        class="textBoxContent">
         <div class="textarea_Container">{{ textAreaInput }}</div>
         <textarea
+          :style="{opacity: $store.state.globe.mainPanelMask ? 0 : 1}"
           class="textBox"
           ref="textBox"
           v-model.trim="textAreaInput"
@@ -395,6 +398,8 @@ export default {
             files[i].imgSrc = fileUrl
             this.sendFile.uploadList.push(files[i])
           })
+        } else {
+          this.sendFile.uploadList.push(files[i])
         }
       }
     },
@@ -646,7 +651,7 @@ export default {
   left: 0;
   height: 100%;
   width: 100%;
-  z-index: 99;
+  z-index: 98;
   background: #65C564;
   opacity: .7;
 }
@@ -679,6 +684,7 @@ export default {
   position: absolute;
   top: 50%;
   left: 3%;
+  z-index: 99;
   transform: translate(0, -50%);
   /*  word-break: keep-all;
     white-space: pre-wrap;*/
