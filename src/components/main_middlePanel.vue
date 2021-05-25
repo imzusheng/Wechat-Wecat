@@ -84,7 +84,6 @@
               <a
                 v-if="item.say === 'me'"
                 :href="`${server.httpServer}/static?filename=${item.msg}`"
-                target="_blank"
                 :download="`${item.msg}`"
               >
                 <div class="filePreview_img">
@@ -100,7 +99,6 @@
               <a
                 v-else
                 :href="`${server.httpServer}/static?filename=${item.msg}`"
-                target="_blank"
                 :download="`${item.msg}`"
               >
                 <div class="filePreview_filename">{{ item.msg }}</div>
@@ -240,7 +238,7 @@ export default {
       faceListActive: false,
       sendFile: { // 发送文件相关
         allowImg: ['png', 'jpeg', 'jpg', 'svg', 'ico'], // 允许上传的图片格式
-        allowFile: ['zip', 'tar', '7z', 'mp4', 'mp3', 'txt', 'doc', 'docx', 'pdf'],
+        allowFile: ['zip', 'tar', 'rar', '7z', 'mp4', 'mp3', 'txt', 'doc', 'docx', 'pdf'],
         uploadList: [], // 预览图tabs
         forms: [], // 模拟FormData
         filePreview: { // 预览图相关

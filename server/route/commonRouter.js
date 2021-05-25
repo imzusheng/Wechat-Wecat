@@ -197,6 +197,7 @@ router.put('/wechatAPI/common/userConfig/put', async (ctx) => {
  * @apiSampleRequest off
  *
  */
+// (TODO) 手动写一个上传路由，分片上传
 router.post('/wechatAPI/common/upload', upload.fields([
   {
     name: 'files',
@@ -215,14 +216,6 @@ router.post('/wechatAPI/common/upload', upload.fields([
     result: result
   }
 })
-/**
- * @api {Put} /wechatAPI/common/upload 读取静态资源
- * @apiName 6
- * @apiVersion 1.0.0
- * @apiGroup 通用
- * @apiSampleRequest off
- *
- */
 router.get('/wechatAPI/static', async (ctx) => {
   const postfix = ctx.query.filename.slice(ctx.query.filename.indexOf('.'), ctx.query.filename.length)
   const fileName = encodeURIComponent(ctx.query.filename)
