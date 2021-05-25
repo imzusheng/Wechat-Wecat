@@ -72,43 +72,37 @@
             <img
               v-if="sendFile.allowImg.includes(item.postfix)"
               @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
-              style="height: 150px; cursor: pointer; margin-top: 30px; border: 1px solid #ccc; margin-right: 20px"
+              style="height: 150px; cursor: pointer; border: 1px solid #ccc;"
+              :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
               :src="`${server.httpServer}/static?filename=${item.msg}`"
               alt=""/>
             <div
               v-if="sendFile.allowFile.includes(item.postfix)"
-              class="filePreview"
+              :class="item.say === 'me' ? 'myfilePreview' : 'youfilePreview'"
             >
-              <div class="filePreview_img">
-                <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                     xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
-                  <path
-                    d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
-                    p-id="2890" fill="#65C564"></path>
-                </svg>
+              <div v-if="item.say === 'me'">
+                <div class="filePreview_img">
+                  <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                       xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                    <path
+                      d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
+                      p-id="2890" fill="#65C564"></path>
+                  </svg>
+                </div>
+                <div class="filePreview_filename">{{ item.msg }}</div>
               </div>
-              <div class="filePreview_filename">{{ item.msg }}</div>
-              <div></div>
+              <div v-else>
+                <div class="filePreview_filename">{{ item.msg }}</div>
+                <div class="filePreview_img">
+                  <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                       xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                    <path
+                      d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
+                      p-id="2890" fill="#65C564"></path>
+                  </svg>
+                </div>
+              </div>
             </div>
-            <!--            <svg
-                          v-if="item.type === 'file' && !sendFile.allowImg.includes(item.postfix)"
-                          t="1621913053985"
-                          class="icon"
-                          viewBox="0 0 1024 1024"
-                          version="1.1"
-                          xmlns="http://www.w3.org/2000/svg"
-                          p-id="8999"
-                          width="100"
-                          height="100">
-                          <path
-                            d="M873.9 873.8H136.1c-20.6 0-37.4-16.7-37.4-37.4V198.3c0-29.2 23.7-52.9 52.9-52.9h187.8c10.3 0 20.1 4.2 27.1 11.7l119.6 126.1c7.1 7.4 16.9 11.7 27.1 11.7h360.6c29.2 0 52.9 23.7 52.9 52.9V821c0.1 29.1-23.6 52.8-52.8 52.8z"
-                            p-id="9000" fill="#bafb90"></path>
-                        </svg>
-                        <span
-                          class="iconInfo"
-                          v-if="item.type === 'file' && sendFile.allowFile.includes(item.postfix)">
-                                      {{ item.msg }}
-                                    </span>-->
           </div>
           <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
         </div>
@@ -1056,7 +1050,7 @@ export default {
   pointer-events: none;
 }
 
-.filePreview {
+.myfilePreview {
   cursor: pointer;
   display: flex;
   margin: 30px 20px 0 0;
@@ -1066,15 +1060,25 @@ export default {
   background: rgba(180, 190, 200, .3);
 }
 
-.filePreview .filePreview_img {
-  /*opacity: .8;*/
+.youfilePreview {
+  cursor: pointer;
+  display: flex;
+  margin: 30px 0 0 20px;
+  height: 80px;
+  min-width: 300px;
+  border-radius: 6px;
+  background: rgba(180, 190, 200, .3);
 }
 
-.filePreview .filePreview_filename {
+.youfilePreview div,
+.myfilePreview div{
+  display: flex;
+}
+
+.filePreview_filename {
   box-sizing: border-box;
   padding: 15px 20px 0 15px;
   color: #333;
-
 }
 
 /*.myfilePreviewIcon {*/

@@ -358,14 +358,15 @@ export default {
 }
 
 .settingTitle {
+  position: absolute;
   height: 90px;
-  width: 100%;
+  width: calc(100% - 10px);
   line-height: 90px;
   box-sizing: border-box;
   padding-left: 30px;
   font-size: 24px;
-  position: relative;
-  background: #F7F9FA;
+  z-index: 2;
+  background: linear-gradient(to top, rgba(255, 255, 255, .1), rgba(255, 255, 255, 1));
 }
 
 .settingTitle::after {
@@ -376,11 +377,11 @@ export default {
   width: 90%;
   left: 50%;
   transform: translateX(-50%);
-  border-bottom: 1px solid #cccccc;
 }
 
 .settingContainer {
-  height: calc(100% - 90px);
+  height: calc(100%);
+  padding-top: 90px;
   padding-bottom: 140px;
   width: 100%;
   box-sizing: border-box;
