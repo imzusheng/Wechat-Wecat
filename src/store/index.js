@@ -184,7 +184,7 @@ export default new Vuex.Store({
           title: playLoad.from,
           message: playLoad.file ? '收到一条图片消息' : playLoad.msg.content
         })
-        state.globe.navigation.historyList.chat[playLoad.from].chat.push({
+        state.globe.navigation.historyList.nameList[playLoad.from].chat.push({
           msg: playLoad.msg.content,
           say: 'you',
           time: playLoad.msg.time,

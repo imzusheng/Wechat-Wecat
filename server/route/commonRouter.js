@@ -306,7 +306,7 @@ router.post('/wechatAPI/common/upload/merge', async (ctx) => {
   }
 })
 /**
- * @api {Put} /wechatAPI/common/static 静态服务
+ * @api {Get} /wechatAPI/common/static 静态服务
  * @apiName 8
  * @apiVersion 1.0.0
  * @apiGroup 通用

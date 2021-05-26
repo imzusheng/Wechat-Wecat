@@ -61,7 +61,7 @@ export default {
       if (!item) return ''
       const chat = this.$store.state.globe.navigation.historyList.nameList[item].chat
       if (!chat[chat.length - 1].type) chat[chat.length - 1].type = 'chat'
-      return chat[chat.length - 1].type === 'file' ? '[图片消息]' : chat[chat.length - 1].msg
+      return chat[chat.length - 1].type === 'file' ? '[文件]' : chat[chat.length - 1].msg
     }
   },
   computed: {},
