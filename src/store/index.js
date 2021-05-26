@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { WsServer } from '../assets/js/wsServer'
 import { Notification, Message } from 'element-ui'
-// import moment from 'moment'
 
 Vue.use(Vuex)
 

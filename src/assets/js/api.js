@@ -16,6 +16,9 @@ export const API_SIGN = {
 export const API_COMMON = {
   GET_COMMON_STATIC: '/static',
   POST_COMMON_UPLOAD: '/common/upload',
+  POST_COMMON_BEFORE_UPLOAD: '/common/upload/beforeUpload', // 上传前检查
+  POST_COMMON_UPLOAD_V2: '/common/uploadV2',
+  POST_COMMON_UPLOAD_MERGE: '/common/upload/merge',
   GET_COMMON_CHAT_HISTORY: '/common/chatHistory',
   GET_COMMON_CONTACT: '/common/contact',
   GET_COMMON_NAV_SEARCH: '/common/navSearch',

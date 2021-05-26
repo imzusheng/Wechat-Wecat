@@ -226,11 +226,13 @@ import moment from 'moment'
 import { apiUpload } from '@/assets/js/Functions'
 import { API_COMMON } from '@/assets/js/api'
 import config from '@/assets/js/config'
+import SparkMD5 from 'spark-md5'
 
 export default {
   name: 'mainPanel',
   data () {
     return {
+      dragenterClassName: '', // 记录dragenter事件classname
       textAreaInput: '',
       loading: false,
       keyCodeArr: [],
@@ -238,7 +240,7 @@ export default {
       faceListActive: false,
       sendFile: { // 发送文件相关
         allowImg: ['png', 'jpeg', 'jpg', 'svg', 'ico'], // 允许上传的图片格式
-        allowFile: ['zip', 'tar', 'rar', '7z', 'mp4', 'mp3', 'txt', 'doc', 'docx', 'pdf'],
+        allowFile: ['zip', 'tar', 'rar', '7z', 'mp4', 'mp3', 'txt', 'doc', 'docx', 'pdf', 'mov'],
         uploadList: [], // 预览图tabs
         forms: [], // 模拟FormData
         filePreview: { // 预览图相关
@@ -247,6 +249,11 @@ export default {
           previewName: ''
         },
         uploading: {} // 上传进度
+        // dataChunkConfig: { // 数据分片上传配置
+        //   dataChunkSize: 1024 * 1024, // 每个数据块大小
+        //   dataChunksTotal: 0, // 分块数量
+        //   filePacketName: '' // 远程服务器文件夹名字
+        // }
       }, // 文件预览框框
       timer: '',
       flag: true // 以下测试
@@ -257,51 +264,75 @@ export default {
     this.$store.state.globe.mainPanelMask = false
   },
   methods: {
-    /** 鼠标移入标签 */
-    // uploadMouseenter (file) {
-    //   clearTimeout(this.timer)
-    //   this.sendFile.filePreview.previewStatus = true
-    //   this.sendFile.filePreview.previewSrc = file.imgSrc
-    //   this.sendFile.filePreview.previewName = file.name
-    //   this.sendFile.filePreview.previewSize = file.size
-    // },
-    /** 鼠标移出标签 */
-    // uploadMouseleave () {
-    //   clearTimeout(this.timer)
-    //   this.timer = setTimeout(() => {
-    //     this.previewStatus = false
-    //   }, 1500)
-    // },
-    /** 显示预览图 */
-    showPre (file) {
-      if (this.sendFile.allowImg.includes(file.postfix)) {
-        this.sendFile.filePreview.previewStatus = true
-        this.sendFile.filePreview.previewSrc = file.imgSrc
-        this.sendFile.filePreview.previewName = file.name ? file.name : ''
-        this.sendFile.filePreview.previewSize = file.size ? file.size : ''
-      }
-    },
-    /** 拖入文件 */
-    uploadDragenter (evt) {
-      this.testE = evt.target.className
-      this.$store.state.globe.mainPanelMask = true
-    },
-    /** 拖出文件 */
-    uploadDragleave (evt) {
-      if (this.testE === evt.target.className) this.$store.state.globe.mainPanelMask = false
-    },
     /** 发送图片到服务器 */
     sendFileHandle () {
       const flagObj = {}
       this.sendFile.uploadList.forEach((file, index) => {
+        const spark = new SparkMD5()
+        // 文件名 + 文件大小 + 文件最后修改日期 = 生成hash
+        spark.append(file.name + file.size + file.lastModifiedDate)
+        // 生成hash
+        const hash = spark.end()
+        // 上传之前先检查服务器是否存在相同文件
+        apiUpload.beforeUpload(file.postfix, hash).then(result => {
+          if (!result) {
+            // 不存在相同文件，开始上传
+            apiUpload.uploadPartition(
+              file,
+              hash,
+              {
+                chunkSize: 1024 * 1024, // 1M一个分片
+                oneTime: 10 // 一次性发送几个Post请求
+              }, progress => {
+                // console.log(progress)
+              })
+          }
+        })
+        // const dataChunkConfig = this.sendFile.dataChunkConfig
+        // const fileSize = file.size
+        // const fileName = file.name
+        // const fileLastModifiedDate = file.lastModifiedDate
+        // this.sendFile.dataChunkConfig.dataChunksTotal = Math.ceil(fileSize / dataChunkConfig.dataChunkSize) // 切割次数
+        // let startOffset = 0
+        // let endOffset = 0 // 切割的区间
+        // const spark = new SparkMD5()
+        // spark.append(fileName + fileSize + fileLastModifiedDate)
+        // const hash = spark.end() // 生成hash码
+        // for (let i = 0; i < dataChunkConfig.dataChunksTotal; i++) {
+        //   startOffset = dataChunkConfig.dataChunkSize * i
+        //   if ((fileSize - dataChunkConfig.dataChunkSize * i) < dataChunkConfig.dataChunkSize) {
+        //     endOffset = fileSize
+        //   } else {
+        //     endOffset += dataChunkConfig.dataChunkSize
+        //   }
+        //   const chunk = file.slice(startOffset, endOffset) // 开始切割
+        //   const formDataV2 = new FormData()
+        //   formDataV2.append('hash', hash)
+        //   formDataV2.append('chunkIndex', i + 1)
+        //   formDataV2.append('chunkTotal', dataChunkConfig.dataChunksTotal)
+        //   formDataV2.append('file', chunk, `${fileName}`)
+        //   apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD_V2, formDataV2, () => {
+        //   }).then(res => {
+        //     this.sendFile.dataChunkConfig.filePacketName = res.data.filePacketName
+        //   })
+        // }
+        // setTimeout(() => {
+        //   console.log('发送合并请求')
+        //   apiService.postData(API_COMMON.POST_COMMON_UPLOAD_MERGE, {
+        //     filePacketName: this.sendFile.dataChunkConfig.filePacketName,
+        //     fileName: fileName
+        //   }, () => {
+        //   }).then()
+        // }, 10000)
+        // MD5（文件名称+文件长度+文件修改时间
         // 开始上传，添加一个属性标记
+        if (this.flag) return
         flagObj[index] = false
-        // 创建formData模拟表单数据
-        const formData = new FormData()
+        const formData = new FormData()// 创建formData模拟表单数据
         formData.append('files', file)
         this.sendFile.forms.push(formData)
         // 发送数据
-        apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD, formData, (progress) => {
+        apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD_V2, formData, (progress) => {
           this.sendFile.uploading[index] = ((progress.loaded / progress.total) * 100).toFixed(0)
         }).then(res => {
           this.$store.commit('chatRecordAdd', {
@@ -338,6 +369,39 @@ export default {
         })
       })
     },
+    /** 鼠标移入标签 */
+    // uploadMouseenter (file) {
+    //   clearTimeout(this.timer)
+    //   this.sendFile.filePreview.previewStatus = true
+    //   this.sendFile.filePreview.previewSrc = file.imgSrc
+    //   this.sendFile.filePreview.previewName = file.name
+    //   this.sendFile.filePreview.previewSize = file.size
+    // },
+    /** 鼠标移出标签 */
+    // uploadMouseleave () {
+    //   clearTimeout(this.timer)
+    //   this.timer = setTimeout(() => {
+    //     this.previewStatus = false
+    //   }, 1500)
+    // },
+    /** 显示预览图 */
+    showPre (file) {
+      if (this.sendFile.allowImg.includes(file.postfix)) {
+        this.sendFile.filePreview.previewStatus = true
+        this.sendFile.filePreview.previewSrc = file.imgSrc
+        this.sendFile.filePreview.previewName = file.name ? file.name : ''
+        this.sendFile.filePreview.previewSize = file.size ? file.size : ''
+      }
+    },
+    /** 拖入文件 */
+    uploadDragenter (evt) {
+      this.dragenterClassName = evt.target.className
+      this.$store.state.globe.mainPanelMask = true
+    },
+    /** 拖出文件 */
+    uploadDragleave (evt) {
+      if (this.dragenterClassName === evt.target.className) this.$store.state.globe.mainPanelMask = false // 上传提示蒙版关闭
+    },
     /** 删除预览图标签 */
     removeFileTab (index) { // 阻止事件冒泡，以免触发previewSwitch()
       this.sendFile.filePreview.previewStatus = false
@@ -362,7 +426,7 @@ export default {
     },
     /** 上传图片,显示略缩图 */
     showPreImg (evt, type) {
-      this.$store.state.globe.mainPanelMask = false // 上传提示蒙版关闭
+      this.$store.state.globe.mainPanelMask = false
       let files = '' // 传入文件列表
       let flag = true // 检测是否为允许上传的格式
 
