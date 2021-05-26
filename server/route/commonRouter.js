@@ -216,7 +216,7 @@ router.post('/wechatAPI/common/upload/beforeUpload', async (ctx) => {
   const filePath = path.join(config.staticPath, `${hash + '.' + postfix}`)
   const filePacketPath = path.join(config.staticPath, hash)
   let exist
-  let resultFilePath
+  let resultFilePath = ''
   try {
     // 检查 文件 是否存在于当前目录中。
     fs.accessSync(filePath, fs.constants.F_OK)
@@ -226,15 +226,17 @@ router.post('/wechatAPI/common/upload/beforeUpload', async (ctx) => {
     exist = false
   }
 
-  try {
-    // 检查 文件夹 是否存在于当前目录中。
-    fs.accessSync(filePacketPath, fs.constants.F_OK)
-    console.log('commonRouter.js -> wechatAPI/common/upload/beforeUpload -> 分片文件夹存在')
-  } catch (e) {
-    console.log('commonRouter.js -> wechatAPI/common/upload/beforeUpload -> 分片文件夹不存在')
-    fs.mkdirSync(filePacketPath, err => {
-      if (err) console.error(err)
-    })
+  if (!exist) {
+    try {
+      // 检查 文件夹 是否存在于当前目录中。
+      fs.accessSync(filePacketPath, fs.constants.F_OK)
+      console.log('commonRouter.js -> wechatAPI/common/upload/beforeUpload -> 分片文件夹存在')
+    } catch (e) {
+      console.log('commonRouter.js -> wechatAPI/common/upload/beforeUpload -> 分片文件夹不存在')
+      fs.mkdirSync(filePacketPath, err => {
+        if (err) console.error(err)
+      })
+    }
   }
 
   ctx.body = {
