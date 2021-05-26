@@ -224,7 +224,7 @@
 <script>
 import moment from 'moment'
 import { apiUpload } from '@/assets/js/Functions'
-import { API_COMMON } from '@/assets/js/api'
+// import { API_COMMON } from '@/assets/js/api'
 import config from '@/assets/js/config'
 import SparkMD5 from 'spark-md5'
 
@@ -264,9 +264,36 @@ export default {
     this.$store.state.globe.mainPanelMask = false
   },
   methods: {
+    /** 文件上传完成后处理 */
+    uploadDone (file, data) {
+      this.$store.commit('chatRecordAdd', {
+        chat: {
+          msg: data.filePath,
+          say: 'me',
+          time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+          type: 'file',
+          postfix: file.postfix,
+          statuc: true
+        },
+        type: 'send'
+      })
+      this.$store.state.ws.sendMsg({
+        msg: {
+          content: data.filePath,
+          time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+        },
+        status: true,
+        postfix: file.postfix,
+        file: true,
+        from: this.uid,
+        to: this.chatObj,
+        type: 'chat'
+      }, (data) => {
+        this.$store.commit('wsMsgGHandler', data)
+      })
+    },
     /** 发送图片到服务器 */
     sendFileHandle () {
-      const flagObj = {}
       this.sendFile.uploadList.forEach((file, index) => {
         const spark = new SparkMD5()
         // 文件名 + 文件大小 + 文件最后修改日期 = 生成hash
@@ -274,8 +301,8 @@ export default {
         // 生成hash
         const hash = spark.end()
         // 上传之前先检查服务器是否存在相同文件
-        apiUpload.beforeUpload(file.postfix, hash).then(result => {
-          if (!result) {
+        apiUpload.beforeUpload(file.postfix, hash).then(res => {
+          if (!res.data.exist) {
             // 不存在相同文件，开始上传
             apiUpload.uploadPartition(
               file,
@@ -285,88 +312,19 @@ export default {
                 oneTime: 10 // 一次性发送几个Post请求
               }, progress => {
                 // console.log(progress)
-              })
+              }).then(res => {
+              this.uploadDone(file, res.data)
+            })
+          } else {
+            this.uploadDone(file, res.data)
           }
         })
-        // const dataChunkConfig = this.sendFile.dataChunkConfig
-        // const fileSize = file.size
-        // const fileName = file.name
-        // const fileLastModifiedDate = file.lastModifiedDate
-        // this.sendFile.dataChunkConfig.dataChunksTotal = Math.ceil(fileSize / dataChunkConfig.dataChunkSize) // 切割次数
-        // let startOffset = 0
-        // let endOffset = 0 // 切割的区间
-        // const spark = new SparkMD5()
-        // spark.append(fileName + fileSize + fileLastModifiedDate)
-        // const hash = spark.end() // 生成hash码
-        // for (let i = 0; i < dataChunkConfig.dataChunksTotal; i++) {
-        //   startOffset = dataChunkConfig.dataChunkSize * i
-        //   if ((fileSize - dataChunkConfig.dataChunkSize * i) < dataChunkConfig.dataChunkSize) {
-        //     endOffset = fileSize
-        //   } else {
-        //     endOffset += dataChunkConfig.dataChunkSize
-        //   }
-        //   const chunk = file.slice(startOffset, endOffset) // 开始切割
-        //   const formDataV2 = new FormData()
-        //   formDataV2.append('hash', hash)
-        //   formDataV2.append('chunkIndex', i + 1)
-        //   formDataV2.append('chunkTotal', dataChunkConfig.dataChunksTotal)
-        //   formDataV2.append('file', chunk, `${fileName}`)
-        //   apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD_V2, formDataV2, () => {
-        //   }).then(res => {
-        //     this.sendFile.dataChunkConfig.filePacketName = res.data.filePacketName
-        //   })
-        // }
-        // setTimeout(() => {
-        //   console.log('发送合并请求')
-        //   apiService.postData(API_COMMON.POST_COMMON_UPLOAD_MERGE, {
-        //     filePacketName: this.sendFile.dataChunkConfig.filePacketName,
-        //     fileName: fileName
-        //   }, () => {
-        //   }).then()
-        // }, 10000)
-        // MD5（文件名称+文件长度+文件修改时间
-        // 开始上传，添加一个属性标记
-        if (this.flag) return
-        flagObj[index] = false
-        const formData = new FormData()// 创建formData模拟表单数据
-        formData.append('files', file)
-        this.sendFile.forms.push(formData)
-        // 发送数据
-        apiUpload.upload(API_COMMON.POST_COMMON_UPLOAD_V2, formData, (progress) => {
-          this.sendFile.uploading[index] = ((progress.loaded / progress.total) * 100).toFixed(0)
-        }).then(res => {
-          this.$store.commit('chatRecordAdd', {
-            chat: {
-              msg: res.data.result[0].filename,
-              say: 'me',
-              time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-              type: 'file',
-              postfix: file.postfix,
-              statuc: res.data.result[0].status
-            },
-            type: 'send'
-          })
-          this.$store.state.ws.sendMsg({
-            msg: {
-              content: res.data.result[0].filename,
-              time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-            },
-            status: res.data.result[0].status,
-            postfix: file.postfix,
-            file: true,
-            from: this.uid,
-            to: this.chatObj,
-            type: 'chat'
-          }, (data) => {
-            this.$store.commit('wsMsgGHandler', data)
-          })
-          delete flagObj[index] // 上传完成一个，删除一个属性
-          if (Object.keys(flagObj).length === 0) { // 所有都上传完成，执行清空
-            this.sendFile.uploadList = []
-            this.sendFile.forms = []
-            this.sendFile.uploading = {}
-          }
-        })
+        this.sendFile.uploadList.splice(index, 1)
+        if (this.sendFile.uploadList.length === 0) {
+          this.sendFile.uploadList = []
+          this.sendFile.forms = []
+          this.sendFile.uploading = {}
+        }
       })
     },
     /** 鼠标移入标签 */
