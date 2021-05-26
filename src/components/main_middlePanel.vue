@@ -94,14 +94,14 @@
                       p-id="2890" fill="#65C564"></path>
                   </svg>
                 </div>
-                <div class="filePreview_filename">{{ item.msg }}</div>
+                <div class="filePreview_filename">{{ item.rawName }}</div>
               </a>
               <a
                 v-else
                 :href="`${server.httpServer}/static?filename=${item.msg}`"
                 :download="`${item.msg}`"
               >
-                <div class="filePreview_filename">{{ item.msg }}</div>
+                <div class="filePreview_filename">{{ item.rawName }}</div>
                 <div class="filePreview_img">
                   <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
                        xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
@@ -223,6 +223,7 @@
 
 <script>
 import moment from 'moment'
+import Vue from 'vue'
 import { apiUpload } from '@/assets/js/Functions'
 // import { API_COMMON } from '@/assets/js/api'
 import config from '@/assets/js/config'
@@ -249,11 +250,6 @@ export default {
           previewName: ''
         },
         uploading: {} // 上传进度
-        // dataChunkConfig: { // 数据分片上传配置
-        //   dataChunkSize: 1024 * 1024, // 每个数据块大小
-        //   dataChunksTotal: 0, // 分块数量
-        //   filePacketName: '' // 远程服务器文件夹名字
-        // }
       }, // 文件预览框框
       timer: '',
       flag: true // 以下测试
@@ -265,26 +261,28 @@ export default {
   },
   methods: {
     /** 文件上传完成后处理 */
-    uploadDone (file, data) {
+    uploadDone (file, res) {
       this.$store.commit('chatRecordAdd', {
         chat: {
-          msg: data.filePath,
+          msg: res.data.filePath,
           say: 'me',
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-          type: 'file',
-          postfix: file.postfix,
-          statuc: true
+          rawName: file.name, // 文件原名称
+          postfix: file.postfix, // 文件后缀
+          type: 'file', // 标记为文件消息
+          status: true // 发送成功
         },
         type: 'send'
       })
       this.$store.state.ws.sendMsg({
         msg: {
-          content: data.filePath,
+          content: res.data.filePath,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
         },
-        status: true,
-        postfix: file.postfix,
-        file: true,
+        rawName: file.name, // 文件原名称
+        postfix: file.postfix, // 文件后缀
+        file: true, // 标记为文件消息
+        status: true, // 发送成功
         from: this.uid,
         to: this.chatObj,
         type: 'chat'
@@ -300,32 +298,38 @@ export default {
         spark.append(file.name + file.size + file.lastModifiedDate)
         // 生成hash
         const hash = spark.end()
+        file.hash = hash // 将hash挂载file上
         // 上传之前先检查服务器是否存在相同文件
-        apiUpload.beforeUpload(file.postfix, hash).then(res => {
-          if (!res.data.exist) {
-            // 不存在相同文件，开始上传
+        apiUpload.beforeUpload(file).then(res => {
+          if (!res.data.exist) { // 不存在相同文件，开始上传
             apiUpload.uploadPartition(
               file,
-              hash,
               {
                 chunkSize: 1024 * 1024, // 1M一个分片
                 oneTime: 10 // 一次性发送几个Post请求
-              }, progress => {
-                // console.log(progress)
-              }).then(res => {
-              this.uploadDone(file, res.data)
+              }, Progress => {
+                Vue.set(this.sendFile.uploading, index, Progress) // 直接设置进度条不会更新，响应式原理
+              }).then(res => { // 不存在相同文件，返回服务器保存后的文件名
+              this.closePreview(index, file, res)
             })
-          } else {
-            this.uploadDone(file, res.data)
+          } else { // 存在相同文件，直接返回服务器文件名
+            this.closePreview(index, file, res)
           }
         })
-        this.sendFile.uploadList.splice(index, 1)
-        if (this.sendFile.uploadList.length === 0) {
-          this.sendFile.uploadList = []
-          this.sendFile.forms = []
-          this.sendFile.uploading = {}
-        }
       })
+    },
+    closePreview (index, file, res) { // (TODO) 上传完成，这里暂时不能用splice删除掉数组，因为会改变数组长度。后期换成对象就可以
+      this.sendFile.uploadList[index] = '' // 上传完成
+      this.uploadDone(file, res)
+      let flag = true
+      this.sendFile.uploadList.forEach(item => {
+        if (item) flag = false
+      })
+      if (flag) {
+        this.sendFile.uploadList = []
+        this.sendFile.forms = []
+        this.sendFile.uploading = {}
+      }
     },
     /** 鼠标移入标签 */
     // uploadMouseenter (file) {

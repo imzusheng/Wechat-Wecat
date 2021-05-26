@@ -14,6 +14,7 @@ export const apiService = { // 请求方式封装
     return axios({
       method: 'post',
       url: url,
+      timeout: 0,
       data: params
     })
   },
@@ -49,17 +50,18 @@ export const apiUpload = {
   },
   /**
    * @param file       文件对象
-   * @param spark      引入spark-md5
+   * @param hash      引入spark-md5
    * @param options    配置
    *     chunkSize     每个分片的大小
    *     oneTime       一次最多发起POST请求条数
    */
-  uploadPartition: (file, hash, options, cb) => {
+  uploadPartition: (file, options, cb) => {
     return new Promise(resolve => {
       const {
         postfix,
         size,
-        name
+        name,
+        hash
       } = file
       const {
         chunkSize,
@@ -72,7 +74,7 @@ export const apiUpload = {
       let endOffset = 0
       const formDatas = {} // 待发送的分片数组
       let eventLoop = 0 // 正在发送的请求
-      for (let i = 0; i < chunksTotal; i++) {
+      for (let i = 0; i < chunksTotal; i++) { /// //////////////////////////////////////// 遍历切割chunk
         startOffset = chunkSize * i
         // 当剩余的大小不足再切一份时，直接赋值文件大小到尾部 endOffset
         if ((size - chunkSize * i) < chunkSize) {
@@ -83,35 +85,39 @@ export const apiUpload = {
         // 开始切割
         const chunk = file.slice(startOffset, endOffset)
         const formData = new FormData()
-        formData.append('postfix', postfix)
+        // 切割完成，添加额外数据
+        formData.append('file', chunk, `${name}`)
         formData.append('hash', hash)
+        formData.append('postfix', postfix)
         formData.append('chunkIndex', i + 1)
         formData.append('chunksTotal', chunksTotal)
-        formData.append('file', chunk, `${name}`)
         formDatas[i + 1] = formData
       }
 
+      /// /////////////////////////////////////////////////////////////////////////////// (TODO) 并发控制
       const run = () => { // 执行队列任务
         Object.keys(formDatas).forEach(index => {
           if (eventLoop < oneTime) {
             eventLoop++
             const tempData = formDatas[index]
             delete formDatas[index]
-            apiService.postData(API_COMMON.POST_COMMON_UPLOAD_V2, tempData).then(res => {
+            apiService.postData(API_COMMON.POST_COMMON_UPLOAD_V2, tempData).then(res => { /// //////////////////// 发送分片
               if (!res.data.error) {
                 const progress = ((1 - Object.keys(formDatas).length / chunksTotal) * 100).toFixed(0)// 返回上传进度
                 cb(progress)
               }
+
               eventLoop-- // 不管有无错误，一个请求都已经完成
 
-              if (Object.keys(formDatas).length !== 0) {
+              if (Object.keys(formDatas).length !== 0) { // 分片集合中仍有数据，继续发送
                 run()
-              } else if (Object.keys(formDatas).length === 0 && eventLoop === 0) { // 上传完毕
-                apiService.postData(API_COMMON.POST_COMMON_UPLOAD_MERGE, { // 合并请求
-                  hash,
-                  postfix
+              } else if (Object.keys(formDatas).length === 0 && eventLoop === 0) { /// /////////////////////// 上传完毕,发起合并数据的请求
+                apiService.postData(API_COMMON.POST_COMMON_UPLOAD_MERGE, {
+                  postfix,
+                  name,
+                  hash // 大概率不重复的hash值
                 }).then(res => { // 文件合并完成
-                  resolve(res)
+                  resolve(res) /// /////////////////////////////////////////////////////////// -> 函数终点
                 })
               }
             })
@@ -119,10 +125,14 @@ export const apiUpload = {
         })
       }
 
-      run()
+      run() // 启动！
     })
   },
-  beforeUpload: (postfix, hash) => {
+  beforeUpload: (file) => {
+    const {
+      postfix,
+      hash
+    } = file
     return new Promise(resolve => {
       apiService.postData(API_COMMON.POST_COMMON_BEFORE_UPLOAD, {
         postfix,

@@ -191,63 +191,21 @@ router.put('/wechatAPI/common/userConfig/put', async (ctx) => {
   }
 })
 /**
- * @api {Post} /wechatAPI/common/uploadV2 上传文件
+ * @api {Post} /wechatAPI/common/upload/beforeUpload 上传前文件查重
  * @apiName 5
  * @apiVersion 1.0.0
  * @apiGroup 通用
  * @apiSampleRequest off
  *
- */
-router.post('/wechatAPI/common/uploadV2', async (ctx) => {
-  const {
-    postfix,
-    hash, // 文件hash值
-    chunkIndex // 分片下标
-    // chunksTotal // 分片总数
-  } = ctx.request.body
-  const file = ctx.request.files.file
-  const filePacketName = `${config.staticPath + hash}` // 文件夹名字
-  const chunksFileName = path.join(filePacketName, `${chunkIndex}`) // 每个分片的保存路径
-  // 创建可读流
-  const reader = fs.createReadStream(file.path)
-  // 创建可写流
-  const upStream = fs.createWriteStream(chunksFileName)
-  // // 可读流通过管道写入可写流
-  reader.pipe(upStream)
-  ctx.body = {
-    filePath: `${hash}.${postfix}`,
-    error: false
-  }
-})
-/**
- * @api {Post} /wechatAPI/common/upload/merge 上传文件结束，合并分片
- * @apiName 6
- * @apiVersion 1.0.0
- * @apiGroup 通用
- * @apiSampleRequest off
+ * @apiParam postfix 文件后缀名
+ * @apiParam hash
  *
- */
-router.post('/wechatAPI/common/upload/merge', async (ctx) => {
-  const {
-    postfix,
-    hash
-  } = ctx.request.body
-
-  const filePath = path.join(config.staticPath, `${hash + '.' + postfix}`)
-  const filePacketPath = path.join(config.staticPath, hash)
-  const chunks = fs.readdirSync(filePacketPath)
-  chunks.forEach((chunk, i) => {
-    fs.appendFileSync(filePath, fs.readFileSync(path.join(filePacketPath, `${i + 1}`)))
-    fs.unlinkSync(path.join(filePacketPath, `${i + 1}`))
-  })
-  fs.rmdirSync(filePacketPath)
-})
-/**
- * @api {Post} /wechatAPI/common/upload/beforeUpload 上传前检查服务器是否存在
- * @apiName 6
- * @apiVersion 1.0.0
- * @apiGroup 通用
- * @apiSampleRequest off
+ * @apiSuccessExample 成功响应示例
+ * {
+ *   "error": false,
+ *   "exist": true, // 服务器已存在该文件
+ *   "filePath": "" // 服务器已经存在该文件，返回文件名
+ * }
  *
  */
 router.post('/wechatAPI/common/upload/beforeUpload', async (ctx) => {
@@ -280,14 +238,74 @@ router.post('/wechatAPI/common/upload/beforeUpload', async (ctx) => {
   }
 
   ctx.body = {
-    filePath: resultFilePath,
-    exist,
+    filePath: resultFilePath, // 服务器已经存在该文件，返回文件名
+    exist, // 存在则为true
     error: false
   }
 })
 /**
- * @api {Put} /wechatAPI/common/static 静态服务
+ * @api {Post} /wechatAPI/common/uploadV2 上传文件
  * @apiName 6
+ * @apiVersion 1.0.0
+ * @apiGroup 通用
+ * @apiSampleRequest off
+ */
+router.post('/wechatAPI/common/uploadV2', async (ctx) => {
+  const {
+    hash, // 文件hash值
+    chunkIndex // 分片下标
+    // chunksTotal // 分片总数
+  } = ctx.request.body
+  const file = ctx.request.files.file
+  const filePacketName = `${config.staticPath + hash}` // 文件夹名字
+  const chunksFileName = path.join(filePacketName, `${chunkIndex}`) // 每个分片的保存路径
+  // 创建可读流
+  const reader = fs.createReadStream(file.path)
+  // 创建可写流
+  const upStream = fs.createWriteStream(chunksFileName)
+  // // 可读流通过管道写入可写流
+  reader.pipe(upStream)
+  ctx.body = {
+    error: false
+  }
+})
+/**
+ * @api {Post} /wechatAPI/common/upload/merge 上传文件结束，合并分片
+ * @apiName 7
+ * @apiVersion 1.0.0
+ * @apiGroup 通用
+ * @apiSampleRequest off
+ * @apiSuccessExample 成功响应示例
+ * {
+ *   "error": false,
+ *   "exist": true, // 服务器已存在该文件
+ *   "filePath": "" // 服务器已经存在该文件，返回文件名
+ * }
+ */
+router.post('/wechatAPI/common/upload/merge', async (ctx) => {
+  const {
+    postfix,
+    hash,
+    name
+  } = ctx.request.body
+
+  const filePath = path.join(config.staticPath, `${hash + '.' + postfix}`)
+  const filePacketPath = path.join(config.staticPath, hash)
+  const chunks = fs.readdirSync(filePacketPath)
+  chunks.forEach((chunk, i) => {
+    fs.appendFileSync(filePath, fs.readFileSync(path.join(filePacketPath, `${i + 1}`)))
+    fs.unlinkSync(path.join(filePacketPath, `${i + 1}`))
+  })
+  fs.rmdirSync(filePacketPath)
+  ctx.body = {
+    error: false,
+    filePath: `${hash + '.' + postfix}`,
+    name
+  }
+})
+/**
+ * @api {Put} /wechatAPI/common/static 静态服务
+ * @apiName 8
  * @apiVersion 1.0.0
  * @apiGroup 通用
  * @apiSampleRequest off
@@ -304,7 +322,7 @@ router.get('/wechatAPI/static', async (ctx) => {
 })
 /**
  * @api {Get} /wechatAPI/common/contact 获取好友列表
- * @apiName 7
+ * @apiName 9
  * @apiVersion 1.0.0
  * @apiGroup 通用
  * @apiSampleRequest off
@@ -377,8 +395,8 @@ router.get('/wechatAPI/common/contact', async (ctx) => {
   }
 })
 /**
- * @api {Get} /wechatAPI/common/deleteAllRecord 删除所有聊天记录，仅保留一条
- * @apiName 8
+ * @api {Get} /wechatAPI/common/deleteAllRecord 删除所有聊天记录
+ * @apiName 10
  * @apiVersion 1.0.0
  * @apiGroup 通用
  * @apiSampleRequest off

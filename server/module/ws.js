@@ -167,6 +167,7 @@ async function chat (MsgObj, wss) {
     time: MsgObj.msg.time,
     say: 'me',
     postfix: MsgObj.postfix,
+    rawName: MsgObj.rawName ? MsgObj.rawName : '',
     type: MsgObj.file ? 'file' : 'chat',
     status: MsgObj.status
   }
@@ -174,6 +175,7 @@ async function chat (MsgObj, wss) {
     time: MsgObj.msg.time,
     msg: MsgObj.msg.content,
     postfix: MsgObj.postfix,
+    rawName: MsgObj.rawName ? MsgObj.rawName : '',
     say: 'you',
     type: MsgObj.file ? 'file' : 'chat',
     status: MsgObj.status
