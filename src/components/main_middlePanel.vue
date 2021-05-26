@@ -168,6 +168,7 @@
     </transition>
     <!--    输入框-->
     <div class="mainPanel_inputContent">
+      <!--  拖动文件提示遮罩    -->
       <div
         class="mainPanel_mask"
         v-if="$store.state.globe.mainPanelMask"
@@ -186,7 +187,7 @@
           >
             <!--            @mouseenter="uploadMouseenter(file)"-->
             <!--            @mouseleave="uploadMouseleave(file)"-->
-            <span>{{ file.name }}</span>
+            <span>{{ file.name ? file.name : '上传完成' }}</span>
             <!-- (TODO) 把这个叉叉弄大一点，太小了 -->
             <i class="el-icon-close" @click.stop="removeFileTab(i)"></i>
             <div
@@ -1090,7 +1091,6 @@ export default {
   display: flex;
   margin: 30px 20px 0 0;
   height: 80px;
-  min-width: 300px;
   border-radius: 6px;
   background: rgba(180, 190, 200, .3);
 }
@@ -1100,7 +1100,6 @@ export default {
   display: flex;
   margin: 30px 0 0 20px;
   height: 80px;
-  min-width: 300px;
   border-radius: 6px;
   background: rgba(180, 190, 200, .3);
 }
@@ -1108,6 +1107,8 @@ export default {
 .youfilePreview a,
 .myfilePreview a {
   display: flex;
+  height: 100%;
+  width: 100%;
 }
 
 .filePreview_filename {
