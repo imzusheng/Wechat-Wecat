@@ -14,7 +14,7 @@
     <mainPanel
       v-show="$store.state.chatObj"
       class="mainPanel"
-      :style="{width: $store.state.globe.userConfig.friendInfoPanel ? '56%' :'78%'}"
+      :style="{width: $store.state.globe.userConfig.friendInfoPanel ? '100%' :'78%'}"
       :class="{'wrap_scale': $store.state.chatObj}"
       @sendMsg="sendMsg"
     />
@@ -172,12 +172,11 @@ export default {
 
 @media screen and (max-width: 1200px) {
   .friendInfo {
+    width: 0;
     display: none;
   }
 
   .mainPanel {
-    min-width: 480px;
-    width: calc(100% - (22% - var(--common-margin)));
     height: calc(100% - var(--common-margin) * 2);
     margin: var(--common-margin) var(--common-margin) var(--common-margin) 0;
     border-radius: var(--common-radius);
