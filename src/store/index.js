@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import { WsServer } from '../assets/js/wsServer'
 import { Notification, Message } from 'element-ui'
+import { apiService } from '@/assets/js/Functions'
+import { API_COMMON } from '@/assets/js/api'
 
 Vue.use(Vuex)
 
@@ -65,19 +67,24 @@ export default new Vuex.Store({
       // console.log(state.globe.chat.chatList[state.globe.chat.chatList.length - 1].msg)
     },
     navInit (state, res) {
-      const type = res.navInitType
-      switch (type) {
-        case 'historyList':
-          state.globe.navigation.historyList.nameList = res.data.result
-          state.globe.navigation.historyList.sortList = [] // push之前先重置一下，防止出事
-          Object.keys(res.data.result).forEach(obj => {
-            state.globe.navigation.historyList.sortList.push(obj)
-          })
-          break
-        case 'contact':
-          state.globe.navigation.contactList.nameList = res.data.result
-          break
-      }
+      // 获取聊天记录数据
+      apiService.getData(API_COMMON.GET_COMMON_CHAT_HISTORY, {
+        email: window.sessionStorage.getItem('uid')
+      }).then(res => {
+        state.globe.navigation.historyList.nameList = res.data.result
+        state.globe.navigation.historyList.sortList = [] // push之前先重置一下，防止出事
+        Object.keys(res.data.result).forEach(obj => {
+          state.globe.navigation.historyList.sortList.push(obj)
+        })
+        state.globe.navigation.historyList.historyListStatus = true
+      })
+      // 获取联系人数据
+      apiService.getData(API_COMMON.GET_COMMON_CONTACT, {
+        email: window.sessionStorage.getItem('uid')
+      }).then(res => {
+        state.globe.navigation.contactList.nameList = res.data.result
+        state.globe.navigation.contactList.contactListStatus = true
+      })
     },
     // 模拟懒加载聊天记录
     loadChat (state) {
@@ -209,6 +216,7 @@ export default new Vuex.Store({
     },
     wsMsgGHandler (state, data) {
       const msgObj = typeof data.data === 'object' ? data.data : JSON.parse(data.data)
+      console.log(msgObj)
       switch (msgObj.type) {
         case 'chat':
           this.commit('chatRecordAdd', msgObj)
@@ -233,6 +241,18 @@ export default new Vuex.Store({
             type: msgObj.error ? 'error' : 'success',
             message: msgObj.message
           })
+          break
+        case 'handleApply':
+          /** 收到好友请求 */
+          state.applyList.push(msgObj)
+          break
+        case 'addFriendReply':
+          this.commit('navInit')
+          Message({
+            type: msgObj.error ? 'error' : 'success',
+            message: msgObj.message
+          })
+          break
       }
     }
   },

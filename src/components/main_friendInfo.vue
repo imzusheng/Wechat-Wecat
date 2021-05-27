@@ -55,8 +55,13 @@ export default {
   methods: {},
   computed: {
     currentChat () {
-      const chat = this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].chat
-      return chat[chat.length - 1].time
+      let chat = ''
+      if (this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj]) {
+        chat = this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].chat
+        return chat[chat.length - 1].time
+      } else {
+        return ''
+      }
     },
     address () { // 需要做复杂逻辑判断
       const friendInfo = this.$store.state.globe.navigation.contactList.nameList[this.$store.state.chatObj].friendInfo

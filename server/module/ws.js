@@ -166,7 +166,7 @@ async function chat (MsgObj, wss) {
     msg: MsgObj.msg.content,
     time: MsgObj.msg.time,
     say: 'me',
-    postfix: MsgObj.postfix,
+    postfix: MsgObj.postfix ? MsgObj.postfix : '',
     rawName: MsgObj.rawName ? MsgObj.rawName : '',
     type: MsgObj.file ? 'file' : 'chat',
     status: MsgObj.status
@@ -174,9 +174,9 @@ async function chat (MsgObj, wss) {
   const youChat = {
     time: MsgObj.msg.time,
     msg: MsgObj.msg.content,
-    postfix: MsgObj.postfix,
-    rawName: MsgObj.rawName ? MsgObj.rawName : '',
     say: 'you',
+    postfix: MsgObj.postfix ? MsgObj.postfix : '',
+    rawName: MsgObj.rawName ? MsgObj.rawName : '',
     type: MsgObj.file ? 'file' : 'chat',
     status: MsgObj.status
   }
@@ -275,7 +275,8 @@ async function addFriend (msgObj, wss, ws) {
       message: '请勿重复添加',
       type: 'addFriend'
     }))
-  } else {
+  } else { // 进入发送请求的流程,type由friendApply变成handleApply
+    msgObj.type = 'handleApply'
     const queryMatch = {
       $match: {
         email: msgObj.from
@@ -349,6 +350,7 @@ async function addFriendReply (msgObj, wss) {
   let Msg
   const time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
   /** 同意好友申请的操作 */
+  console.log(msgObj)
   if (msgObj.status) {
     /** 不存在时则写入好友关系 */
     await db.insertManyData('friend', [
@@ -382,6 +384,18 @@ async function addFriendReply (msgObj, wss) {
       type: 'addFriendReply',
       time
     }
+
+    /// ///////////////////////////////////////////////////////////////////////////////////// 当然别忘了插入两条聊天记录
+    this.chat({
+      msg: {
+        time: time,
+        content: '已通过好友申请 '
+      },
+      from: msgObj.from,
+      to: msgObj.to,
+      type: 'chat',
+      status: true
+    }, wss)
   } else {
     /** 好友请求拒绝 */
     Msg = {

@@ -6,7 +6,7 @@
       <div class="friend_info_name">{{nickName}}</div>
       <div class="friend_info_email">{{email}}</div>
     </div>
-    <div class="apply_msg">{{applyMsg}}</div>
+    <div class="apply_msg">备注： {{applyMsg}}</div>
     <div class="handle">
       <button class="enter enter_color" @click="sendData(true)">通过</button>
       <button class="cancel cancel_color" @click="sendData(false)">拒绝</button>
@@ -30,11 +30,10 @@ export default {
   methods: {
     sendData (flag) {
       this.$store.state.applyList.shift() /** 处理完一个请求后删除请求列表数组的第一个，处理下一个请求 */
-      console.log('handle_apply > sendData()', this.$store.state.applyList)
       this.$store.state.ws.sendMsg({
-        uid: window.sessionStorage.getItem('uid'),
-        friend: this.email,
-        flag: flag, // 通过状态
+        to: window.sessionStorage.getItem('uid'),
+        from: this.email,
+        status: flag, // 通过状态
         time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
         type: 'addFriendReply'
       }, this.wsMsgGHandler)
@@ -46,10 +45,10 @@ export default {
   watch: {
     '$store.state.applyList.length': function () {
       if (this.$store.state.applyList.length >= 1) {
-        const obj = this.$store.state.applyList[0].from
-        this.avatar = obj.avatar
-        this.nickName = obj.nickName
-        this.email = obj.email
+        const obj = this.$store.state.applyList[0]
+        this.avatar = obj.fromInfo.avatar
+        this.nickName = obj.fromInfo.nickName
+        this.email = obj.fromInfo.email
         this.applyMsg = this.$store.state.applyList[0].applyMsg
       }
     }
@@ -75,7 +74,7 @@ export default {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    z-index: 3;
+    z-index: var(--handledApply-Zindex);
   }
 
   .friend_apply_title {
@@ -116,6 +115,7 @@ export default {
   }
 
   .apply_msg {
+    opacity: .6;
     margin-top: 10px;
     width: 100%;
   }

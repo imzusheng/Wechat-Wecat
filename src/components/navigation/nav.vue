@@ -107,6 +107,7 @@
         <span class="add_3"></span>
       </button>
     </div>
+    <!--  搜索栏  s -->
     <div class="search">
       <span class="search_bt"></span>
       <input type="text"
@@ -199,6 +200,7 @@ export default {
     }
   },
   mounted () {
+    this.$store.commit('navInit')
     // 获取菜单配置
     apiService.getData(API_COMMON.GET_COMMON_USER_CONFIG, {
       uid: this.uid
@@ -206,21 +208,6 @@ export default {
       if (!res.data.error) {
         this.$store.state.globe.userConfig = res.data.config
       }
-    })
-    // 获取聊天记录数据
-    apiService.getData(API_COMMON.GET_COMMON_CHAT_HISTORY, {
-      email: this.uid
-    }).then(res => {
-      res.navInitType = 'historyList'
-      this.$store.commit('navInit', res) // 初始化列表信息
-      this.$store.state.globe.navigation.historyList.historyListStatus = true
-    })
-    apiService.getData(API_COMMON.GET_COMMON_CONTACT, {
-      email: this.uid
-    }).then(res => {
-      res.navInitType = 'contact'
-      this.$store.commit('navInit', res) // 初始化列表信息
-      this.$store.state.globe.navigation.contactList.contactListStatus = true
     })
   },
   methods: {
@@ -281,14 +268,14 @@ export default {
     addFriend (e) {
       /** 事件委托，点击UL时不触发click */
       if (e.target.nodeName !== 'UL' && e.target.innerHTML !== this.$store.state.uid) {
-        if (this.$store.state.globe.navigation.contactList.includes(e.target.dataset.email)) {
+        if (Object.keys(this.$store.state.globe.navigation.contactList.nameList).includes(e.target.dataset.email)) {
           this.chatObj = e.target.dataset.email
           this.$store.commit('chatObjChange', this.chatObj)
           // 收到或发送消息时，滚动条自动到达底部
           this.$store.commit('scrollRec')
           // 选中该好友时，清除该好友的未读消息列表
           if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
-        } else if (!this.$store.state.globe.navigation.contactList.includes(e.target.dataset.email)) {
+        } else if (!Object.keys(this.$store.state.globe.navigation.contactList.nameList).includes(e.target.dataset.email)) {
           /** 当点击的对象已经是好友时，跳转到聊天界面 */
           this.$store.commit('setAddFriend', {
             email: e.target.dataset.email,
@@ -339,7 +326,7 @@ export default {
   height: calc(100% - var(--common-margin) * 2);
   margin: var(--common-margin) 0 var(--common-margin) var(--common-margin);
   position: relative;
-  z-index: 2;
+  z-index: var(--mainNav-Zindex);
   border-radius: var(--common-radius);
   background: rgba(180, 190, 200, .3);
   overflow: hidden;

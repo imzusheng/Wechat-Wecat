@@ -1,18 +1,6 @@
 <template>
   <!--  猫背景-->
   <ul class="login_cats" :class="{bgFilter : bgFade}">
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
-    <li></li>
   </ul>
 </template>
 
@@ -35,7 +23,7 @@ export default {
   right: 0;
   --cat-width: 16px;
   --cat-heigth: 10px;
-  z-index: 1;
+  z-index: var(--staticBg-Zindex);
   overflow: hidden;
 }
 

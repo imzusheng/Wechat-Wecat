@@ -37,7 +37,7 @@ export default {
       this.$store.state.ws.sendMsg({
         from: window.sessionStorage.getItem('email'),
         to: this.$store.state.friendInfo.email,
-        applyMsg: this.$store.state.applyMsg,
+        applyMsg: this.$store.state.applyMsg ? this.$store.state.applyMsg : `我是${window.sessionStorage.getItem('email')}`,
         status: false, // 通过状态
         time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
         type: 'addFriend'
@@ -67,7 +67,7 @@ export default {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 3;
+  z-index: var(--friendApply-Zindex);
 }
 
 .friend_apply_title {
@@ -108,8 +108,13 @@ export default {
 }
 
 .nick_name, .apply_msg {
+  opacity: .6;
   margin-top: 10px;
   width: 100%;
+  max-height: 200px;
+  box-sizing: border-box;
+  padding: 12px;
+  overflow: hidden;
 }
 
 /*  .nick_name div {

@@ -20,6 +20,16 @@ export default {
 </script>
 
 <style>
+:root {
+  --mainNav-Zindex: 2;
+  --mainPanel-Zindex: 2;
+  --mainFriInfo-Zindex: 2;
+  --friendApply-Zindex: 3;
+  --handledApply-Zindex: 3;
+  --staticBg-Zindex: 1;
+  --catsBg-Zindex: 1;
+}
+
 * {
   font-family: Microsoft YaHei, sans-serif, monospace;
   padding: 0;

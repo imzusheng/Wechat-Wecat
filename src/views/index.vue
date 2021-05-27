@@ -1,25 +1,29 @@
 <template>
   <div class="wrap">
-    <friendApply :style="{visibility: $store.state.addFriState?'visible':'hidden'}"/>
-    <handleApply :style="{visibility: $store.state.applyList.length?'visible':'hidden'}"/>
+    <transition name="Fade">
+      <friendApply v-show="$store.state.addFriState"/>
+    </transition>
+    <transition name="Fade">
+      <handleApply v-show="$store.state.applyList.length"/>
+    </transition>
 
     <!--  左侧菜单  s -->
     <indexNav class="wrap_slide_left" v-if="navFade"/>
     <!--  左侧菜单  e -->
     <!--  中间聊天面板  s -->
     <mainPanel
-      v-if="$store.state.globe.navigation.historyList.historyListStatus"
+      v-show="$store.state.chatObj"
       class="mainPanel"
       :style="{width: $store.state.globe.userConfig.friendInfoPanel ? '56%' :'78%'}"
-      :class="{'wrap_scale': $store.state.chatObj.length > 0}"
+      :class="{'wrap_scale': $store.state.chatObj}"
       @sendMsg="sendMsg"
     />
     <!--  中间聊天面板  e -->
     <!--  好友信息面板  s -->
     <friendInfo
-      v-if="$store.state.globe.navigation.historyList.historyListStatus && $store.state.globe.userConfig.friendInfoPanel"
+      v-show="$store.state.chatObj && $store.state.globe.userConfig.friendInfoPanel"
       class="friendInfo"
-      :class="{'wrap_slide_left': $store.state.chatObj.length > 0}"
+      :class="{'wrap_slide_left': $store.state.chatObj}"
     />
     <!--  好友信息面板  e -->
     <!--  背景  s -->
@@ -54,8 +58,7 @@ export default {
     return {
       uid: '',
       navFade: false,
-      bgFade: false,
-      mainPanelFade: false
+      bgFade: false
     }
   },
   mounted () {
@@ -80,15 +83,19 @@ export default {
       })
     }
   },
-  computed: {
-    getchatObj () {
-      return this.$store.getters.getchatObj
-    }
-  }
+  watch: {}
 }
 </script>
 
 <style scoped>
+.Fade-enter-active, .Fade-leave-active {
+  transition: opacity .2s;
+}
+
+.Fade-enter, .Fade-leave-to {
+  opacity: 0;
+}
+
 .wrap {
   min-height: 480px;
   height: 100vh;
@@ -108,6 +115,9 @@ export default {
 
 .wrap_scale {
   animation: wrap_scale .5s forwards;
+  /*animation-delay: .3s;*/
+  /*-webkit-animation-delay: .3s; !* Safari 和 Chrome *!*/
+
 }
 
 .wrap_slide_left {
@@ -146,7 +156,7 @@ export default {
   margin: var(--common-margin) var(--common-margin) var(--common-margin) 0;
   border-radius: var(--common-radius);
   position: relative;
-  z-index: 2;
+  z-index: var(--mainPanel-Zindex);
 }
 
 .friendInfo {
@@ -156,7 +166,7 @@ export default {
   background: #F7F9FA;
   box-shadow: -4px 4px 20px #cecece,
   4px -4px 20px #ffffff;
-  z-index: 2;
+  z-index: var(--mainFriInfo-Zindex);
   position: relative;
 }
 

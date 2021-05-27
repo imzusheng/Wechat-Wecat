@@ -72,7 +72,7 @@
             <img
               v-if="sendFile.allowImg.includes(item.postfix)"
               @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
-              style="height: 150px; cursor: pointer; border: 1px solid #ccc;"
+              style="height: 150px; cursor: pointer; border: 1px solid #ccc; box-shadow: 10px 10px 30px #cecece, 0px 0px 0px #ffffff;"
               :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
               :src="`${server.httpServer}/static?filename=${item.msg}`"
               alt=""/>
@@ -1058,7 +1058,7 @@ export default {
 }
 
 .previewImg {
-  border-radius: 5%;
+  cursor: pointer;
   /*border-radius: 0 0 5% 5%;*/
   overflow: hidden;
   background: #f2f2f2;
@@ -1066,6 +1066,8 @@ export default {
   top: 50%;
   left: 40%;
   z-index: 999;
+  box-shadow: 20px 20px 60px #cecece,
+  -0px -0px 0px #ffffff;
   transform: translate(-50%, -50%);
 }
 
@@ -1109,7 +1111,6 @@ export default {
   display: flex;
   margin: 30px 0 0 20px;
   height: 80px;
-  border-radius: 6px;
   background: rgba(180, 190, 200, .3);
 }
 
@@ -1118,6 +1119,9 @@ export default {
   display: flex;
   height: 100%;
   width: 100%;
+  border-radius: 6px;
+  box-shadow:  5px 5px 12px #cecece,
+  -0px -0px 0px #ffffff;
 }
 
 .filePreview_filename {
