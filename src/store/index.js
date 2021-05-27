@@ -50,7 +50,8 @@ export default new Vuex.Store({
         friendInfoPanel: true, // 好友信息面板
         sendKeyCode: false, // 设置菜单 - 使用组合键发送
         pageSize: 5, // 每页加载的消息数量
-        previewImgHeight: 400
+        previewImgHeight: 400,
+        loadingChat: true
       },
       chatObjChangeFlag: false
     }
@@ -63,7 +64,7 @@ export default new Vuex.Store({
       state.globe.chat.current = 1
       state.globe.chat.befScroll = 0
       state.globe.chat.curScroll = 0
-      this.commit('loadChat')
+      state.globe.userConfig.loadingChat ? this.commit('loadChat') : this.commit('loadOnceChat')
       // console.log(state.globe.chat.chatList[state.globe.chat.chatList.length - 1].msg)
     },
     navInit (state, res) {
@@ -86,12 +87,17 @@ export default new Vuex.Store({
         state.globe.navigation.contactList.contactListStatus = true
       })
     },
+    /** 一次性加载 */
+    loadOnceChat (state) {
+      state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
+      state.globe.chat.total = state.globe.navigation.historyList.nameList[state.chatObj].chat.length
+      this.commit('scrollRec')
+    },
     // 模拟懒加载聊天记录
     loadChat (state) {
       state.globe.chat.total = state.globe.navigation.historyList.nameList[state.chatObj].chat.length // 聊天记录总数
       // 当剩余聊天记录总数大于一页时
       if (state.globe.chat.total > state.globe.userConfig.pageSize * state.globe.chat.current) {
-        console.log(state.globe.chat.total - state.globe.chat.current * state.globe.userConfig.pageSize, state.globe.chat.total)
         state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
           .slice(state.globe.chat.total - state.globe.chat.current * state.globe.userConfig.pageSize, state.globe.chat.total) // 裁剪部分展示
         setTimeout(() => {

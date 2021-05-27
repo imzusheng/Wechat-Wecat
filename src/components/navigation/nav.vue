@@ -35,6 +35,14 @@
             </div>
           </li>
 
+          <li @click="$store.state.globe.userConfig.loadingChat = !$store.state.globe.userConfig.loadingChat"
+              title="Ctrl + Enter">
+            聊天记录懒加载 模拟
+            <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.loadingChat}">
+              <div class="switchBtn"></div>
+            </div>
+          </li>
+
           <li class="message_Loading_Slider">
             聊天记录加载一次新增： {{ $store.state.globe.userConfig.pageSize }} 条
             <el-slider
