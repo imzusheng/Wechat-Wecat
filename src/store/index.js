@@ -91,6 +91,7 @@ export default new Vuex.Store({
       state.globe.chat.total = state.globe.navigation.historyList.nameList[state.chatObj].chat.length // 聊天记录总数
       // 当剩余聊天记录总数大于一页时
       if (state.globe.chat.total > state.globe.userConfig.pageSize * state.globe.chat.current) {
+        console.log(state.globe.chat.total - state.globe.chat.current * state.globe.userConfig.pageSize, state.globe.chat.total)
         state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
           .slice(state.globe.chat.total - state.globe.chat.current * state.globe.userConfig.pageSize, state.globe.chat.total) // 裁剪部分展示
         setTimeout(() => {
@@ -191,9 +192,11 @@ export default new Vuex.Store({
           title: playLoad.from,
           message: playLoad.file ? '收到一条图片消息' : playLoad.msg.content
         })
+        const count = this.$store.state.globe.navigation.historyList.nameList[playLoad.from].count
         state.globe.navigation.historyList.nameList[playLoad.from].chat.push({
           msg: playLoad.msg.content,
           say: 'you',
+          msgID: count + 1,
           rawName: playLoad.rawName,
           file: playLoad.file,
           postfix: playLoad.postfix,

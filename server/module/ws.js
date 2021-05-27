@@ -152,6 +152,28 @@ async function chat (MsgObj, wss) {
       unRead = false
     }
   })
+  await db.updateOne('chatRecord',
+    {
+      $or: [
+        {
+          userID: { $regex: new RegExp(MsgObj.from) },
+          chatObj: { $regex: new RegExp(MsgObj.to) }
+        },
+        {
+          userID: { $regex: new RegExp(MsgObj.to) },
+          chatObj: { $regex: new RegExp(MsgObj.from) }
+        }
+      ]
+    }, {
+      $inc: { count: +1 }
+    }, {
+      upsert: true
+    })
+  const countResult = await db.query('chatRecord', {
+    userID: MsgObj.from,
+    chatObj: MsgObj.to
+  })
+  const count = countResult[0].count ? countResult[0].count : 1
   // 查询条件
   const myQuery = {
     userID: MsgObj.from,
@@ -166,6 +188,7 @@ async function chat (MsgObj, wss) {
     msg: MsgObj.msg.content,
     time: MsgObj.msg.time,
     say: 'me',
+    msgID: count,
     postfix: MsgObj.postfix ? MsgObj.postfix : '',
     rawName: MsgObj.rawName ? MsgObj.rawName : '',
     type: MsgObj.file ? 'file' : 'chat',
@@ -175,6 +198,7 @@ async function chat (MsgObj, wss) {
     time: MsgObj.msg.time,
     msg: MsgObj.msg.content,
     say: 'you',
+    msgID: count,
     postfix: MsgObj.postfix ? MsgObj.postfix : '',
     rawName: MsgObj.rawName ? MsgObj.rawName : '',
     type: MsgObj.file ? 'file' : 'chat',

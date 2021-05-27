@@ -67,7 +67,7 @@ html, body {
 
 /* 设置滚动条的样式 */
 *::-webkit-scrollbar {
-  width: 8px;
+  width: 1px;
   height: 8px;
   background-color: transparent;
 }
@@ -80,7 +80,7 @@ html, body {
 
 /* 滚动条滑块 */
 ::-webkit-scrollbar-thumb {
-  border-radius: 10px;
+  border-radius: 8px;
   background: #888888;
 }
 

@@ -43,78 +43,80 @@
     >
       <div class="msgContent" ref="msgContent"
            :style="{paddingBottom: sendFile.uploadList.length > 0 ? '180px':'100px'}">
-        <div
-          v-for="(item, i) in $store.state.globe.chat.chatList"
-          :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
-          :key="i"
-        >
-          <!--   正常聊天框 s   -->
+        <transition-group name="msgFade">
           <div
-            v-if="item.type !== 'file'"
-            :class="{
-            'My_Msg myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,
-            'You_Msg youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,
-            'My_Msg myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,
-            'You_Msg youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag
-          }"
+            v-for="item in $store.state.globe.chat.chatList"
+            :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
+            :key="item.msgID ? `${$store.state.chatObj + item.msgID}` : $store.state.chatObj + '0'"
           >
-            {{ item.msg }}
-          </div>
-          <!--   文件聊天框 s  -->
-          <div
-            :class="{
-            'myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,
-            'youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,
-            'myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,
-            'youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag
-             }"
-            v-else>
-            <img
-              v-if="sendFile.allowImg.includes(item.postfix)"
-              @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
-              style="height: 150px; cursor: pointer; border: 1px solid #ccc; box-shadow: 10px 10px 30px #cecece, 0px 0px 0px #ffffff;"
-              :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
-              :src="`${server.httpServer}/static?filename=${item.msg}`"
-              alt=""/>
+            <!--   正常聊天框 s   -->
             <div
-              v-if="sendFile.allowFile.includes(item.postfix)"
-              :class="item.say === 'me' ? 'myfilePreview' : 'youfilePreview'"
+              v-if="item.type !== 'file'"
+              :class="{
+            'My_Msg' : item.say === 'me',
+            'You_Msg' : item.say === 'you',
+            'My_Msg' : item.say === 'me',
+            'You_Msg' : item.say === 'you'
+          }"
             >
-              <!--  保持文件图片始终靠向中间 s  -->
-              <a
-                v-if="item.say === 'me'"
-                :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
-                :download="`${item.msg}`"
-              >
-                <div class="filePreview_img">
-                  <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                       xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
-                    <path
-                      d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
-                      p-id="2890" fill="#65C564"></path>
-                  </svg>
-                </div>
-                <div class="filePreview_filename">{{ item.rawName }}</div>
-              </a>
-              <a
-                v-else
-                :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
-                :download="`${item.msg}`"
-              >
-                <div class="filePreview_filename">{{ item.rawName }}</div>
-                <div class="filePreview_img">
-                  <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                       xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
-                    <path
-                      d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
-                      p-id="2890" fill="#65C564"></path>
-                  </svg>
-                </div>
-              </a>
+              {{ item.msg }}
             </div>
+            <!--   文件聊天框 s  -->
+            <!--            :class="{-->
+            <!--            'myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,-->
+            <!--            'youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,-->
+            <!--            'myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,-->
+            <!--            'youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag-->
+            <!--            }"-->
+            <div
+              v-else>
+              <img
+                v-if="sendFile.allowImg.includes(item.postfix)"
+                @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
+                style="height: 150px; cursor: pointer; border: 1px solid #ccc; box-shadow: 10px 10px 30px #cecece, 0px 0px 0px #ffffff;"
+                :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
+                :src="`${server.httpServer}/static?filename=${item.msg}`"
+                alt=""/>
+              <div
+                v-if="sendFile.allowFile.includes(item.postfix)"
+                :class="item.say === 'me' ? 'myfilePreview' : 'youfilePreview'"
+              >
+                <!--  保持文件图片始终靠向中间 s  -->
+                <a
+                  v-if="item.say === 'me'"
+                  :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
+                  :download="`${item.msg}`"
+                >
+                  <div class="filePreview_img">
+                    <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                      <path
+                        d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
+                        p-id="2890" fill="#65C564"></path>
+                    </svg>
+                  </div>
+                  <div class="filePreview_filename">{{ item.rawName }}</div>
+                </a>
+                <a
+                  v-else
+                  :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
+                  :download="`${item.msg}`"
+                >
+                  <div class="filePreview_filename">{{ item.rawName }}</div>
+                  <div class="filePreview_img">
+                    <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                         xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                      <path
+                        d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
+                        p-id="2890" fill="#65C564"></path>
+                    </svg>
+                  </div>
+                </a>
+              </div>
+            </div>
+            <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
           </div>
-          <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
-        </div>
+        </transition-group>
       </div>
     </div>
     <!--    表情包面板-->
@@ -259,14 +261,15 @@ export default {
   },
   methods: {
     test () {
-      console.log('runrunrun')
     },
     /** 文件上传完成后处理 */
     uploadDone (file, res) {
+      this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count++
       this.$store.commit('chatRecordAdd', {
         chat: {
           msg: res.data.filePath,
           say: 'me',
+          msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
           rawName: file.name, // 文件原名称
           postfix: file.postfix, // 文件后缀
@@ -517,8 +520,11 @@ export default {
         // 发送消息给对方
         this.$emit('sendMsg', input, this.chatObj, 'chat')
         // 更新store
+        this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count++
+        const count = this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count
         this.$store.commit('chatRecordAdd', {
           chat: {
+            msgID: count + 1,
             msg: input,
             say: 'me',
             time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
@@ -590,6 +596,20 @@ export default {
 </script>
 
 <style scoped>
+.msgFade-enter-active {
+  transition: all .3s;
+  /*transition-delay: .1s;*/
+}
+
+.msgFade-leave-active {
+  transition: all 0s;
+}
+
+.msgFade-enter, .msgFade-leave-to {
+  transform: translate3d(0, 80%, 0);
+  opacity: 0;
+}
+
 .faceListActive-enter-active, .faceListActive-leave-active {
   transition: opacity .2s;
 }
@@ -886,6 +906,7 @@ export default {
 }
 
 .My_MsgContent {
+  position: absolute;
   width: 100%;
   margin-top: 42px;
   min-height: 30px;
@@ -1120,7 +1141,7 @@ export default {
   height: 100%;
   width: 100%;
   border-radius: 6px;
-  box-shadow:  5px 5px 12px #cecece,
+  box-shadow: 5px 5px 12px #cecece,
   -0px -0px 0px #ffffff;
 }
 
