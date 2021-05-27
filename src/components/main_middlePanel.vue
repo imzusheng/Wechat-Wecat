@@ -83,7 +83,7 @@
               <!--  保持文件图片始终靠向中间 s  -->
               <a
                 v-if="item.say === 'me'"
-                :href="`${server.httpServer}/static?filename=${item.msg}`"
+                :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
                 :download="`${item.msg}`"
               >
                 <div class="filePreview_img">
@@ -98,7 +98,7 @@
               </a>
               <a
                 v-else
-                :href="`${server.httpServer}/static?filename=${item.msg}`"
+                :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
                 :download="`${item.msg}`"
               >
                 <div class="filePreview_filename">{{ item.rawName }}</div>
@@ -188,7 +188,6 @@
             <!--            @mouseenter="uploadMouseenter(file)"-->
             <!--            @mouseleave="uploadMouseleave(file)"-->
             <span>{{ file.name ? file.name : '上传完成' }}</span>
-            <!-- (TODO) 把这个叉叉弄大一点，太小了 -->
             <span class="closeContainer" @click.stop.prevent="removeFileTab(i)"><i class="el-icon-close"></i></span>
             <div
               :style="{clipPath: `polygon(0% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 0%, 0% 0%)`}"
@@ -506,7 +505,6 @@ export default {
         this.sendMsg()
       }
     },
-    // (TODO) 点击发送-> 上传文件-> 服务器传回保存的文件名字-> 将文件名作为聊天记录发送
     sendMsg (e) {
       this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
       this.faceListActive = false // 点击发送关闭表情包选择面板

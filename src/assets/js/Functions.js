@@ -95,7 +95,7 @@ export const apiUpload = {
         formDatas[i + 1] = formData
       }
 
-      /// /////////////////////////////////////////////////////////////////////////////// (TODO) 并发控制
+      /// /////////////////////////////////////////////////////////////////////////////// 并发控制
       const run = () => { // 执行队列任务
         Object.keys(formDatas).forEach(index => {
           if (eventLoop < oneTime) {

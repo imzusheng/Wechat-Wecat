@@ -315,7 +315,7 @@ router.post('/wechatAPI/common/upload/merge', async (ctx) => {
  */
 router.get('/wechatAPI/static', async (ctx) => {
   const postfix = ctx.query.filename.slice(ctx.query.filename.indexOf('.'), ctx.query.filename.length)
-  const fileName = encodeURIComponent(ctx.query.filename) // Content-Disposition 需要转换
+  const fileName = encodeURIComponent(ctx.query.raw) // Content-Disposition 需要转换
   ctx.set({
     'Content-Type': `${MIME[postfix]}`,
     'Content-Disposition': `attachment; filename=${fileName}`
