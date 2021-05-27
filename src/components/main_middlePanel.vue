@@ -76,7 +76,7 @@
               <img
                 v-if="sendFile.allowImg.includes(item.postfix)"
                 @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
-                style="height: 150px; cursor: pointer; border: 1px solid #ccc; box-shadow: 10px 10px 30px #cecece, 0px 0px 0px #ffffff;"
+                style="cursor: pointer; border: 1px solid #ccc; box-shadow: 10px 10px 30px #cecece, 0px 0px 0px #ffffff; max-width: 750px; max-height: 300px"
                 :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
                 :src="`${server.httpServer}/static?filename=${item.msg}`"
                 alt=""/>
