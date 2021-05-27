@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { API_COMMON } from '@/assets/js/api'
+import SparkMD5 from 'spark-md5'
 
 export const apiService = { // 请求方式封装
   getData: (url, params) => {
@@ -50,10 +51,10 @@ export const apiUpload = {
   },
   /**
    * @param file       文件对象
-   * @param hash      引入spark-md5
    * @param options    配置
    *     chunkSize     每个分片的大小
    *     oneTime       一次最多发起POST请求条数
+   * @param cb         回调返回文件上传进度条
    */
   uploadPartition: (file, options, cb) => {
     return new Promise(resolve => {
@@ -142,4 +143,13 @@ export const apiUpload = {
       })
     })
   }
+}
+
+export const getHash = (str) => {
+  if (typeof str !== 'string') {
+    return console.error('请导入字符串')
+  }
+  const spark = new SparkMD5()
+  spark.append(str)
+  return spark.end()
 }

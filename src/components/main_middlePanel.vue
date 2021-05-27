@@ -9,11 +9,11 @@
   >
     <!--  图片预览 -->
     <transition name="faceListActive">
-      <div class="previewImg" v-if="previewStatus">
-        <div class="title" @click="previewStatus = false">
-          {{ sendFile.filePreview.previewName }}
-          <i class="el-icon-close"></i>
-        </div>
+      <div class="previewImg" v-show="previewStatus" @click="previewStatus = false">
+        <!--        <div class="title" @click="previewStatus = false">-->
+        <!--          {{ sendFile.filePreview.previewName }}-->
+        <!--          <i class="el-icon-close"></i>-->
+        <!--        </div>-->
         <img
           :style="{height: `${$store.state.globe.userConfig.previewImgHeight}px`}"
           :src="sendFile.filePreview.previewSrc"
@@ -60,7 +60,7 @@
           >
             {{ item.msg }}
           </div>
-          <!--   文件聊天框 s   -->
+          <!--   文件聊天框 s  -->
           <div
             :class="{
             'myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,
@@ -189,7 +189,7 @@
             <!--            @mouseleave="uploadMouseleave(file)"-->
             <span>{{ file.name ? file.name : '上传完成' }}</span>
             <!-- (TODO) 把这个叉叉弄大一点，太小了 -->
-            <i class="el-icon-close" @click.stop="removeFileTab(i)"></i>
+            <span class="closeContainer" @click.stop.prevent="removeFileTab(i)"><i class="el-icon-close"></i></span>
             <div
               :style="{clipPath: `polygon(0% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 0%, 0% 0%)`}"
               :class="sendFile.uploading[i] !== '100' ? 'fileLoading fileStatus_yellow' : 'fileLoading fileStatus_green'"
@@ -225,10 +225,8 @@
 <script>
 import moment from 'moment'
 import Vue from 'vue'
-import { apiUpload } from '@/assets/js/Functions'
-// import { API_COMMON } from '@/assets/js/api'
+import { apiUpload, getHash } from '@/assets/js/Functions'
 import config from '@/assets/js/config'
-import SparkMD5 from 'spark-md5'
 
 export default {
   name: 'mainPanel',
@@ -261,6 +259,9 @@ export default {
     this.$store.state.globe.mainPanelMask = false
   },
   methods: {
+    test () {
+      console.log('runrunrun')
+    },
     /** 文件上传完成后处理 */
     uploadDone (file, res) {
       this.$store.commit('chatRecordAdd', {
@@ -294,12 +295,8 @@ export default {
     /** 发送图片到服务器 */
     sendFileHandle () {
       this.sendFile.uploadList.forEach((file, index) => {
-        const spark = new SparkMD5()
-        // 文件名 + 文件大小 + 文件最后修改日期 = 生成hash
-        spark.append(file.name + file.size + file.lastModifiedDate)
         // 生成hash
-        const hash = spark.end()
-        file.hash = hash // 将hash挂载file上
+        file.hash = getHash(file.name + file.size + file.lastModified) // 将hash挂载file上
         // 上传之前先检查服务器是否存在相同文件
         apiUpload.beforeUpload(file).then(res => {
           if (!res.data.exist) { // 不存在相同文件，开始上传
@@ -348,7 +345,8 @@ export default {
     //   }, 1500)
     // },
     /** 显示预览图 */
-    showPre (file) {
+    async showPre (file) {
+      // (TODO) base64的图片加载起来太慢，导致浏览器非常卡顿！
       if (this.sendFile.allowImg.includes(file.postfix)) {
         this.sendFile.filePreview.previewStatus = true
         this.sendFile.filePreview.previewSrc = file.imgSrc
@@ -392,6 +390,7 @@ export default {
       this.$store.state.globe.mainPanelMask = false
       let files = '' // 传入文件列表
       let flag = true // 检测是否为允许上传的格式
+      let message = ''
 
       if (type === 'drop') {
         files = evt.dataTransfer.files
@@ -405,6 +404,11 @@ export default {
       }
 
       files.forEach(file => {
+        // if (file.size > 1024 * 1024 * 2) {
+        //   flag = false
+        //   message = '太大了！'
+        //   return
+        // }
         // 图片格式fileType = img, 文件格式fileType = file, 都不满足标记一下flag = false不允许上传
         const postfix = file.name.slice(file.name.indexOf('.') + 1, file.name.length)
         if (this.sendFile.allowImg.includes(postfix)) {
@@ -412,6 +416,7 @@ export default {
         } else if (this.sendFile.allowFile.includes(postfix)) {
           file.postfix = postfix
         } else {
+          message = `允许上传的格式：${[...this.sendFile.allowImg, ...this.sendFile.allowFile]}`
           flag = false
         }
       })
@@ -419,7 +424,7 @@ export default {
       if (!flag) { // 文件格式错误处理
         return this.$message({
           type: 'error',
-          message: `允许上传的格式：${[...this.sendFile.allowImg, ...this.sendFile.allowFile]}`
+          message: message
         })
       }
 
@@ -996,11 +1001,11 @@ export default {
   border-radius: 4px
 }
 
-.filePreviewContont li span {
+.filePreviewContont li span:nth-of-type(1) {
   position: relative;
   z-index: 5;
   height: 100%;
-  width: 100%;
+  width: 95%;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -1042,8 +1047,12 @@ export default {
   background: #ff6666;
 }
 
-.filePreviewContont .el-icon-close {
+.filePreviewContont .closeContainer {
+  height: 40px;
+  width: 5%;
+  display: block;
   position: absolute;
+  text-align: center;
   z-index: 4;
   right: 12px;
   top: 50%;
@@ -1051,11 +1060,13 @@ export default {
 }
 
 .previewImg {
-  border-radius: 0 0 5% 5%;
+  border-radius: 5%;
+  /*border-radius: 0 0 5% 5%;*/
+  overflow: hidden;
   background: #f2f2f2;
   position: absolute;
   top: 50%;
-  left: 50%;
+  left: 40%;
   z-index: 999;
   transform: translate(-50%, -50%);
 }

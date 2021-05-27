@@ -187,6 +187,9 @@ export default new Vuex.Store({
         state.globe.navigation.historyList.nameList[playLoad.from].chat.push({
           msg: playLoad.msg.content,
           say: 'you',
+          rawName: playLoad.rawName,
+          file: playLoad.file,
+          postfix: playLoad.postfix,
           time: playLoad.msg.time,
           type: playLoad.file ? 'file' : 'chat'
         })
