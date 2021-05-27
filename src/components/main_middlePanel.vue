@@ -1,4 +1,7 @@
 <template>
+  <!--  (TODO) 聊天气泡的最大宽高没有限制！-->
+  <!--  (TODO) 上线时忘记获取数据库好友请求表了！-->
+  <!--  (TODO) 有一些好友关系存在，但是没有聊天记录的好友，就会报错！-->
   <!--  @drop.stop.prevent="showPreImg($event, 'drop')"-->
   <div class="mainPanel_wrap"
        :disabled="loading"

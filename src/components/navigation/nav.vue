@@ -13,30 +13,28 @@
             <router-link to="admin" class="admin_item">管理员</router-link>
           </li>
 
-          <li @click="$store.state.globe.userConfig.timeSwitch = !$store.state.globe.userConfig.timeSwitch">
+          <li @click="setting('timeSwitch')">
             显示消息时间
             <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.timeSwitch}">
               <div class="switchBtn"></div>
             </div>
           </li>
 
-          <li @click="$store.state.globe.userConfig.friendInfoPanel = !$store.state.globe.userConfig.friendInfoPanel">
+          <li @click="setting('friendInfoPanel')">
             好友信息面板
             <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.friendInfoPanel}">
               <div class="switchBtn"></div>
             </div>
           </li>
 
-          <li @click="$store.state.globe.userConfig.sendKeyCode = !$store.state.globe.userConfig.sendKeyCode"
-              title="Ctrl + Enter">
+          <li @click="setting('sendKeyCode')" title="Ctrl + Enter">
             使用组合键发送
             <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.sendKeyCode}">
               <div class="switchBtn"></div>
             </div>
           </li>
 
-          <li @click="$store.state.globe.userConfig.loadingChat = !$store.state.globe.userConfig.loadingChat"
-              title="Ctrl + Enter">
+          <li @click="setting('loadingChat')" >
             聊天记录懒加载 模拟
             <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.loadingChat}">
               <div class="switchBtn"></div>
@@ -185,6 +183,7 @@
 import chatHistory from './nav_chatHistory'
 import contact from './nav_contact'
 import group from './nav_group'
+import Vue from 'vue'
 import { apiService } from '@/assets/js/Functions'
 import { API_COMMON } from '@/assets/js/api'
 
@@ -214,11 +213,17 @@ export default {
       uid: this.uid
     }).then(res => {
       if (!res.data.error) {
+        Object.keys(this.$store.state.globe.userConfig).forEach(objName => {
+          this.$store.state.globe.userConfig[objName] = res.data.config[objName] ? res.data.config[objName] : this.$store.state.globe.userConfig[objName]
+        })
         this.$store.state.globe.userConfig = res.data.config
       }
     })
   },
   methods: {
+    setting (type) {
+      Vue.set(this.$store.state.globe.userConfig, type, !this.$store.state.globe.userConfig[type])
+    },
     clearChatRecord () {
       apiService.getData(API_COMMON.GET_COMMON_DELETE_CHAT_RECORD, {}).then()
     },
