@@ -1,7 +1,5 @@
 <template>
   <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
-  <!--  (TODO) 有一些好友关系存在，但是没有聊天记录的好友，就会报错！-->
-  <!--  (TODO) 文件显示大小！-->
   <div class="mainPanel_wrap"
        :disabled="loading"
        v-loading="loading"
@@ -65,7 +63,7 @@
             'You_Msg' : item.say === 'you'
           }"
             >
-              {{ item.msgID }}
+              {{ item.msg }}
             </div>
             <!--   文件聊天框 s  -->
             <!--            :class="{-->
@@ -76,6 +74,7 @@
             <!--            }"-->
             <div
               v-else>
+              <!--     当聊天信息只为一张图片时      -->
               <img
                 v-if="sendFile.allowImg.includes(item.postfix)"
                 @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
@@ -83,6 +82,7 @@
                 :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
                 :src="`${server.httpServer}/static?filename=${item.msg}`"
                 alt=""/>
+              <!--     当聊天信息是一个文件时      -->
               <div
                 v-if="sendFile.allowFile.includes(item.postfix)"
                 :class="item.say === 'me' ? 'myfilePreview' : 'youfilePreview'"
@@ -101,7 +101,10 @@
                         p-id="2890" fill="#65C564"></path>
                     </svg>
                   </div>
-                  <div class="filePreview_filename">{{ item.rawName }}</div>
+                  <div class="fileInfo">
+                    <div class="filePreview_filename">{{ item.rawName }}</div>
+                    <div class="filePreview_filename">大小：{{ (item.size / 1000).toFixed(2) }} kb</div>
+                  </div>
                 </a>
                 <a
                   v-else
@@ -303,6 +306,7 @@ export default {
           say: 'me',
           msgID: 'me' + this.uid + Date.now() + this.$store.state.chatObj,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+          size: file.size,
           rawName: file.name, // 文件原名称
           postfix: file.postfix, // 文件后缀
           type: 'file', // 标记为文件消息
@@ -318,6 +322,7 @@ export default {
         msgID: 'me' + this.uid + Date.now() + this.$store.state.chatObj,
         rawName: file.name, // 文件原名称
         postfix: file.postfix, // 文件后缀
+        size: file.size,
         file: true, // 标记为文件消息
         status: true, // 发送成功
         from: this.uid,
@@ -1147,10 +1152,21 @@ export default {
   -0px -0px 0px #ffffff;
 }
 
-.filePreview_filename {
+.fileInfo {
   box-sizing: border-box;
-  padding: 15px 20px 0 15px;
+  padding: 15px 20px 5px 15px;
   color: #333;
+}
+
+.fileInfo > div{
+  display: flex;
+  align-items: center;
+  height: 50%;
+}
+
+.fileInfo > div:last-child{
+  font-size: 12px;
+  color: #999;
 }
 
 /*.myfilePreviewIcon {*/
