@@ -1,10 +1,10 @@
 <template>
   <div class="wrap">
     <transition name="fade">
-      <friendApply v-show="$store.state.addFriState"/>
+      <friendApply v-show="$store.state.globe.addFriend.addFriPanelState"/>
     </transition>
     <transition name="fade">
-      <handleApply v-show="$store.state.applyList.length"/>
+      <handleApply v-show="$store.state.globe.addFriend.applyList.length"/>
     </transition>
 
     <!--  左侧菜单  s -->
@@ -65,16 +65,22 @@ export default {
   },
   mounted () {
     this.uid = window.sessionStorage.getItem('uid') || this.$store.state.uid
+    this.bgFade = true
+    setTimeout(() => {
+      this.navFade = true
+    }, 300)
     /** 获取未读消息列表 */
     apiService.getData(API_COMMON.GET_COMMON_UNREAD_MESSAGE, {
       uid: this.uid
     }).then(res => {
       this.$store.state.unReadMsg = res.data.unReadMessage
     })
-    this.bgFade = true
-    setTimeout(() => {
-      this.navFade = true
-    }, 300)
+    /** 获取未读消息列表 */
+    apiService.getData(API_COMMON.GET_COMMON_FRIEND_APPLY, {
+      uid: this.uid
+    }).then(res => {
+      this.$store.state.globe.addFriend.applyList = res.data.friendApply
+    })
   },
   methods: {
     sendMsg (input, chatObj, msgType) {
@@ -83,7 +89,7 @@ export default {
           content: input,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
         },
-        msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
+        msgID: 'me' + this.uid + Date.now() + this.$store.state.chatObj,
         from: this.uid,
         to: chatObj,
         type: msgType

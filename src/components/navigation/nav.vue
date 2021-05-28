@@ -217,9 +217,6 @@ export default {
       uid: this.uid
     }).then(res => {
       if (!res.data.error) {
-        Object.keys(this.$store.state.globe.userConfig).forEach(objName => {
-          this.$store.state.globe.userConfig[objName] = res.data.config[objName] ? res.data.config[objName] : this.$store.state.globe.userConfig[objName]
-        })
         this.$store.state.globe.userConfig = res.data.config
       }
     })
@@ -283,10 +280,10 @@ export default {
     },
     /** 添加好友 */
     addFriend (e) {
-      console.log(e)
       /** 事件委托，点击UL时不触发click */
       // 点击的不是UL && 且li的类名不是“全网搜索”的标题 && 且点击的对象名字不是自己
       if (e.target.nodeName !== 'UL' && e.target.className !== 'result_Title' && e.target.innerHTML !== this.$store.state.uid) {
+        // 当点击的对象已经是好友时，跳转到聊天界面
         if (Object.keys(this.$store.state.globe.navigation.contactList.nameList).includes(e.target.dataset.email)) {
           this.chatObj = e.target.dataset.email
           this.$store.commit('chatObjChange', this.chatObj)
@@ -295,13 +292,13 @@ export default {
           // 选中该好友时，清除该好友的未读消息列表
           if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
         } else if (!Object.keys(this.$store.state.globe.navigation.contactList.nameList).includes(e.target.dataset.email)) {
-          /** 当点击的对象已经是好友时，跳转到聊天界面 */
-          this.$store.commit('setAddFriend', {
+          // 当点击的对象不属于好友时，发送好友请求
+          this.$store.state.globe.addFriend.friendInfo = { // 先设置好友信息
             email: e.target.dataset.email,
             avatar: e.target.dataset.avatar,
             nickName: e.target.dataset.nickname
-          })
-          this.$store.state.addFriState = true
+          }
+          this.$store.state.globe.addFriend.addFriPanelState = true // 开始添加好友，展开面板
         }
       }
     }

@@ -1,6 +1,7 @@
 <template>
   <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
   <!--  (TODO) 有一些好友关系存在，但是没有聊天记录的好友，就会报错！-->
+  <!--  (TODO) 文件显示大小！-->
   <div class="mainPanel_wrap"
        :disabled="loading"
        v-loading="loading"
@@ -52,7 +53,7 @@
           <div
             v-for="item in $store.state.globe.chat.chatList"
             :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
-            :key="item.msgID ? `${$store.state.chatObj + item.msgID}` : $store.state.chatObj + '0'"
+            :key="item.msgID"
           >
             <!--   正常聊天框 s   -->
             <div
@@ -64,7 +65,7 @@
             'You_Msg' : item.say === 'you'
           }"
             >
-              {{ item.msg }}
+              {{ item.msgID }}
             </div>
             <!--   文件聊天框 s  -->
             <!--            :class="{-->
@@ -265,14 +266,42 @@ export default {
     this.$store.state.globe.mainPanelMask = false
   },
   methods: {
+    /** 发送消息 */
+    sendMsg (e) {
+      this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
+      this.faceListActive = false // 点击发送关闭表情包选择面板
+      const input = this.textAreaInput.replace(/\n$|\s+/, '') // 匹配结尾的回车符号并替换
+      if (input.length === 0 && this.sendFile.uploadList.length === 0) { // 如果内容全为空格，判定为空
+        return this.$message('说点什么吧！')
+      }
+      if (this.sendFile.uploadList.length > 0) this.sendFileHandle()
+      if (input.length > 0) {
+        // 发送消息给对方
+        this.$emit('sendMsg', input, this.chatObj, 'chat')
+        // 更新store
+        this.$store.commit('chatRecordAdd', {
+          chat: {
+            msgID: 'me' + this.uid + Date.now() + this.$store.state.chatObj,
+            msg: input,
+            say: 'me',
+            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+            type: 'chat',
+            static: 'true'
+          },
+          type: 'send'
+        })
+        this.textAreaInput = ''
+        // 收到或发送消息时，滚动条自动到达底部
+        this.$store.commit('scrollRec')
+      }
+    },
     /** 文件上传完成后处理 */
     uploadDone (file, res) {
-      this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count++
       this.$store.commit('chatRecordAdd', {
         chat: {
           msg: res.data.filePath,
           say: 'me',
-          msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
+          msgID: 'me' + this.uid + Date.now() + this.$store.state.chatObj,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
           rawName: file.name, // 文件原名称
           postfix: file.postfix, // 文件后缀
@@ -286,7 +315,7 @@ export default {
           content: res.data.filePath,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
         },
-        msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
+        msgID: 'me' + this.uid + Date.now() + this.$store.state.chatObj,
         rawName: file.name, // 文件原名称
         postfix: file.postfix, // 文件后缀
         file: true, // 标记为文件消息
@@ -511,35 +540,6 @@ export default {
         this.sendMsg()
       }
     },
-    sendMsg (e) {
-      this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
-      this.faceListActive = false // 点击发送关闭表情包选择面板
-      const input = this.textAreaInput.replace(/\n$|\s+/, '') // 匹配结尾的回车符号并替换
-      if (input.length === 0 && this.sendFile.uploadList.length === 0) { // 如果内容全为空格，判定为空
-        return this.$message('说点什么吧！')
-      }
-      if (this.sendFile.uploadList.length > 0) this.sendFileHandle()
-      if (input.length > 0) {
-        // 发送消息给对方
-        this.$emit('sendMsg', input, this.chatObj, 'chat')
-        // 更新store
-        this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count++
-        this.$store.commit('chatRecordAdd', {
-          chat: {
-            msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
-            msg: input,
-            say: 'me',
-            time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-            type: 'chat',
-            static: 'true'
-          },
-          type: 'send'
-        })
-        this.textAreaInput = ''
-        // 收到或发送消息时，滚动条自动到达底部
-        this.$store.commit('scrollRec')
-      }
-    },
     /** 输入框获得焦点时，发送当前输入状态 */
     textBoxFocus () {
       this.$store.state.ws.sendMsg({
@@ -568,7 +568,7 @@ export default {
         return config.server
       }
     },
-    previewStatus: {
+    previewStatus: { // 预览图状态
       get () {
         return this.sendFile.filePreview.previewStatus
         // return this.sendFile.uploadList.length > 0 ? this.sendFile.filePreview.previewStatus : false
@@ -582,14 +582,9 @@ export default {
         return this.$store.state.chatObj
       }
     },
-    inputStatus: {
+    inputStatus: { // 输入状态
       get () {
         return this.$store.state.inputStatus
-      }
-    },
-    friends: {
-      get () {
-        return this.$store.state.friends[this.chatObj]
       }
     }
   },

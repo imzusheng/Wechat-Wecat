@@ -304,6 +304,18 @@ router.get('/wechatAPI/common/deleteAllRecord', async (ctx) => {
       $set: { count: 1 }
     }
   ).then()
+  db.updateMany('chatRecord',
+    {},
+    {
+      $pull: {
+        chat: { msg: { $nin: ['已通过好友申请'] } }
+      },
+      $set: { chat: { count: 1 } }
+    },
+    {
+      upsert: true
+    }
+  ).then()
   ctx.body = {
     error: false,
     msg: 'success'
@@ -347,6 +359,44 @@ router.get('/wechatAPI/common/unRead', async (ctx) => {
   })
   ctx.body = {
     unReadMessage: unReadMessageObj
+  }
+})
+/**
+ * @api {Get} /wechatAPI/common/friendApply 获取好友请求
+ * @apiName 9
+ * @apiVersion 1.0.0
+ * @apiGroup 通用
+ * @apiSampleRequest off
+ *
+ * @apiParam uid 用户名
+ *
+ * @apiSuccessExample 成功响应示例
+ * friendApply: [
+ *      { from: 'imshanni@163.com', count: 54 },
+ *      { from: 'imzusheng@163.com', count: 1 },
+ *      { from: 'imshanni@163.com', count: 2 },
+ *      { from: 'imyvzhou@163.com', count: 12 },
+ *      { from: 'wenjian@163.com', count: 9 }
+ * ]
+ */
+router.get('/wechatAPI/common/friendApply', async (ctx) => {
+  const queryMatch = {
+    $match: {
+      to: ctx.query.uid,
+      status: false
+    }
+  }
+
+  const queryProject = {
+    $project: {
+      _id: 0,
+      to: 0,
+      type: 0
+    }
+  }
+  const friendApply = await db.aggregate('friendApply', [queryMatch, queryProject])
+  ctx.body = {
+    friendApply
   }
 })
 

@@ -10,19 +10,19 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: () => ({
     wsAddress: process.env.NODE_ENV === 'production' ? 'wss://zusheng.club/wsServerV2' : 'ws://localhost:4800',
-    chatObj: '', // 聊天对象
+    chatObj: '', // 全局聊天对象
     inputStatus: false, // 好友输入状态
     uid: window.sessionStorage.getItem('uid'), // 用户名
-    apply: [], // 好友申请
-    applyList: [],
-    friends: [], // 返回的好友数组
     refs: {},
     unReadMsg: {}, // 保存未读消息的数量 {用户名：未读数量}
     ws: {}, // WebSocket 对象
     maxMsg: 50, // 聊天框显示消息的最大数量
-    friendInfo: '',
-    addFriState: false,
     globe: {
+      addFriend: { // 添加好友相关
+        applyList: [], // 所有好友请求
+        friendInfo: '', // 当前将要发送好友请求的那位好友信息
+        addFriPanelState: false // 是否展开好友申请面板
+      },
       navigation: {
         searchResult: [], // nav搜索返回的结果
         unReadMessage: [], // 未读消息
@@ -42,7 +42,7 @@ export default new Vuex.Store({
       chat: { // 聊天面板用的
         befScroll: 0,
         curScroll: 0,
-        chatList: '',
+        chatList: [],
         total: '',
         current: 1// 当前页数
       },
@@ -54,22 +54,13 @@ export default new Vuex.Store({
         previewImgHeight: 100,
         loadingChat: true
       },
-      chatObjChangeFlag: false
+      chatObjChangeFlag: false // 原本用来触发切换好友时消息气泡动画的，暂时废弃
     }
   }),
   mutations: {
-    // 更新全局聊天对象
-    chatObjChange (state, playLoad) {
-      state.chatObj = playLoad // 这句是本函数主要功能，不能少
-      state.inputStatus = false // 好友输入状态要初始化
-      state.globe.chat.current = 1
-      state.globe.chat.befScroll = 0
-      state.globe.chat.curScroll = 0
-      state.globe.userConfig.loadingChat ? this.commit('loadChat') : this.commit('loadOnceChat')
-      // console.log(state.globe.chat.chatList[state.globe.chat.chatList.length - 1].msg)
-    },
+    /** 初始化数据 */
     navInit (state, res) {
-      // 获取聊天记录数据
+      /** 获取聊天记录数据 */
       apiService.getData(API_COMMON.GET_COMMON_CHAT_HISTORY, {
         email: window.sessionStorage.getItem('uid')
       }).then(res => {
@@ -80,7 +71,7 @@ export default new Vuex.Store({
         })
         state.globe.navigation.historyList.historyListStatus = true
       })
-      // 获取联系人数据
+      /** 获取联系人数据 */
       apiService.getData(API_COMMON.GET_COMMON_CONTACT, {
         email: window.sessionStorage.getItem('uid')
       }).then(res => {
@@ -88,14 +79,31 @@ export default new Vuex.Store({
         state.globe.navigation.contactList.contactListStatus = true
       })
     },
+    /** 改变全局聊天对象 */
+    chatObjChange (state, playLoad) {
+      state.chatObj = playLoad // 这句是本函数主要功能，不能少
+      state.inputStatus = false // 好友输入状态要初始化
+      state.globe.chat.current = 1
+      state.globe.chat.befScroll = 0
+      state.globe.chat.curScroll = 0
+      if (!state.globe.navigation.historyList.nameList[state.chatObj]) { // 如果当前好友没有聊天记录
+        state.globe.chat.chatList = []
+      } else {
+        state.globe.userConfig.loadingChat ? this.commit('loadChat') : this.commit('loadOnceChat')
+      }
+    },
     /** 一次性加载 */
     loadOnceChat (state) {
       state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
       state.globe.chat.total = state.globe.navigation.historyList.nameList[state.chatObj].chat.length
       this.commit('scrollRec')
     },
-    // 模拟懒加载聊天记录
-    loadChat (state) {
+    /** 模拟懒加载聊天记录 */
+    loadChat (state, chatObj) {
+      if (!state.chatObj) {
+        state.chatObj = chatObj
+        state.globe.navigation.historyList.picked = chatObj
+      }
       state.globe.chat.total = state.globe.navigation.historyList.nameList[state.chatObj].chat.length // 聊天记录总数
       // 当剩余聊天记录总数大于一页时
       if (state.globe.chat.total > state.globe.userConfig.pageSize * state.globe.chat.current) {
@@ -152,9 +160,6 @@ export default new Vuex.Store({
         }
       })
     },
-    setAddFriend (state, friendInfo) {
-      state.friendInfo = friendInfo
-    },
     // 更新未读消息
     unReadMsg (state, chatObj) {
       if (!state.unReadMsg[chatObj]) {
@@ -170,19 +175,19 @@ export default new Vuex.Store({
       // Vue.set(state.unReadMsg, chatObj, 0)
     },
     // 获取服务器聊天记录，并更新store的未读消息列表
-    chatRecordChange (state, playLoad) {
-      playLoad.forEach(value1 => {
-        if (value1.chat.length > state.maxMsg) value1.chat.splice(0, value1.chat.length - state.maxMsg)
-        const ObjName = value1.chatObj
-        // 以下为更新未读消息，遍历chat数组中消息对象的status属性是否为false（false为未读）并计数
-        value1.chat.forEach(value2 => {
-          if (value2.status === false) {
-            state.unReadMsg[ObjName] >= 0 ? state.unReadMsg[ObjName] += 1 : state.unReadMsg[ObjName] = 1
-          }
-        })
-        Vue.set(state.friends, value1.chatObj, value1.chat)
-      })
-    },
+    // chatRecordChange (state, playLoad) {
+    //   playLoad.forEach(value1 => {
+    //     if (value1.chat.length > state.maxMsg) value1.chat.splice(0, value1.chat.length - state.maxMsg)
+    //     const ObjName = value1.chatObj
+    //     // 以下为更新未读消息，遍历chat数组中消息对象的status属性是否为false（false为未读）并计数
+    //     value1.chat.forEach(value2 => {
+    //       if (value2.status === false) {
+    //         state.unReadMsg[ObjName] >= 0 ? state.unReadMsg[ObjName] += 1 : state.unReadMsg[ObjName] = 1
+    //       }
+    //     })
+    //     Vue.set(state.friends, value1.chatObj, value1.chat)
+    //   })
+    // },
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {
       if (playLoad.type === 'send') { // 发送消息
@@ -199,11 +204,10 @@ export default new Vuex.Store({
           title: playLoad.from,
           message: playLoad.file ? '收到一条图片消息' : playLoad.msg.content
         })
-        const count = this.$store.state.globe.navigation.historyList.nameList[playLoad.from].count
         state.globe.navigation.historyList.nameList[playLoad.from].chat.push({
           msg: playLoad.msg.content,
           say: 'you',
-          msgID: count + 1,
+          msgID: 'you' + state.uid + Date.now() + state.chatObj,
           rawName: playLoad.rawName,
           file: playLoad.file,
           postfix: playLoad.postfix,
@@ -222,12 +226,12 @@ export default new Vuex.Store({
       state.globe.chat.current = 1
       state.globe.chat.befScroll = 0
       state.globe.chat.curScroll = 0
-      this.commit('loadChat')
+      this.commit('loadChat', playLoad.from)
     },
     wsMsgGHandler (state, data) {
       const msgObj = typeof data.data === 'object' ? data.data : JSON.parse(data.data)
-      console.log(msgObj)
       switch (msgObj.type) {
+        /** 聊天 */
         case 'chat':
           this.commit('chatRecordAdd', msgObj)
           // 重置滚动条到底部
@@ -237,14 +241,17 @@ export default new Vuex.Store({
             this.commit('unReadMsg', msgObj.from)
           }
           break
+        /** 输入状态更新 */
         case 'inputStatus':
           state.inputStatus = msgObj.inputStatus
           break
+        /** 退出登录 */
         case 'exit':
           return this.$message({
             type: 'success',
             message: '退出登录'
           })
+        /** 添加好友 */
         case 'addFriend':
           /** 好友请求发送成功后 */
           Message({
@@ -252,10 +259,12 @@ export default new Vuex.Store({
             message: msgObj.message
           })
           break
+        /** 处理好友请求结果，拒绝或同意 */
         case 'handleApply':
           /** 收到好友请求 */
-          state.applyList.push(msgObj)
+          state.globe.addFriend.applyList.push(msgObj)
           break
+        case 'reload': // 添加好友成功，重新加载菜单数据
         case 'addFriendReply':
           this.commit('navInit')
           Message({

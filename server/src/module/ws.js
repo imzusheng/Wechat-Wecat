@@ -145,36 +145,6 @@ function exit (msgObj, wss, ws) {
  *
  */
 async function chat (MsgObj, wss) {
-  let unRead = true // 消息是否发出，如果未发出则保存到未读消息表
-  wss.clients.forEach((client) => {
-    if (client.userID === MsgObj.to) {
-      client.send(JSON.stringify(MsgObj))
-      unRead = false
-    }
-  })
-  await db.updateMany(
-    'chatRecord',
-    {
-      $or: [
-        {
-          userID: MsgObj.from,
-          chatObj: MsgObj.to
-        },
-        {
-          userID: MsgObj.to,
-          chatObj: MsgObj.from
-        }
-      ]
-    }, {
-      $inc: { count: +1 }
-    }, {
-      upsert: true
-    })
-  // const countResult = await db.query('chatRecord', {
-  //   userID: MsgObj.from,
-  //   chatObj: MsgObj.to
-  // })
-  // const count = countResult[0].count ? countResult[0].count : 1
   // 查询条件
   const myQuery = {
     userID: MsgObj.from,
@@ -221,6 +191,32 @@ async function chat (MsgObj, wss) {
       $set: { currentChatDate: MsgObj.msg.time }
     },
     { upsert: true }).then()
+  await db.updateMany(
+    'chatRecord',
+    {
+      $or: [
+        {
+          userID: MsgObj.from,
+          chatObj: MsgObj.to
+        },
+        {
+          userID: MsgObj.to,
+          chatObj: MsgObj.from
+        }
+      ]
+    }, {
+      $inc: { count: +1 }
+    }, {
+      upsert: true
+    })
+  // 消息是否发出，如果未发出则保存到未读消息表
+  let unRead = true
+  wss.clients.forEach((client) => {
+    if (client.userID === MsgObj.to) {
+      client.send(JSON.stringify(MsgObj))
+      unRead = false
+    }
+  })
   if (unRead) { // 当消息是未读状态的时候，更新未读消息条数
     db.updateOne('unReadMessage',
       {
@@ -375,10 +371,9 @@ async function addFriendReply (msgObj, wss) {
   let Msg
   const time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
   /** 同意好友申请的操作 */
-  console.log(msgObj)
   if (msgObj.status) {
-    /** 不存在时则写入好友关系 */
-    await db.insertManyData('friend', [
+    /** 写入好友关系 */
+    db.insertManyData('friend', [
       {
         UID: msgObj.from,
         Friend: msgObj.to,
@@ -388,8 +383,7 @@ async function addFriendReply (msgObj, wss) {
         Friend: msgObj.from,
         time
       }
-    ])
-
+    ]).then()
     /** 数据库好友申请表状态改为status: true */
     db.updateOne('friendApply', {
       from: msgObj.from,
@@ -399,29 +393,49 @@ async function addFriendReply (msgObj, wss) {
         status: true
       }
     }, {}).then()
+    await db.insertManyData(
+      'chatRecord',
+      [{
+        userID: msgObj.from,
+        chatObj: msgObj.to,
+        currentChatDate: time,
+        count: 1,
+        chat: [{
+          time: time,
+          msg: '已通过好友申请',
+          say: 'you',
+          msgID: msgObj.from + Date.now() + msgObj.to,
+          postfix: '',
+          rawName: '',
+          type: 'chat',
+          status: true
+        }]
+      }, {
+        userID: msgObj.to,
+        chatObj: msgObj.from,
+        currentChatDate: time,
+        count: 1,
+        chat: [{
+          time: time,
+          msg: '已通过好友申请',
+          say: 'you',
+          msgID: msgObj.from + Date.now() + msgObj.to,
+          postfix: '',
+          rawName: '',
+          type: 'chat',
+          status: true
+        }]
+      }]
+    )
 
-    /** 同意好友申请后，假装成系统发送一条消息给双方 */
     Msg = {
       from: msgObj.from,
       to: msgObj.to,
       error: false,
-      message: '好友请求已通过',
-      type: 'addFriendReply',
+      message: '已通过好友申请',
+      type: 'reload',
       time
     }
-
-    /// ///////////////////////////////////////////////////////////////////////////////////// 当然别忘了插入两条聊天记录
-    this.chat({
-      msg: {
-        time: time,
-        content: '已通过好友申请 '
-      },
-      msgID: 0,
-      from: msgObj.from,
-      to: msgObj.to,
-      type: 'chat',
-      status: true
-    }, wss)
   } else {
     /** 好友请求拒绝 */
     Msg = {

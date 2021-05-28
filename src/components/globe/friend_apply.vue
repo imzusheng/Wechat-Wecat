@@ -2,9 +2,9 @@
   <div class="friend_apply">
     <div class="friend_apply_title">添加好友</div>
     <div class="friend_info">
-      <figure><img :src="$store.state.friendInfo.avatar" alt=""/></figure>
-      <div class="friend_info_name">{{ $store.state.friendInfo.nickName }}</div>
-      <div class="friend_info_email">{{ $store.state.friendInfo.email }}</div>
+      <figure><img :src="$store.state.globe.addFriend.friendInfo.avatar" alt=""/></figure>
+      <div class="friend_info_name">{{ $store.state.globe.addFriend.friendInfo.nickName }}</div>
+      <div class="friend_info_email">{{ $store.state.globe.addFriend.friendInfo.email }}</div>
     </div>
     <div class="nick_name">
       <input type="text" name="nickName" placeholder="备注" v-model="comments"/>
@@ -15,7 +15,7 @@
     </div>
     <div class="handle">
       <button class="enter enter_color" @click="sendData">发送</button>
-      <button class="cancel cancel_color" @click="$store.state.addFriState = false">取消</button>
+      <button class="cancel cancel_color" @click="$store.state.globe.addFriend.addFriPanelState = false">取消</button>
     </div>
   </div>
 </template>
@@ -27,17 +27,18 @@ export default {
   name: 'friendApply',
   data () {
     return {
-      applyMsg: '',
-      comments: ''
+      applyMsg: '', // 验证消息
+      comments: '' // 给好友的备注
     }
   },
   methods: {
     sendData () {
-      this.$store.state.addFriState = false
+      this.$store.state.globe.addFriend.addFriPanelState = false // 请求发送出去则好友申请关闭面板
       this.$store.state.ws.sendMsg({
         from: window.sessionStorage.getItem('email'),
-        to: this.$store.state.friendInfo.email,
-        applyMsg: this.$store.state.applyMsg ? this.$store.state.applyMsg : `我是${window.sessionStorage.getItem('email')}`,
+        to: this.$store.state.globe.addFriend.friendInfo.email,
+        applyMsg: this.applyMsg ? this.applyMsg : `我是${window.sessionStorage.getItem('email')}`,
+        comments: this.comments,
         status: false, // 通过状态
         time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
         type: 'addFriend'

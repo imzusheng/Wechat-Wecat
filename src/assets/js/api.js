@@ -36,5 +36,7 @@ export const API_COMMON = {
   /** 清除所有聊天记录 */
   GET_COMMON_DELETE_CHAT_RECORD: '/common/deleteAllRecord',
   /** 获取未读消息 */
-  GET_COMMON_UNREAD_MESSAGE: '/common/unRead'
+  GET_COMMON_UNREAD_MESSAGE: '/common/unRead',
+  /** 获取好友请求消息 */
+  GET_COMMON_FRIEND_APPLY: '/common/friendApply'
 }
