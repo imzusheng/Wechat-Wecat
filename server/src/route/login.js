@@ -1,11 +1,10 @@
 const router = require('@koa/router')()
-const MongoDB = require('../module/mongodb')
+const MongoDB = require('../../src/module/mongodb')
 const db = new MongoDB()
-const JsonWebToken = require('../module/jwt')
+const JsonWebToken = require('../../src/module/jwt')
 const jwt = new JsonWebToken()
-const commonFunction = require('../module/commonFunction')
+const commonFunction = require('../../src/module/commonFunction')
 const moment = require('moment')
-
 const request = require('request')
 const querystring = require('querystring')
 
@@ -211,7 +210,7 @@ router.get('/wechatAPI/login/checkRepeatLogin', (ctx) => {
   ctx.status = 200
   const data = ctx.query
   let flag = false
-  require('../module/ws').getOnlineClients().forEach(value => {
+  require('../../src/module/ws').getOnlineClients().forEach(value => {
     if (value.userID === data.email) flag = true
   })
   ctx.body = {

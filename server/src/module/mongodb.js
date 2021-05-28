@@ -1,6 +1,9 @@
 const { MongoClient } = require('mongodb') // const MongoClient = require('mongodb').MongoClient;
-const Config = require('../config')
+const Config = require('../../config')
 
+/**
+ * 封装常用mongodb方法
+ */
 module.exports = class MongoDB {
   connectDB () {
     const _that = this
@@ -36,19 +39,6 @@ module.exports = class MongoDB {
         }
       }
       )
-    })
-  }
-
-  // 通用查询 *************待修改
-  find (collectionName, queryParams) {
-    const _that = this
-    return new Promise((resolve, reject) => {
-      this.connectDB().then(() => {
-        _that.db.collection(collectionName).find(queryParams).toArray((err, result) => {
-          if (err) throw err
-          resolve(result)
-        })
-      })
     })
   }
 

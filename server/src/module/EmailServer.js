@@ -1,6 +1,9 @@
 const nodemailer = require('nodemailer')
-const Config = require('../config')
+const Config = require('../../config')
 
+/**
+ * 封装邮箱服务器
+ */
 module.exports = (data) => {
   return new Promise((resolve, reject) => {
     const transporter = nodemailer.createTransport({

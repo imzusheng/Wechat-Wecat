@@ -25,6 +25,7 @@ export default new Vuex.Store({
     globe: {
       navigation: {
         searchResult: [], // nav搜索返回的结果
+        unReadMessage: [], // 未读消息
         historyList: {
           historyListStatus: false, // historyList 是否已经从服务器获取到了数据
           nameList: [],

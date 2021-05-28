@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken')
 
+/**
+ * 封装jwt token验证
+ */
 module.exports = class jwtClass {
   getToken (uid) {
     return jwt.sign({ // 生成token
@@ -9,7 +12,7 @@ module.exports = class jwtClass {
   }
 
   tokenVerify (ctx) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const token = ctx.header.authorization
       jwt.verify(token, 'shhhhh', {}, function (err, decoded) {
         if (err) resolve(401)

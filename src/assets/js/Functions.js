@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { API_COMMON } from '@/assets/js/api'
+import { API_COMMON, API_UPLOAD } from '@/assets/js/api'
 import SparkMD5 from 'spark-md5'
 
 export const apiService = { // 请求方式封装
@@ -50,6 +50,7 @@ export const apiUpload = {
     })
   },
   /**
+   * 上传数据分片
    * @param file       文件对象
    * @param options    配置
    *     chunkSize     每个分片的大小
@@ -102,9 +103,16 @@ export const apiUpload = {
             eventLoop++
             const tempData = formDatas[index]
             delete formDatas[index]
-            apiService.postData(API_COMMON.POST_COMMON_UPLOAD_V2, tempData).then(res => { /// //////////////////// 发送分片
+            /// //////////////////////////////////////////////// 包含额外数据
+            // formData.append('file', chunk, `${name}`)      // 文件，文件名
+            // formData.append('hash', hash)                  // hash
+            // formData.append('postfix', postfix)            // postfix 文件后缀 'png'
+            // formData.append('chunkIndex', i + 1)           // 当前分片的下标
+            // formData.append('chunksTotal', chunksTotal)    // 分片总数
+            apiService.postData(API_UPLOAD.POST_COMMON_UPLOAD_V2, tempData).then(res => { // 发送分片
               if (!res.data.error) {
-                const progress = ((1 - Object.keys(formDatas).length / chunksTotal) * 100).toFixed(0)// 返回上传进度
+                const progress = ((1 - Object.keys(formDatas).length / chunksTotal) * 100).toFixed(0)
+                // 返回上传进度
                 cb(progress)
               }
 
@@ -113,7 +121,7 @@ export const apiUpload = {
               if (Object.keys(formDatas).length !== 0) { // 分片集合中仍有数据，继续发送
                 run()
               } else if (Object.keys(formDatas).length === 0 && eventLoop === 0) { /// /////////////////////// 上传完毕,发起合并数据的请求
-                apiService.postData(API_COMMON.POST_COMMON_UPLOAD_MERGE, {
+                apiService.postData(API_UPLOAD.POST_COMMON_UPLOAD_MERGE, {
                   postfix,
                   name,
                   hash // 大概率不重复的hash值
@@ -129,13 +137,14 @@ export const apiUpload = {
       run() // 启动！
     })
   },
+  // 上传前检查
   beforeUpload: (file) => {
     const {
       postfix,
       hash
     } = file
     return new Promise(resolve => {
-      apiService.postData(API_COMMON.POST_COMMON_BEFORE_UPLOAD, {
+      apiService.postData(API_UPLOAD.POST_COMMON_BEFORE_UPLOAD, {
         postfix,
         hash
       }).then(res => {

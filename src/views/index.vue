@@ -42,6 +42,8 @@ import friendInfo from '../components/main_friendInfo'
 import friendApply from '../components/globe/friend_apply'
 import handleApply from '../components/globe/handle_apply'
 import moment from 'moment'
+import { apiService } from '@/assets/js/Functions'
+import { API_COMMON } from '@/assets/js/api'
 
 export default {
   name: 'home',
@@ -63,6 +65,12 @@ export default {
   },
   mounted () {
     this.uid = window.sessionStorage.getItem('uid') || this.$store.state.uid
+    /** 获取未读消息列表 */
+    apiService.getData(API_COMMON.GET_COMMON_UNREAD_MESSAGE, {
+      uid: this.uid
+    }).then(res => {
+      this.$store.state.unReadMsg = res.data.unReadMessage
+    })
     this.bgFade = true
     setTimeout(() => {
       this.navFade = true

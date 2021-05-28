@@ -1,12 +1,12 @@
 const router = require('@koa/router')()
-const MongoDB = require('../module/mongodb')
+const MongoDB = require('../../src/module/mongodb')
 const db = new MongoDB()
 
 /**
  * 获取用户信息列表
  */
 router.get('/wechatAPI/admin/userList', async (ctx) => {
-  const result = await db.find('user', '') // 查询数据
+  const result = await db.query('user', '') // 查询数据
   ctx.body = {
     msg: 'success',
     type: ctx.query.type,
@@ -33,7 +33,7 @@ router.get('/wechatAPI/admin/userListFind', async (ctx) => {
       }
     ]
   }
-  const result = await db.find('user', queryData) // 查询数据
+  const result = await db.query('user', queryData) // 查询数据
   ctx.body = {
     msg: 'success',
     type: ctx.query.type,
@@ -75,9 +75,9 @@ router.post('/wechatAPI/admin/userListDelete', async (ctx) => {
  * 不怕说，这段代码一周后回来自己看都看不懂，可别出了什么bug
  */
 router.get('/wechatAPI/admin/chatRecordList', async (ctx) => {
-  const userResult = await db.find('user', {})
-  const friendResult = await db.find('friend', {})
-  const chatRecord = await db.find('chatRecord', {})
+  const userResult = await db.query('user', {})
+  const friendResult = await db.query('friend', {})
+  const chatRecord = await db.query('chatRecord', {})
   userResult.forEach(userValue => {
     userValue.friends = [] // 好友列表
     userValue.friendsCount = 0 // 好友总数
@@ -127,7 +127,7 @@ router.get('/wechatAPI/admin/chatRecordList', async (ctx) => {
  */
 router.get('/wechatAPI/admin/chatDetail', async (ctx) => {
   const data = ctx.query
-  const result = await db.find('chatRecord', {
+  const result = await db.query('chatRecord', {
     userID: data.uid,
     chatObj: data.chatObj
   })

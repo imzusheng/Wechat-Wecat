@@ -51,9 +51,9 @@ export default {
     },
     sendMsg (chatObj) {
       this.$store.state.ws.sendMsg({
-        chatObj: chatObj,
+        to: window.sessionStorage.getItem('uid') || this.$store.state.uid,
         type: 'clearUnReadMsg',
-        uid: window.sessionStorage.getItem('uid') || this.$store.state.uid
+        from: chatObj
       }, data => this.$store.commit('wsMsgGHandler', data))
     },
     /** 显示最近聊天记录，当最近聊天记录时图片时，显示为[图片消息] */

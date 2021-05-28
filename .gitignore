@@ -22,3 +22,4 @@ pnpm-debug.log*
 *.sw?
 /server/APIdoc/
 /.vercel/
+/server/package-lock.json

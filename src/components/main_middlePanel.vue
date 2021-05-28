@@ -1,6 +1,6 @@
 <template>
-  <!--  (TODO) 聊天气泡的最大宽高没有限制！-->
-  <!--  (TODO) 上线时忘记获取数据库好友请求表了！-->
+  <!--  (TODO) 菜单中”聊天记录加载一次新增“，在关闭懒加载开关时应该变为不可用！-->
+  <!--  (TODO) 我点天！点击全网搜索也会弹出好友请求框！-->
   <!--  (TODO) 有一些好友关系存在，但是没有聊天记录的好友，就会报错！-->
   <!--  @drop.stop.prevent="showPreImg($event, 'drop')"-->
   <div class="mainPanel_wrap"
@@ -263,8 +263,6 @@ export default {
     this.$store.state.globe.mainPanelMask = false
   },
   methods: {
-    test () {
-    },
     /** 文件上传完成后处理 */
     uploadDone (file, res) {
       this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count++
@@ -299,26 +297,25 @@ export default {
     },
     /** 发送图片到服务器 */
     sendFileHandle () {
-      this.sendFile.uploadList.forEach((file, index) => {
+      this.sendFile.uploadList.forEach(async (file, index) => {
         // 生成hash
         file.hash = getHash(file.name + file.size + file.lastModified) // 将hash挂载file上
         // 上传之前先检查服务器是否存在相同文件
-        apiUpload.beforeUpload(file).then(res => {
-          if (!res.data.exist) { // 不存在相同文件，开始上传
-            apiUpload.uploadPartition(
-              file,
-              {
-                chunkSize: 1024 * 1024, // 1M一个分片
-                oneTime: 10 // 一次性发送几个Post请求
-              }, Progress => {
-                Vue.set(this.sendFile.uploading, index, Progress) // 直接设置进度条不会更新，响应式原理
-              }).then(res => { // 不存在相同文件，返回服务器保存后的文件名
-              this.closePreview(index, file, res)
-            })
-          } else { // 存在相同文件，直接返回服务器文件名
+        const res = await apiUpload.beforeUpload(file)
+        if (!res.data.exist) { // 不存在相同文件，开始上传
+          apiUpload.uploadPartition(
+            file,
+            {
+              chunkSize: 1024 * 1024, // 1M一个分片
+              oneTime: 10 // 一次性发送几个Post请求
+            }, Progress => {
+              Vue.set(this.sendFile.uploading, index, Progress) // 直接设置进度条不会更新，响应式原理
+            }).then(res => { // 不存在相同文件，返回服务器保存后的文件名
             this.closePreview(index, file, res)
-          }
-        })
+          })
+        } else { // 存在相同文件，直接返回服务器文件名
+          this.closePreview(index, file, res)
+        }
       })
     },
     closePreview (index, file, res) { // (TODO) 上传完成，这里暂时不能用splice删除掉数组，因为会改变数组长度。后期换成对象就可以
