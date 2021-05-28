@@ -1,9 +1,9 @@
 <template>
   <div class="wrap">
-    <transition name="Fade">
+    <transition name="fade">
       <friendApply v-show="$store.state.addFriState"/>
     </transition>
-    <transition name="Fade">
+    <transition name="fade">
       <handleApply v-show="$store.state.applyList.length"/>
     </transition>
 
@@ -83,6 +83,7 @@ export default {
           content: input,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
         },
+        msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
         from: this.uid,
         to: chatObj,
         type: msgType
@@ -105,14 +106,6 @@ export default {
 </script>
 
 <style scoped>
-.Fade-enter-active, .Fade-leave-active {
-  transition: opacity .2s;
-}
-
-.Fade-enter, .Fade-leave-to {
-  opacity: 0;
-}
-
 .wrap {
   min-height: 480px;
   height: 100vh;

@@ -1,7 +1,6 @@
 <template>
-  <!--  (TODO) 我点天！点击全网搜索也会弹出好友请求框！-->
+  <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
   <!--  (TODO) 有一些好友关系存在，但是没有聊天记录的好友，就会报错！-->
-  <!--  @drop.stop.prevent="showPreImg($event, 'drop')"-->
   <div class="mainPanel_wrap"
        :disabled="loading"
        v-loading="loading"
@@ -176,14 +175,6 @@
     </transition>
     <!--    输入框-->
     <div class="mainPanel_inputContent">
-      <!--  拖动文件提示遮罩    -->
-      <div
-        class="mainPanel_mask"
-        v-if="$store.state.globe.mainPanelMask"
-      >
-        <i class="el-icon-upload"></i>
-        拖动到这里上传！！
-      </div>
       <!--   文件预览标签 s   -->
       <div class="filePreviewContont" disabled>
         <ul>
@@ -208,6 +199,14 @@
       <!--   输入框和按钮组 s  -->
       <div
         class="textBoxContent">
+        <!--  拖动文件提示遮罩    -->
+        <div
+          class="mainPanel_mask"
+          v-show="$store.state.globe.mainPanelMask"
+        >
+          <i class="el-icon-upload"></i>
+          拖动到这里上传！！
+        </div>
         <div class="textarea_Container">{{ textAreaInput }}</div>
         <textarea
           :style="{opacity: $store.state.globe.mainPanelMask ? 0 : 1}"
@@ -269,12 +268,11 @@ export default {
     /** 文件上传完成后处理 */
     uploadDone (file, res) {
       this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count++
-      const count = this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count
       this.$store.commit('chatRecordAdd', {
         chat: {
           msg: res.data.filePath,
           say: 'me',
-          msgID: count,
+          msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
           rawName: file.name, // 文件原名称
           postfix: file.postfix, // 文件后缀
@@ -288,6 +286,7 @@ export default {
           content: res.data.filePath,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
         },
+        msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
         rawName: file.name, // 文件原名称
         postfix: file.postfix, // 文件后缀
         file: true, // 标记为文件消息
@@ -525,10 +524,9 @@ export default {
         this.$emit('sendMsg', input, this.chatObj, 'chat')
         // 更新store
         this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count++
-        const count = this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count
         this.$store.commit('chatRecordAdd', {
           chat: {
-            msgID: count,
+            msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
             msg: input,
             say: 'me',
             time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
@@ -699,17 +697,21 @@ export default {
 }
 
 .mainPanel_mask {
+  min-height: calc(var(--inputContent-height) * 0.7);
+  width: 75%;
+  height: 100%;
+  line-height: 24px;
+  max-height: 400px;
+  /* 看着来 */
+  opacity: .8;
+  border-radius: 12px;
+  margin-left: 3%;
+  background: #65C564;
+  z-index: 98;
   display: flex;
   align-items: center;
   justify-content: center;
   position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  z-index: 98;
-  background: #65C564;
-  opacity: .7;
 }
 
 .mainPanel_mask .el-icon-upload {

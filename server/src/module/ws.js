@@ -169,11 +169,11 @@ async function chat (MsgObj, wss) {
     }, {
       upsert: true
     })
-  const countResult = await db.query('chatRecord', {
-    userID: MsgObj.from,
-    chatObj: MsgObj.to
-  })
-  const count = countResult[0].count ? countResult[0].count : 1
+  // const countResult = await db.query('chatRecord', {
+  //   userID: MsgObj.from,
+  //   chatObj: MsgObj.to
+  // })
+  // const count = countResult[0].count ? countResult[0].count : 1
   // 查询条件
   const myQuery = {
     userID: MsgObj.from,
@@ -188,7 +188,7 @@ async function chat (MsgObj, wss) {
     msg: MsgObj.msg.content,
     time: MsgObj.msg.time,
     say: 'me',
-    msgID: count,
+    msgID: MsgObj.msgID,
     postfix: MsgObj.postfix ? MsgObj.postfix : '',
     rawName: MsgObj.rawName ? MsgObj.rawName : '',
     type: MsgObj.file ? 'file' : 'chat',
@@ -198,7 +198,7 @@ async function chat (MsgObj, wss) {
     time: MsgObj.msg.time,
     msg: MsgObj.msg.content,
     say: 'you',
-    msgID: count,
+    msgID: MsgObj.msgID,
     postfix: MsgObj.postfix ? MsgObj.postfix : '',
     rawName: MsgObj.rawName ? MsgObj.rawName : '',
     type: MsgObj.file ? 'file' : 'chat',
@@ -415,6 +415,7 @@ async function addFriendReply (msgObj, wss) {
         time: time,
         content: '已通过好友申请 '
       },
+      msgID: 0,
       from: msgObj.from,
       to: msgObj.to,
       type: 'chat',

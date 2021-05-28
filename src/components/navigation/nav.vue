@@ -283,8 +283,10 @@ export default {
     },
     /** 添加好友 */
     addFriend (e) {
+      console.log(e)
       /** 事件委托，点击UL时不触发click */
-      if (e.target.nodeName !== 'UL' && e.target.innerHTML !== this.$store.state.uid) {
+      // 点击的不是UL && 且li的类名不是“全网搜索”的标题 && 且点击的对象名字不是自己
+      if (e.target.nodeName !== 'UL' && e.target.className !== 'result_Title' && e.target.innerHTML !== this.$store.state.uid) {
         if (Object.keys(this.$store.state.globe.navigation.contactList.nameList).includes(e.target.dataset.email)) {
           this.chatObj = e.target.dataset.email
           this.$store.commit('chatObjChange', this.chatObj)
