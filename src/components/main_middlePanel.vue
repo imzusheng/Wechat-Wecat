@@ -103,7 +103,7 @@
                   </div>
                   <div class="fileInfo">
                     <div class="filePreview_filename">{{ item.rawName }}</div>
-                    <div class="filePreview_filename">大小：{{ (item.size / 1000).toFixed(2) }} kb</div>
+                    <div class="filePreview_filename">大小：{{ fileSize(item.size) }}</div>
                   </div>
                 </a>
                 <a
@@ -111,7 +111,10 @@
                   :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
                   :download="`${item.msg}`"
                 >
-                  <div class="filePreview_filename">{{ item.rawName }}</div>
+                  <div class="fileInfo">
+                    <div class="filePreview_filename">{{ item.rawName }}</div>
+                    <div class="filePreview_filename">大小：{{ fileSize(item.size) }}</div>
+                  </div>
                   <div class="filePreview_img">
                     <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
                          xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
@@ -269,6 +272,16 @@ export default {
     this.$store.state.globe.mainPanelMask = false
   },
   methods: {
+    /** 处理显示文件大小 */
+    fileSize (size) {
+      if (size <= 1000 * 1000) {
+        return `${(size / 1000).toFixed(2)} kb`
+      } else if (size <= 1000 * 1000 * 1000) {
+        return `${(size / (1000 * 1000)).toFixed(2)} M`
+      } else {
+        return `${(size / (1000 * 1000 * 1000)).toFixed(2)} G`
+      }
+    },
     /** 发送消息 */
     sendMsg (e) {
       this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
@@ -1158,13 +1171,13 @@ export default {
   color: #333;
 }
 
-.fileInfo > div{
+.fileInfo > div {
   display: flex;
   align-items: center;
   height: 50%;
 }
 
-.fileInfo > div:last-child{
+.fileInfo > div:last-child {
   font-size: 12px;
   color: #999;
 }
