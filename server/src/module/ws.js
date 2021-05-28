@@ -152,16 +152,17 @@ async function chat (MsgObj, wss) {
       unRead = false
     }
   })
-  await db.updateOne('chatRecord',
+  await db.updateMany(
+    'chatRecord',
     {
       $or: [
         {
-          userID: { $regex: new RegExp(MsgObj.from) },
-          chatObj: { $regex: new RegExp(MsgObj.to) }
+          userID: MsgObj.from,
+          chatObj: MsgObj.to
         },
         {
-          userID: { $regex: new RegExp(MsgObj.to) },
-          chatObj: { $regex: new RegExp(MsgObj.from) }
+          userID: MsgObj.to,
+          chatObj: MsgObj.from
         }
       ]
     }, {

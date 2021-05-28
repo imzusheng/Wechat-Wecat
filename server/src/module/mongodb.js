@@ -139,7 +139,7 @@ module.exports = class MongoDB {
       this.connectDB().then(() => {
         _that.db.collection(collectionName).updateOne(queryParams, newData, option, (err, res) => {
           if (err) return reject(err)
-          resolve(true)
+          resolve(res)
         })
       })
     })
@@ -149,7 +149,7 @@ module.exports = class MongoDB {
     const _that = this
     return new Promise((resolve, reject) => {
       this.connectDB().then(() => {
-        _that.db.collection(collectionName).updateMany(queryParams, newData, (err, res) => {
+        _that.db.collection(collectionName).updateMany(queryParams, newData, option, (err, res) => {
           if (err) return reject(err)
           resolve(true)
         })

@@ -301,7 +301,7 @@ router.get('/wechatAPI/common/deleteAllRecord', async (ctx) => {
       $pull: {
         chat: { msg: { $nin: ['已通过好友申请'] } }
       },
-      $set: { count: 0 }
+      $set: { count: 1 }
     }
   ).then()
   ctx.body = {
