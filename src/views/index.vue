@@ -91,7 +91,18 @@ export default {
       })
     }
   },
-  watch: {}
+  watch: {
+    '$store.state.unReadMsg': function () {
+      let unReadMsgCounts = 0
+      Object.values(this.$store.state.unReadMsg).forEach(value => {
+        console.log(value)
+        unReadMsgCounts += value
+      })
+      if (unReadMsgCounts) {
+        document.title = `WeCat - ${unReadMsgCounts}条未读消息`
+      }
+    }
+  }
 }
 </script>
 

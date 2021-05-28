@@ -7,13 +7,13 @@
 <script>
 export default {
   mounted () {
-    window.onfocus = function () {
-      document.title = 'WeCat - 开始聊天把！'
-    }
+    // window.onfocus = function () {
+    //   document.title = 'WeCat - 开始聊天把！'
+    // }
 
-    window.onblur = function () {
-      document.title = '记得回来！'
-    }
+    // window.onblur = function () {
+    //   document.title = '记得回来！'
+    // }
   },
   methods: {}
 }
