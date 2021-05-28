@@ -51,7 +51,7 @@ export default new Vuex.Store({
         friendInfoPanel: true, // 好友信息面板
         sendKeyCode: false, // 设置菜单 - 使用组合键发送
         pageSize: 5, // 每页加载的消息数量
-        previewImgHeight: 400,
+        previewImgHeight: 100,
         loadingChat: true
       },
       chatObjChangeFlag: false

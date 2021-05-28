@@ -92,15 +92,13 @@ export default {
     }
   },
   watch: {
+    /** 监听未读消息列表，再显示到网站标题 */
     '$store.state.unReadMsg': function () {
       let unReadMsgCounts = 0
       Object.values(this.$store.state.unReadMsg).forEach(value => {
-        console.log(value)
         unReadMsgCounts += value
       })
-      if (unReadMsgCounts) {
-        document.title = `WeCat - ${unReadMsgCounts}条未读消息`
-      }
+      if (unReadMsgCounts) document.title = `WeCat - ${unReadMsgCounts}条未读消息`
     }
   }
 }

@@ -298,7 +298,10 @@ router.get('/wechatAPI/common/deleteAllRecord', async (ctx) => {
   db.updateMany('chatRecord',
     {},
     {
-      $pull: { chat: { msg: { $nin: ['已通过好友申请'] } } }
+      $pull: {
+        chat: { msg: { $nin: ['已通过好友申请'] } }
+      },
+      $set: { count: 0 }
     }
   ).then()
   ctx.body = {

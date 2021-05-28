@@ -1,5 +1,4 @@
 <template>
-  <!--  (TODO) 菜单中”聊天记录加载一次新增“，在关闭懒加载开关时应该变为不可用！-->
   <!--  (TODO) 我点天！点击全网搜索也会弹出好友请求框！-->
   <!--  (TODO) 有一些好友关系存在，但是没有聊天记录的好友，就会报错！-->
   <!--  @drop.stop.prevent="showPreImg($event, 'drop')"-->
@@ -12,13 +11,17 @@
   >
     <!--  图片预览 -->
     <transition name="faceListActive">
-      <div class="previewImg" v-show="previewStatus" @click="previewStatus = false">
+      <div
+        class="previewImg"
+        v-show="previewStatus"
+        @click="previewStatus = false"
+        :style="{transform: `translate(-50%, -50%) scale(${$store.state.globe.userConfig.previewImgHeight/100, $store.state.globe.userConfig.previewImgHeight/100})`}"
+      >
         <!--        <div class="title" @click="previewStatus = false">-->
         <!--          {{ sendFile.filePreview.previewName }}-->
         <!--          <i class="el-icon-close"></i>-->
         <!--        </div>-->
         <img
-          :style="{height: `${$store.state.globe.userConfig.previewImgHeight}px`}"
           :src="sendFile.filePreview.previewSrc"
           alt=""
         />
@@ -266,11 +269,12 @@ export default {
     /** 文件上传完成后处理 */
     uploadDone (file, res) {
       this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count++
+      const count = this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count
       this.$store.commit('chatRecordAdd', {
         chat: {
           msg: res.data.filePath,
           say: 'me',
-          msgID: this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count,
+          msgID: count,
           time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
           rawName: file.name, // 文件原名称
           postfix: file.postfix, // 文件后缀
@@ -524,7 +528,7 @@ export default {
         const count = this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj].count
         this.$store.commit('chatRecordAdd', {
           chat: {
-            msgID: count + 1,
+            msgID: count,
             msg: input,
             say: 'me',
             time: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
@@ -1082,14 +1086,14 @@ export default {
   cursor: pointer;
   /*border-radius: 0 0 5% 5%;*/
   overflow: hidden;
-  background: #f2f2f2;
+  /*background: #f2f2f2;*/
+  background: transparent;
   position: absolute;
   top: 50%;
   left: 40%;
   z-index: 999;
-  box-shadow: 20px 20px 60px #cecece,
-  -0px -0px 0px #ffffff;
-  transform: translate(-50%, -50%);
+  /*box-shadow: 20px 20px 60px #cecece,*/
+  /*-0px -0px 0px #ffffff;*/
 }
 
 .previewImg .title {
@@ -1115,6 +1119,7 @@ export default {
 }
 
 .previewImg img {
+  max-height: 400px;
   pointer-events: none;
 }
 

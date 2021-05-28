@@ -34,33 +34,37 @@
             </div>
           </li>
 
-          <li @click="setting('loadingChat')" >
+          <li @click="setting('loadingChat')">
             聊天记录懒加载 模拟
             <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.loadingChat}">
               <div class="switchBtn"></div>
             </div>
           </li>
 
-          <li class="message_Loading_Slider">
-            聊天记录加载一次新增： {{ $store.state.globe.userConfig.pageSize }} 条
-            <el-slider
-              style="background: transparent"
-              v-model="$store.state.globe.userConfig.pageSize"
-              :step="5"
-              :min="5"
-              :max="50"
-              :show-tooltip="false"
-            ></el-slider>
-          </li>
+          <el-tooltip :disabled="$store.state.globe.userConfig.loadingChat" class="item" effect="dark"
+                      content="聊天记录懒加载关闭时，该选项不可用" placement="top">
+            <li class="message_Loading_Slider" disabled>
+              聊天记录加载一次新增： {{ $store.state.globe.userConfig.pageSize }} 条
+              <el-slider
+                :disabled="!$store.state.globe.userConfig.loadingChat"
+                style="background: transparent"
+                v-model="$store.state.globe.userConfig.pageSize"
+                :step="5"
+                :min="5"
+                :max="50"
+                :show-tooltip="false"
+              ></el-slider>
+            </li>
+          </el-tooltip>
 
           <li class="message_Loading_Slider">
-            预览图片尺寸： {{ $store.state.globe.userConfig.previewImgHeight }} px
+            预览图片尺寸： {{ $store.state.globe.userConfig.previewImgHeight }} %
             <el-slider
               style="background: transparent"
               v-model="$store.state.globe.userConfig.previewImgHeight"
               :step="50"
-              :min="200"
-              :max="800"
+              :min="50"
+              :max="300"
               :show-tooltip="false"
             ></el-slider>
           </li>
@@ -95,8 +99,8 @@
                href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
           </li>
 
-          <li class="exitContainer" @click="exit()">
-            <div class="exit">退出登录</div>
+          <li class="exitContainer">
+            <div class="exit" @click="exit()">退出登录</div>
           </li>
         </ul>
       </div>
@@ -489,6 +493,7 @@ export default {
   color: #ffffff;
   border-radius: 5px;
   transform: translateX(-50%);
+  z-index: 1000;
   position: absolute !important;
 }
 

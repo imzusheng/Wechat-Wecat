@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { API_COMMON, API_UPLOAD } from '@/assets/js/api'
+import { API_UPLOAD } from '@/assets/js/api'
 import SparkMD5 from 'spark-md5'
 
 export const apiService = { // 请求方式封装
