@@ -1,5 +1,6 @@
 <template>
   <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
+  <!-- (TODO) 添加一个按钮上传文件 -->
   <div class="mainPanel_wrap"
        :disabled="loading"
        v-loading="loading"
@@ -7,6 +8,13 @@
        @dragleave="uploadDragleave($event)"
        @drop.stop.prevent="showPreImg($event, 'drop')"
   >
+    <!--  拖动文件提示遮罩 s  -->
+    <div class="mainPanel_mask" v-show="$store.state.globe.mainPanelMask" :contenteditable="true"></div>
+    <!--  拖动文件提示遮罩(为了隐藏contenteditable="true"时出现的光标，文本需要分开放) s  -->
+    <div class="mainPanel_mask_text" v-show="$store.state.globe.mainPanelMask">
+      <i class="el-icon-upload"></i>
+      拖动到这里上传！！
+    </div>
     <!--  图片预览 -->
     <transition name="faceListActive">
       <div
@@ -78,7 +86,7 @@
               <img
                 v-if="sendFile.allowImg.includes(item.postfix)"
                 @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
-                style="cursor: pointer; border: 1px solid #ccc; box-shadow: 10px 10px 30px #cecece, 0px 0px 0px #ffffff; max-width: 750px; max-height: 300px"
+                style="cursor: pointer; border: 1px solid #ccc; box-shadow: 5px 5px 15px #cecece, 0px 0px 0px #ffffff; max-width: 750px; max-height: 300px"
                 :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
                 :src="`${server.httpServer}/static?filename=${item.msg}`"
                 alt=""/>
@@ -132,54 +140,19 @@
       </div>
     </div>
     <!--    表情包面板-->
-    <transition name="faceListActive">
-      <ul class="face-list noSelect" @click="selectFace" v-show="faceListActive">
-        <li title="睁眼笑">&#x1F603;</li>
-        <li title="咪眼笑">&#x1F604;</li>
-        <li title="大笑">&#x1F606;</li>
-        <li title="笑哭">&#x1F602;</li>
-        <li title="微笑">&#x1F642;</li>
-        <li title="翻脸">&#x1F643;</li>
-        <li title="调皮">&#x1F609;</li>
-        <li title="喜欢">&#x1F970;</li>
-        <li title="喜欢2">&#x1F970;</li>
-        <li title="飞吻">&#x1F618;</li>
-        <li title="亲亲">&#x1F61A;</li>
-        <li title="贪吃">&#x1F60B;</li>
-        <li title="嘘">&#x1F92B;</li>
-        <li title="思考">&#x1F914;</li>
-        <li title="闭嘴">&#x1F910;</li>
-        <li title="疑惑">&#x1F928;</li>
-        <li title="无语">&#x1F611;</li>
-        <li title="沉默">&#x1F636;</li>
-        <li title="坏笑">&#x1F60F;</li>
-        <li title="鄙视">&#x1F612;</li>
-        <li title="白眼">&#x1F644;</li>
-        <li title="假笑">&#x1F62C;</li>
-        <li title="得瑟">&#x1F60C;</li>
-        <li title="不开心">&#x1F614;</li>
-        <li title="睡觉">&#x1F634;</li>
-        <li title="生病">&#x1F637;</li>
-        <li title="发烧">&#x1F912;</li>
-        <li title="受伤">&#x1F915;</li>
-        <li title="恶心">&#x1F922;</li>
-        <li title="吐了">&#x1F92E;</li>
-        <li title="流鼻涕">&#x1F927;</li>
-        <li title="好热">&#x1F975;</li>
-        <li title="好冷">&#x1F976;</li>
-        <li title="耍酷">&#x1F60E;</li>
-        <li title="研究">&#x1F9D0;</li>
-        <li title="惊讶">&#x1F632;</li>
-        <li title="呆呆看">&#x1F633;</li>
-        <li title="可怜">&#x1F97A;</li>
-        <li title="流汗">&#x1F630;</li>
-        <li title="大哭">&#x1F62D;</li>
-        <li title="捂脸吓">&#x1F631;</li>
-        <li title="困">&#x1F971;</li>
-        <li title="生气">&#x1F624;</li>
-        <li title="骂人">&#x1F92C;</li>
+    <ul class="face-list noSelect" @click="selectFace" v-show="faceListActive">
+      <div class="face-list-content">
+        <ul>
+          <li v-for="(item, index) in emoji[emojiPicked]" :title="item.name" :key="index">{{ item.emoji }}</li>
+        </ul>
+      </div>
+      <ul class="face-list-tabs" @click="switchEmojiTabs">
+        <li v-for="(item, index) in Object.keys(emoji)" :key="index">
+          <input type="radio" name="face-list-tabs" :value="item" v-model="emojiPicked"/>
+          <div class="face-list-tabs-child">{{ item }}</div>
+        </li>
       </ul>
-    </transition>
+    </ul>
     <!--    输入框-->
     <div class="mainPanel_inputContent">
       <!--   文件预览标签 s   -->
@@ -204,28 +177,42 @@
         </ul>
       </div>
       <!--   输入框和按钮组 s  -->
-      <div
-        class="textBoxContent">
-        <!--  拖动文件提示遮罩    -->
-        <div
-          class="mainPanel_mask"
-          v-show="$store.state.globe.mainPanelMask"
-        >
-          <i class="el-icon-upload"></i>
-          拖动到这里上传！！
+      <div class="textBoxContent">
+        <!--   输入长度警告 s  -->
+        <div class="chatLengthAlert">
+          <div v-show="textAreaInput.length > 750"
+               :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'">
+            最多可输入1000个字符，还剩 {{ 1000 - textAreaInput.length }} 个
+          </div>
         </div>
-        <div class="textarea_Container">{{ textAreaInput }}</div>
-        <textarea
-          :style="{opacity: $store.state.globe.mainPanelMask ? 0 : 1}"
-          class="textBox"
-          ref="textBox"
-          v-model.trim="textAreaInput"
-          @paste="pasteHandle"
-          @click="faceListActive = false"
-          @focus="textBoxFocus"
-          @blur="textBoxBlur"
-          @keydown="keyCodeCheck"
-          @keyup="keyCodeArr = []"/>
+        <!--   输入长度警告 e  -->
+        <!--   输入长度进度条 s  -->
+        <div class="chatLengthProgress" title="最多可输入1000个字符">
+          <div
+            class="chatLength"
+            :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'"
+            :style="{clipPath: `polygon(0% 100%, ${textAreaInput.length / 10}% 100%, ${textAreaInput.length / 10}% 0%, 0% 0%)`}"
+          >
+          </div>
+        </div>
+        <!--   输入长度进度条 e  -->
+        <div class="textarea_Container">
+          <!--  textBoxSupport用于支撑 textarea 自动换行 s -->
+          <div class="textBoxSupport" v-html="textAreaInput"></div>
+          <!-- 输入框本体 s -->
+          <textarea
+            maxlength="1000"
+            :style="{opacity: $store.state.globe.mainPanelMask ? 0 : 1}"
+            class="textBox"
+            ref="textBox"
+            v-model.trim="textAreaInput"
+            @paste="pasteHandle"
+            @click="faceListActive = false"
+            @focus="textBoxFocus"
+            @blur="textBoxBlur"
+            @keydown="keyCodeCheck"
+            @keyup="keyCodeArr = []"/>
+        </div>
         <div class="btnGroup">
           <div class="face textBoxBtn" title="发送表情" @click="faceListActive = !faceListActive"></div>
           <div class="send textBoxBtn" @click="sendMsg"></div>
@@ -240,11 +227,14 @@ import moment from 'moment'
 import Vue from 'vue'
 import { apiUpload, getHash } from '@/assets/js/Functions'
 import config from '@/assets/js/config'
+import emoji from '@/assets/json/data-by-group.json'
 
 export default {
   name: 'mainPanel',
   data () {
     return {
+      emoji,
+      emojiPicked: '', // 选中的表情分类
       dragenterClassName: '', // 记录dragenter事件classname
       textAreaInput: '',
       loading: false,
@@ -268,10 +258,14 @@ export default {
     }
   },
   mounted () {
+    this.emojiPicked = Object.keys(emoji)[0]
     this.$store.commit('scrollRec', this.$refs)
     this.$store.state.globe.mainPanelMask = false
   },
   methods: {
+    switchEmojiTabs (evt) {
+      this.emojiPicked = evt.target.value
+    },
     /** 处理显示文件大小 */
     fileSize (size) {
       if (size <= 1000 * 1000) {
@@ -521,7 +515,7 @@ export default {
         this.loading = true
         setTimeout(() => {
           this.$store.state.globe.chat.current++
-          this.$store.commit('loadChat')
+          this.$store.state.globe.userConfig.loadingChat ? this.$store.commit('loadChat') : this.$store.commit('loadOnceChat')
           this.loading = false
         }, 400)
       }
@@ -605,8 +599,7 @@ export default {
         return this.$store.state.inputStatus
       }
     }
-  },
-  watch: {}
+  }
 }
 </script>
 
@@ -710,21 +703,31 @@ export default {
 }
 
 .mainPanel_mask {
-  min-height: calc(var(--inputContent-height) * 0.7);
-  width: 75%;
-  height: 100%;
-  line-height: 24px;
-  max-height: 400px;
-  /* 看着来 */
-  opacity: .8;
-  border-radius: 12px;
-  margin-left: 3%;
-  background: #65C564;
-  z-index: 98;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* 看着来 */
+  z-index: 999;
+  color: transparent;
+}
+
+.mainPanel_mask_text {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 998;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #65C564;
+  opacity: .7;
+  letter-spacing: 3px;
+  font-size: 24px;
 }
 
 .mainPanel_mask .el-icon-upload {
@@ -733,67 +736,108 @@ export default {
 }
 
 .textBoxContent {
-  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.textBoxContent .textBox {
-  /*margin: calc(var(--inputContent-height) * 0.15) 0 calc(var(--inputContent-height) * 0.15) 3%;*/
-  min-height: calc(var(--inputContent-height) * 0.7);
-  width: 75%;
+.textBoxContent .textarea_Container {
+  position: relative;
   height: 100%;
-  padding: 6px 12px 4px;
+  border: none;
+  flex: 1;
+}
+
+.chatLengthAlert {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  top: 0;
+  left: 0;
+  height: 38px;
+  width: 100%;
+  color: #444;
+  z-index: 5;
+}
+
+.chatLengthAlert div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
   box-sizing: border-box;
+  padding: 0 20px;
+  border-radius: 0 0 10px 10px;
+}
+
+.chatLengthProgress {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background: #ccc;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.chatLengthProgress .chatLength {
+  width: 100%;
+  height: 100%;
+}
+
+.textBoxSupport {
+  height: calc(100% - 24px);
+  width: calc(100% - 36px);
+  box-sizing: border-box;
+  margin: 12px 0 0 24px;
+  padding: 4px 12px 4px;
+  line-height: 24px;
+  max-height: 400px;
+  max-width: calc(100% - 24px);
+  visibility: hidden;
+  font-size: 18px;
+  word-break: break-all;
+  word-wrap: break-word;
+}
+
+.textarea_Container .textBox {
+  font-size: 18px;
+  position: absolute;
+  top: 12px;
+  left: 24px;
+  height: calc(100% - 24px);
+  width: calc(100% - 36px);
+  box-sizing: border-box;
+  padding: 4px 12px;
   border-radius: 12px;
   border: none;
   background: rgba(200, 200, 200, .15);
   color: #444444;
   outline: none;
   line-height: 24px;
-  max-height: 400px;
-  overflow-y: hidden;
   resize: none;
-  position: absolute;
-  top: 50%;
-  left: 3%;
-  z-index: 99;
-  transform: translate(0, -50%);
-  /*  word-break: keep-all;
-    white-space: pre-wrap;*/
+  z-index: 4;
+  word-break: break-all;
+  word-wrap: break-word;
 }
 
-.textarea_Container {
-  margin: calc(var(--inputContent-height) * 0.15) 0 calc(var(--inputContent-height) * 0.15) 3%;
-  min-height: calc(var(--inputContent-height) * 0.7);
-  width: 75%;
-  height: 100%;
-  padding: 6px 12px 4px;
-  box-sizing: border-box;
-  border: none;
-  line-height: 24px;
-  max-height: 400px;
-  visibility: hidden;
-}
-
-.textBoxContent .textBox::-webkit-scrollbar {
+.textarea_Container .textBox::-webkit-scrollbar {
   display: none
 }
 
 .textBoxContent .btnGroup {
-  width: calc(var(--inputContent-width) * 0.12);
-  min-width: 110px;
   height: 48px;
+  margin: 0 12px;
   display: flex;
+  position: relative;
   justify-content: space-between;
-  position: absolute;
-  bottom: calc(var(--inputContent-height) * 0.2);
-  left: 83.4%;
-  top: 50%;
-  transform: translate(0, -50%);
-  /*margin-left: 80.4%;*/
-  /*margin-top: calc(var(--inputContent-height) * 0.2);*/
 }
 
 .textBoxBtn {
+  margin: 0 5px;
   border-radius: 50%;
   height: 48px;
   width: 48px;
@@ -833,26 +877,74 @@ export default {
 .face-list {
   cursor: pointer;
   position: absolute;
-  max-width: 70%;
   right: 5%;
   bottom: 100px;
-  padding: 10px 20px;
+  max-width: 80%;
   z-index: 999;
   background: #F7F9FA;
-  border-radius: 20px;
+  border-radius: 10px;
   box-shadow: -20px 20px 60px #cecece,
   -0px -0px 0px #ffffff;
+  overflow: hidden;
 }
 
-.face-list li {
+.face-list-tabs {
+  background: linear-gradient(to top, rgba(200, 200, 200, .5), rgba(255, 255, 255, 0));
+  box-sizing: border-box;
+  padding: 0 5px;
+  display: flex;
+  overflow-x: auto;
+}
+
+.face-list-tabs li {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.face-list-tabs > li > input {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+  opacity: 0;
+}
+
+.face-list-tabs > li > .face-list-tabs-child {
+  color: #333;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  transition: all .2s;
+  opacity: .2;
+}
+
+.face-list-tabs > li > input:hover + .face-list-tabs-child,
+.face-list-tabs > li > input:checked + .face-list-tabs-child {
+  opacity: 1;
+}
+
+.face-list-content {
+  box-sizing: border-box;
+  padding: 15px;
+  max-height: 500px;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.face-list-content li {
   display: inline-block;
-  width: 10%;
+  box-sizing: border-box;
+  width: 8%;
   text-align: center;
   line-height: 50px;
   font-size: 24px;
 }
 
-.face-list li:hover, .face-list li:active {
+.face-list-content li:hover, .face-list-content li:active {
   background: #ffffff;
 }
 
@@ -995,8 +1087,9 @@ export default {
   height: 40px;
   width: 100%;
   position: absolute;
-  top: -100px;
+  top: -108px;
   left: 0;
+  z-index: 3;
 }
 
 .filePreviewContont ul {
