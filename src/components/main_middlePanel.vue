@@ -8,6 +8,14 @@
        @dragleave="uploadDragleave($event)"
        @drop.stop.prevent="showPreImg($event, 'drop')"
   >
+    <!--   输入长度警告 s  -->
+    <div class="chatLengthAlert">
+      <div v-show="textAreaInput.length > 750"
+           :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'">
+        最多可输入1000个字符，还剩 {{ 1000 - textAreaInput.length }} 个
+      </div>
+    </div>
+    <!--   输入长度警告 e  -->
     <!--  拖动文件提示遮罩 s  -->
     <div class="mainPanel_mask" v-show="$store.state.globe.mainPanelMask" :contenteditable="true"></div>
     <!--  拖动文件提示遮罩(为了隐藏contenteditable="true"时出现的光标，文本需要分开放) s  -->
@@ -178,14 +186,6 @@
       </div>
       <!--   输入框和按钮组 s  -->
       <div class="textBoxContent">
-        <!--   输入长度警告 s  -->
-        <div class="chatLengthAlert">
-          <div v-show="textAreaInput.length > 750"
-               :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'">
-            最多可输入1000个字符，还剩 {{ 1000 - textAreaInput.length }} 个
-          </div>
-        </div>
-        <!--   输入长度警告 e  -->
         <!--   输入长度进度条 s  -->
         <div class="chatLengthProgress" title="最多可输入1000个字符">
           <div
