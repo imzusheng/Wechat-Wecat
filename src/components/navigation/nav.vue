@@ -364,12 +364,16 @@ export default {
 }
 
 .settingContainer {
-  height: calc(100%);
+  height: 100%;
   padding-top: 90px;
   padding-bottom: 140px;
   width: 100%;
   box-sizing: border-box;
   overflow-y: auto;
+}
+
+.settingItems{
+  padding-bottom: 140px;
 }
 
 .settingItems li:not(:last-child) {

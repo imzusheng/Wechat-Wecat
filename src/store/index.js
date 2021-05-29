@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { WsServer } from '../assets/js/wsServer'
-import { Notification, Message } from 'element-ui'
+import { Message, Notification } from 'element-ui'
 import { apiService } from '@/assets/js/Functions'
 import { API_COMMON } from '@/assets/js/api'
 
@@ -133,7 +133,11 @@ export default new Vuex.Store({
         state.refs = refs
       }
       setTimeout(() => {
-        state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
+        state.refs.msgContentBox.scrollTo({
+          top: state.refs.msgContent.offsetHeight,
+          behavior: 'auto'
+        })
+        // state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
       }, 0)
     },
     // 建立WebSocket连接
@@ -226,7 +230,7 @@ export default new Vuex.Store({
       state.globe.chat.current = 1
       state.globe.chat.befScroll = 0
       state.globe.chat.curScroll = 0
-      this.commit('loadChat', playLoad.from)
+      state.globe.userConfig.loadingChat ? this.commit('loadChat') : this.commit('loadOnceChat')
     },
     wsMsgGHandler (state, data) {
       const msgObj = typeof data.data === 'object' ? data.data : JSON.parse(data.data)

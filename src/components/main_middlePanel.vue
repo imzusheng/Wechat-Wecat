@@ -1,7 +1,8 @@
 <template>
+  <!--  (TODO) 直接把滚动条去掉,用margintop来调整消息, -->
   <!--  (TODO) 希望图片不需要分片上传，只有大文件才需要 -->
+  <!--  (TODO) 上传多个图片时滚动条不会置底 -->
   <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
-  <!--  (TODO) 如果同时上传两个同名的文件，且服务器不存在时。会报错-->
   <div v-loading="loading"
        :disabled="loading"
        class="mainPanel_wrap"
@@ -328,16 +329,15 @@ export default {
       if (input.length === 0 && this.sendFile.uploadList.length === 0) { // 如果内容全为空格，判定为空
         return this.$message('说点什么吧！')
       }
-      if (this.sendFile.uploadList.length > 0) {
+      if (this.sendFile.uploadList.length > 0) { // 当上传文件时
         this.sendFile.uploadList.forEach((file, index) => {
-          // 生成hash
-          file.hash = getHash(file.name + file.size + file.lastModified) // 将hash挂载file上
+          file.hash = getHash(file.name + file.size + file.lastModified) // 生成hash,将hash挂载file上
         })
         const unique = {}
         this.sendFile.uploadList.forEach((file, index) => {
           unique[file.hash] = file
         })
-        if ([...Object.values(unique)].length !== this.sendFile.uploadList) {
+        if ([...Object.values(unique)].length !== this.sendFile.uploadList.length) {
           this.$message({
             type: 'info',
             message: '检测到重复文件，将合并为一次发送！'
@@ -671,6 +671,16 @@ export default {
       get () {
         return this.$store.state.inputStatus
       }
+    }
+  },
+  watch: {
+    '$store.state.globe.chat.chatList': function () {
+      // setTimeout(() => {
+      //   this.$store.state.refs.msgContentBox.scrollTo({
+      //     top: this.$store.state.refs.msgContent.offsetHeight,
+      //     behavior: 'auto'
+      //   })
+      // }, 0)
     }
   }
 }
@@ -1180,7 +1190,7 @@ export default {
   height: 40px;
   width: 100%;
   position: absolute;
-  top: -105px;
+  top: -103px;
   left: 0;
   z-index: 3;
 }
