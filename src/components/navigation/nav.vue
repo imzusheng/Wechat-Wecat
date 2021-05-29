@@ -76,26 +76,6 @@
 
           <li>
             <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
-               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc Beta</a>
-          </li>
-
-          <li>
-            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
-               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc Beta</a>
-          </li>
-
-          <li>
-            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
-               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc Beta</a>
-          </li>
-
-          <li>
-            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
-               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc Beta</a>
-          </li>
-
-          <li>
-            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
                href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
           </li>
 
@@ -369,7 +349,8 @@ export default {
   padding-left: 30px;
   font-size: 24px;
   z-index: 2;
-  background: linear-gradient(to top, rgba(255, 255, 255, .1), rgba(255, 255, 255, 1));
+  background: #F7F9FA;
+  /*background: linear-gradient(to top, rgba(255, 255, 255, .1), rgba(255, 255, 255, 1));*/
 }
 
 .settingTitle::after {

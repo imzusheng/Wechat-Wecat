@@ -74,173 +74,170 @@
       </div>
     </div>
 
-    <!--    聊天记录信息面板 main -->
-    <div class="mainPanel_msgContent"
-         ref="msgContentBox"
-         @click="faceListActive = false"
-         @scroll="scrollList($event)"
-    >
-      <div class="msgContent" ref="msgContent"
-           :style="{paddingBottom: sendFile.uploadList.length > 0 ? '180px':'100px'}">
-        <transition-group name="msgFade">
-          <div
-            v-for="item in $store.state.globe.chat.chatList"
-            :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
-            :key="item.msgID"
-          >
-            <!--   正常聊天框 s   -->
+    <div class="mainPanel_Box" :style="{transform: extraVisible ? 'translate(0, -80px)' : 'translate(0, 0)'}">
+
+      <!--    聊天记录信息面板 main -->
+      <div class="mainPanel_msgContent"
+           ref="msgContentBox"
+           @click="faceListActive = false"
+           @scroll="scrollList($event)"
+      >
+        <div class="msgContent" ref="msgContent"
+             :style="{paddingBottom: sendFile.uploadList.length > 0 ? '180px':'100px'}">
+          <transition-group name="msgFade">
             <div
-              v-if="item.type !== 'file'"
-              :class="{
+              v-for="item in $store.state.globe.chat.chatList"
+              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
+              :key="item.msgID"
+            >
+              <!--   正常聊天框 s   -->
+              <div
+                v-if="item.type !== 'file'"
+                :class="{
             'My_Msg' : item.say === 'me',
             'You_Msg' : item.say === 'you',
             'My_Msg' : item.say === 'me',
             'You_Msg' : item.say === 'you'
           }"
-            >
-              {{ item.msg }}
-            </div>
-            <!--   文件聊天框 s  -->
-            <!--            :class="{-->
-            <!--            'myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,-->
-            <!--            'youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,-->
-            <!--            'myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,-->
-            <!--            'youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag-->
-            <!--            }"-->
-            <div
-              v-else>
-              <!--     当聊天信息只为一张图片时      -->
-              <img
-                v-if="sendFile.allowImg.includes(item.postfix)"
-                @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
-                style="cursor: pointer; border: 1px solid #ccc; box-shadow: 5px 5px 15px #cecece, 0px 0px 0px #ffffff; max-width: 750px; max-height: 300px"
-                :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
-                :src="`${server.httpServer}/static?filename=${item.msg}`"
-                alt=""/>
-              <!--     当聊天信息是一个文件时      -->
-              <div
-                v-if="sendFile.allowFile.includes(item.postfix)"
-                :class="item.say === 'me' ? 'myfilePreview' : 'youfilePreview'"
               >
-                <!--  保持文件图片始终靠向中间 s  -->
-                <a
-                  v-if="item.say === 'me'"
-                  :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
-                  :download="`${item.msg}`"
-                >
-                  <div class="filePreview_img">
-                    <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                         xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
-                      <path
-                        d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
-                        p-id="2890" fill="#65C564"></path>
-                    </svg>
-                  </div>
-                  <div class="fileInfo">
-                    <div class="filePreview_filename">{{ item.rawName }}</div>
-                    <div class="filePreview_filename">大小：{{ fileSize(item.size) }}</div>
-                  </div>
-                </a>
-                <a
-                  v-else
-                  :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
-                  :download="`${item.msg}`"
-                >
-                  <div class="fileInfo">
-                    <div class="filePreview_filename">{{ item.rawName }}</div>
-                    <div class="filePreview_filename">大小：{{ fileSize(item.size) }}</div>
-                  </div>
-                  <div class="filePreview_img">
-                    <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                         xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
-                      <path
-                        d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
-                        p-id="2890" fill="#65C564"></path>
-                    </svg>
-                  </div>
-                </a>
+                {{ item.msg }}
               </div>
+              <!--   文件聊天框 s  -->
+              <!--            :class="{-->
+              <!--            'myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,-->
+              <!--            'youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,-->
+              <!--            'myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,-->
+              <!--            'youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag-->
+              <!--            }"-->
+              <div
+                v-else>
+                <!--     当聊天信息只为一张图片时      -->
+                <img
+                  v-if="sendFile.allowImg.includes(item.postfix)"
+                  @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
+                  style="cursor: pointer; border: 1px solid #ccc; box-shadow: 5px 5px 15px #cecece, 0px 0px 0px #ffffff; max-width: 750px; max-height: 300px"
+                  :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
+                  :src="`${server.httpServer}/static?filename=${item.msg}`"
+                  alt=""/>
+                <!--     当聊天信息是一个文件时      -->
+                <div
+                  v-if="sendFile.allowFile.includes(item.postfix)"
+                  :class="item.say === 'me' ? 'myfilePreview' : 'youfilePreview'"
+                >
+                  <!--  保持文件图片始终靠向中间 s  -->
+                  <a
+                    v-if="item.say === 'me'"
+                    :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
+                    :download="`${item.msg}`"
+                  >
+                    <div class="filePreview_img">
+                      <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                           xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                        <path
+                          d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
+                          p-id="2890" fill="#65C564"></path>
+                      </svg>
+                    </div>
+                    <div class="fileInfo">
+                      <div class="filePreview_filename">{{ item.rawName }}</div>
+                      <div class="filePreview_filename">大小：{{ fileSize(item.size) }}</div>
+                    </div>
+                  </a>
+                  <a
+                    v-else
+                    :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
+                    :download="`${item.msg}`"
+                  >
+                    <div class="fileInfo">
+                      <div class="filePreview_filename">{{ item.rawName }}</div>
+                      <div class="filePreview_filename">大小：{{ fileSize(item.size) }}</div>
+                    </div>
+                    <div class="filePreview_img">
+                      <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                           xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                        <path
+                          d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
+                          p-id="2890" fill="#65C564"></path>
+                      </svg>
+                    </div>
+                  </a>
+                </div>
+              </div>
+              <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
             </div>
-            <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
-          </div>
-        </transition-group>
+          </transition-group>
+        </div>
       </div>
-    </div>
 
-    <!--    输入框 main  -->
-    <div class="mainPanel_inputContent">
-
-      <!--   文件预览标签 s   -->
-      <div class="filePreviewContont" disabled>
-        <ul>
-          <li
-            v-for="(file, i) in sendFile.uploadList"
-            :key="i"
-            class="fileStatus_upload"
-            @click="showPre(file)"
-          >
-            <!--            @mouseenter="uploadMouseenter(file)"-->
-            <!--            @mouseleave="uploadMouseleave(file)"-->
-            <span>{{ file.name ? file.name : '上传完成' }}</span>
-            <span class="closeContainer" @click.stop.prevent="removeFileTab(i)"><i class="el-icon-close"></i></span>
+      <!--    输入框 main  -->
+      <div class="mainPanel_inputContent">
+        <!--   文件预览标签 s   -->
+        <div class="filePreviewContont" disabled>
+          <ul>
+            <li
+              v-for="(file, i) in sendFile.uploadList"
+              :key="i"
+              class="fileStatus_upload"
+              @click="showPre(file)"
+            >
+              <!--            @mouseenter="uploadMouseenter(file)"-->
+              <!--            @mouseleave="uploadMouseleave(file)"-->
+              <span>{{ file.name ? file.name : '上传完成' }}</span>
+              <span class="closeContainer" @click.stop.prevent="removeFileTab(i)"><i class="el-icon-close"></i></span>
+              <div
+                :style="{clipPath: `polygon(0% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 0%, 0% 0%)`}"
+                :class="sendFile.uploading[i] !== '100' ? 'fileLoading fileStatus_yellow' : 'fileLoading fileStatus_green'"
+              >
+              </div>
+            </li>
+          </ul>
+        </div>
+        <!--   输入框和按钮组 s  -->
+        <div class="textBoxContent">
+          <!--   输入长度进度条 s  -->
+          <div class="chatLengthProgress" title="最多可输入1000个字符">
             <div
-              :style="{clipPath: `polygon(0% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 100%, ${sendFile.uploading[i] ? sendFile.uploading[i] : 0}% 0%, 0% 0%)`}"
-              :class="sendFile.uploading[i] !== '100' ? 'fileLoading fileStatus_yellow' : 'fileLoading fileStatus_green'"
+              class="chatLength"
+              :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'"
+              :style="{clipPath: `polygon(0% 100%, ${textAreaInput.length / 10}% 100%, ${textAreaInput.length / 10}% 0%, 0% 0%)`}"
             >
             </div>
-          </li>
-        </ul>
-      </div>
-
-      <!--   输入框和按钮组 s  -->
-      <div class="textBoxContent">
-
-        <!--   输入长度进度条 s  -->
-        <div class="chatLengthProgress" title="最多可输入1000个字符">
-          <div
-            class="chatLength"
-            :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'"
-            :style="{clipPath: `polygon(0% 100%, ${textAreaInput.length / 10}% 100%, ${textAreaInput.length / 10}% 0%, 0% 0%)`}"
-          >
           </div>
-        </div>
-        <!--   输入长度进度条 e  -->
-
-        <div class="textarea_Container">
-          <!--  textBoxSupport用于支撑 textarea 自动换行 s -->
-          <div class="textBoxSupport" v-html="textAreaInput"></div>
-          <!--  textBoxSupport用于支撑 textarea 自动换行 e -->
-          <!-- 输入框本体 s -->
-          <textarea
-            maxlength="1000"
-            :style="{opacity: $store.state.globe.mainPanelMask ? 0 : 1}"
-            class="textBox"
-            ref="textBox"
-            v-model.trim="textAreaInput"
-            @paste="pasteHandle"
-            @click="faceListActive = false"
-            @focus="textBoxFocus"
-            @blur="textBoxBlur"
-            @keydown="keyCodeCheck"
-            @keyup="keyCodeArr = []"/>
-          <!-- 输入框本体 e -->
-        </div>
-
-        <!--   发送按钮 s  -->
-        <div class="btnGroup">
-          <div class="btnGroup_Extra">
-            <input type="checkbox" name="btnGroup_Extra" v-model="extraVisible"/>
-            <i class="el-icon-plus"></i>
+          <!--   输入长度进度条 e  -->
+          <div class="textarea_Container">
+            <!--  textBoxSupport用于支撑 textarea 自动换行 s -->
+            <div class="textBoxSupport" v-html="textAreaInput"></div>
+            <!--  textBoxSupport用于支撑 textarea 自动换行 e -->
+            <!-- 输入框本体 s -->
+            <textarea
+              maxlength="1000"
+              :style="{opacity: $store.state.globe.mainPanelMask ? 0 : 1}"
+              class="textBox"
+              ref="textBox"
+              v-model.trim="textAreaInput"
+              @paste="pasteHandle"
+              @click="faceListActive = false"
+              @focus="textBoxFocus"
+              @blur="textBoxBlur"
+              @keydown="keyCodeCheck"
+              @keyup="keyCodeArr = []"/>
+            <!-- 输入框本体 e -->
           </div>
-          <div class="send textBoxBtn" @click="sendMsg"></div>
+          <!--   发送按钮 s  -->
+          <div class="btnGroup">
+            <div class="btnGroup_Extra">
+              <input type="checkbox" name="btnGroup_Extra" v-model="extraVisible"/>
+              <i class="el-icon-plus"></i>
+            </div>
+            <div class="send textBoxBtn" @click="sendMsg"></div>
+          </div>
+          <!--   发送按钮 e  -->
         </div>
-        <!--   发送按钮 e  -->
-
       </div>
     </div>
 
     <!--  额外功能面板 main s  -->
-    <div class="mainPanel_Extra" :style="{height: extraVisible ? '80px' : 0}">
+    <div class="mainPanel_Extra" :style="{transform: extraVisible ? 'translate(0, -80px)' : 'translate(0, 0px)'}">
       <ul>
         <li @click="$refs.uploadFile.click()">
           <input
@@ -699,6 +696,15 @@ export default {
   --mainPanel-extra-height: 80px;
 }
 
+.mainPanel_Box {
+  transition: all .3s;
+  height: calc(100% - var(--nameContent-height));
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .mainPanel_name {
   height: var(--nameContent-height);
   min-height: var(--nameContent-height);
@@ -950,7 +956,7 @@ export default {
 }
 
 .mainPanel_msgContent {
-  height: calc(100% - (var(--inputContent-height) * 1) - var(--nameContent-height));
+  height: 100%;
   width: 100%;
   overflow-y: auto;
   background: #F7F9FA;
@@ -1358,9 +1364,8 @@ export default {
 }
 
 .mainPanel_Extra {
-  transition: all .3s;
-  height: 80px;
   height: var(--mainPanel-extra-height);
+  transition: all .3s;
   background: #F7F9FA;
 }
 
