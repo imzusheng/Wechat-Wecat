@@ -833,6 +833,7 @@ export default {
   margin: 0 12px;
   display: flex;
   position: relative;
+  z-index: 6;
   justify-content: space-between;
 }
 

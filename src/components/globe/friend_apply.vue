@@ -60,7 +60,7 @@ export default {
   --error-Color: #d93025;
   width: 340px;
   height: auto;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6));
+  background: linear-gradient(145deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 1));
   box-shadow: 10px 10px 30px rgb(235, 235, 235),
   -10px -10px 30px rgba(235, 235, 235, 0.3);
   border-radius: 8px;
@@ -114,7 +114,7 @@ export default {
   width: 100%;
   max-height: 200px;
   box-sizing: border-box;
-  padding: 12px;
+  padding: 2px;
   overflow: hidden;
 }
 
