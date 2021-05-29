@@ -267,8 +267,6 @@ export default {
         if (Object.keys(this.$store.state.globe.navigation.contactList.nameList).includes(e.target.dataset.email)) {
           this.chatObj = e.target.dataset.email
           this.$store.commit('chatObjChange', this.chatObj)
-          // 收到或发送消息时，滚动条自动到达底部
-          this.$store.commit('scrollRec')
           // 选中该好友时，清除该好友的未读消息列表
           if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
         } else if (!Object.keys(this.$store.state.globe.navigation.contactList.nameList).includes(e.target.dataset.email)) {

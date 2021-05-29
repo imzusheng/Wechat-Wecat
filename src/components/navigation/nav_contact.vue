@@ -21,8 +21,6 @@ export default {
       if (e.target.nodeName === 'DIV' && this.chatObj !== e.target.innerHTML) {
         this.chatObj = e.target.innerHTML
         this.$store.commit('chatObjChange', this.chatObj)
-        // 收到或发送消息时，滚动条自动到达底部
-        this.$store.commit('scrollRec')
         // 选中该好友时，清除该好友的未读消息列表
         if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
       }

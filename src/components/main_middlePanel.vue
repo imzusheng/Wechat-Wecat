@@ -87,6 +87,7 @@
         <div ref="msgContent" class="msgContent">
           <transition-group name="msgFade">
             <div
+              :style="{opacity: loading ? '0' : '1'}"
               v-for="item in $store.state.globe.chat.chatList"
               :key="item.msgID"
               :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
@@ -302,9 +303,32 @@ export default {
     }
   },
   mounted () {
+    this.$store.state.refs = this.$refs
     this.emojiPicked = Object.keys(emoji)[0]
-    this.$store.commit('scrollRec', this.$refs)
     this.$store.state.globe.mainPanelMask = false
+  },
+  beforeUpdate () {
+  },
+  updated () {
+    if (!this.$store.state.globe.userConfig.loadingChat) {
+      this.$refs.msgContentBox.scrollTop = this.$refs.msgContent.offsetHeight
+    } else {
+      if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
+        if (this.$store.state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
+          if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
+            this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight // 保存当前的滚动条总高度
+            this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
+            this.$store.state.globe.chat.befScroll = this.$store.state.refs.msgContentBox.scrollHeight // 使用后
+          }
+        } else { // 当前页数在第一页时，作特殊处理
+          this.$store.state.globe.chat.befScroll = this.$store.state.refs.msgContent.offsetHeight
+          this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.refs.msgContent.offsetHeight
+        }
+      } else {
+        this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight
+        this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
+      }
+    }
   },
   methods: {
     switchEmojiTabs (evt) {
@@ -362,8 +386,6 @@ export default {
           type: 'send'
         })
         this.textAreaInput = ''
-        // 收到或发送消息时，滚动条自动到达底部
-        this.$store.commit('scrollRec')
       }
     },
     /** 文件上传完成后处理 */
@@ -1053,6 +1075,7 @@ export default {
 
 .msgContent {
   width: 100%;
+  overflow: hidden;
   border: 1px solid transparent;
   box-sizing: border-box;
   padding-bottom: 180px;

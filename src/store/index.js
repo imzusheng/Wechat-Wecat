@@ -52,7 +52,7 @@ export default new Vuex.Store({
         sendKeyCode: false, // 设置菜单 - 使用组合键发送
         pageSize: 5, // 每页加载的消息数量
         previewImgHeight: 100,
-        loadingChat: true
+        loadingChat: true // 是否懒加载
       },
       chatObjChangeFlag: false // 原本用来触发切换好友时消息气泡动画的，暂时废弃
     }
@@ -96,7 +96,6 @@ export default new Vuex.Store({
     loadOnceChat (state) {
       state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
       state.globe.chat.total = state.globe.navigation.historyList.nameList[state.chatObj].chat.length
-      this.commit('scrollRec')
     },
     /** 模拟懒加载聊天记录 */
     loadChat (state, chatObj) {
@@ -109,36 +108,9 @@ export default new Vuex.Store({
       if (state.globe.chat.total > state.globe.userConfig.pageSize * state.globe.chat.current) {
         state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
           .slice(state.globe.chat.total - state.globe.chat.current * state.globe.userConfig.pageSize, state.globe.chat.total) // 裁剪部分展示
-        setTimeout(() => {
-          if (state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
-            state.globe.chat.curScroll = state.refs.msgContentBox.scrollHeight // 保存当前的滚动条总高度
-            state.refs.msgContentBox.scrollTop = state.globe.chat.curScroll - state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
-            state.globe.chat.befScroll = state.refs.msgContentBox.scrollHeight // 使用后
-          } else { // 当前页数在第一页时，作特殊处理
-            state.globe.chat.befScroll = state.refs.msgContent.offsetHeight
-            state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
-          }
-        }, 0)
       } else { // 当剩余聊天记录总数不满一页时
         state.globe.chat.chatList = state.globe.navigation.historyList.nameList[state.chatObj].chat
-        setTimeout(() => {
-          state.globe.chat.curScroll = state.refs.msgContentBox.scrollHeight
-          state.refs.msgContentBox.scrollTop = state.globe.chat.curScroll - state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
-        }, 0)
       }
-    },
-    // 滚动条自动到底底部
-    scrollRec (state, refs) {
-      if (refs) {
-        state.refs = refs
-      }
-      setTimeout(() => {
-        state.refs.msgContentBox.scrollTo({
-          top: state.refs.msgContent.offsetHeight,
-          behavior: 'auto'
-        })
-        // state.refs.msgContentBox.scrollTop = state.refs.msgContent.offsetHeight
-      }, 0)
     },
     // 建立WebSocket连接
     linkWsServer (state) {
@@ -238,8 +210,6 @@ export default new Vuex.Store({
         /** 聊天 */
         case 'chat':
           this.commit('chatRecordAdd', msgObj)
-          // 重置滚动条到底部
-          this.commit('scrollRec')
           // 收到消息时，如果为未读状态则更新store未读消息unReadMsg
           if (msgObj.from !== state.chatObj) {
             this.commit('unReadMsg', msgObj.from)
