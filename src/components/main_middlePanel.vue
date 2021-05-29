@@ -8,22 +8,24 @@
        @dragleave="uploadDragleave($event)"
        @drop.stop.prevent="showPreImg($event, 'drop')"
   >
-    <!--   输入长度警告 s  -->
+    <!--   输入长度警告 position s  -->
     <div class="chatLengthAlert">
       <div v-show="textAreaInput.length > 750"
            :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'">
         最多可输入1000个字符，还剩 {{ 1000 - textAreaInput.length }} 个
       </div>
     </div>
-    <!--   输入长度警告 e  -->
-    <!--  拖动文件提示遮罩 s  -->
+
+    <!--  拖动文件提示遮罩 position s  -->
     <div class="mainPanel_mask" v-show="$store.state.globe.mainPanelMask" :contenteditable="true"></div>
-    <!--  拖动文件提示遮罩(为了隐藏contenteditable="true"时出现的光标，文本需要分开放) s  -->
+
+    <!--  拖动文件提示遮罩(为了隐藏contenteditable="true"时出现的光标，文本需要分开放) position s  -->
     <div class="mainPanel_mask_text" v-show="$store.state.globe.mainPanelMask">
       <i class="el-icon-upload"></i>
       拖动到这里上传！！
     </div>
-    <!--  图片预览 -->
+
+    <!--  图片预览 position -->
     <transition name="faceListActive">
       <div
         class="previewImg"
@@ -41,7 +43,23 @@
         />
       </div>
     </transition>
-    <!--  聊天对象名字 -->
+
+    <!--    表情包面板 position s -->
+    <ul class="face-list noSelect" @click="selectFace" v-show="faceListActive">
+      <div class="face-list-content">
+        <ul>
+          <li v-for="(item, index) in emoji[emojiPicked]" :title="item.name" :key="index">{{ item.emoji }}</li>
+        </ul>
+      </div>
+      <ul class="face-list-tabs" @click="switchEmojiTabs">
+        <li v-for="(item, index) in Object.keys(emoji)" :key="index">
+          <input type="radio" name="face-list-tabs" :value="item" v-model="emojiPicked"/>
+          <div class="face-list-tabs-child">{{ item }}</div>
+        </li>
+      </ul>
+    </ul>
+
+    <!--  聊天对象名字 main -->
     <div class="mainPanel_name" @click="faceListActive = false">
       <figure v-if="this.chatObj.length > 0">
         <img :src="$store.state.globe.navigation.contactList.nameList[this.chatObj].friendInfo.avatar" alt="">
@@ -55,7 +73,8 @@
         <div class="chatObjNickName">{{ chatObj }}</div>
       </div>
     </div>
-    <!--    聊天记录信息面板  -->
+
+    <!--    聊天记录信息面板 main -->
     <div class="mainPanel_msgContent"
          ref="msgContentBox"
          @click="faceListActive = false"
@@ -147,22 +166,10 @@
         </transition-group>
       </div>
     </div>
-    <!--    表情包面板-->
-    <ul class="face-list noSelect" @click="selectFace" v-show="faceListActive">
-      <div class="face-list-content">
-        <ul>
-          <li v-for="(item, index) in emoji[emojiPicked]" :title="item.name" :key="index">{{ item.emoji }}</li>
-        </ul>
-      </div>
-      <ul class="face-list-tabs" @click="switchEmojiTabs">
-        <li v-for="(item, index) in Object.keys(emoji)" :key="index">
-          <input type="radio" name="face-list-tabs" :value="item" v-model="emojiPicked"/>
-          <div class="face-list-tabs-child">{{ item }}</div>
-        </li>
-      </ul>
-    </ul>
-    <!--    输入框-->
+
+    <!--    输入框 main  -->
     <div class="mainPanel_inputContent">
+
       <!--   文件预览标签 s   -->
       <div class="filePreviewContont" disabled>
         <ul>
@@ -184,8 +191,10 @@
           </li>
         </ul>
       </div>
+
       <!--   输入框和按钮组 s  -->
       <div class="textBoxContent">
+
         <!--   输入长度进度条 s  -->
         <div class="chatLengthProgress" title="最多可输入1000个字符">
           <div
@@ -196,9 +205,11 @@
           </div>
         </div>
         <!--   输入长度进度条 e  -->
+
         <div class="textarea_Container">
           <!--  textBoxSupport用于支撑 textarea 自动换行 s -->
           <div class="textBoxSupport" v-html="textAreaInput"></div>
+          <!--  textBoxSupport用于支撑 textarea 自动换行 e -->
           <!-- 输入框本体 s -->
           <textarea
             maxlength="1000"
@@ -212,12 +223,52 @@
             @blur="textBoxBlur"
             @keydown="keyCodeCheck"
             @keyup="keyCodeArr = []"/>
+          <!-- 输入框本体 e -->
         </div>
+
+        <!--   发送按钮 s  -->
         <div class="btnGroup">
-          <div class="face textBoxBtn" title="发送表情" @click="faceListActive = !faceListActive"></div>
+          <div class="btnGroup_Extra">
+            <input type="checkbox" name="btnGroup_Extra" v-model="extraVisible"/>
+            <i class="el-icon-plus"></i>
+          </div>
           <div class="send textBoxBtn" @click="sendMsg"></div>
         </div>
+        <!--   发送按钮 e  -->
+
       </div>
+    </div>
+
+    <!--  额外功能面板 main s  -->
+    <div class="mainPanel_Extra" :style="{height: extraVisible ? '80px' : 0}">
+      <ul>
+        <li @click="$refs.uploadFile.click()">
+          <input
+            multiple
+            :accept="[...sendFile.allowImgDot, ...sendFile.allowFileDot]"
+            @change="showPreImg($event, 'extra')"
+            type="file"
+            ref="uploadFile"
+            style="position: absolute;
+            visibility: hidden">
+          <svg t="1622278437229" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+               p-id="3316" width="40" height="40">
+            <path
+              d="M843.5 226.2H473.6l-78.4-70.8H139.3l-76.8 70.8v521.3c0 64 51.9 115.9 115.9 115.9h665c64 0 115.9-51.9 115.9-115.9V342.1c0-64-51.8-115.9-115.8-115.9z"
+              p-id="3317" fill="#888888"></path>
+          </svg>
+          文件
+        </li>
+        <li @click="faceListActive = !faceListActive">
+          <svg t="1622278302076" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+               p-id="2355" width="38" height="38">
+            <path
+              d="M512 63.791885c-247.536746 0-448.208115 200.671369-448.208115 448.208115s200.671369 448.208115 448.208115 448.208115 448.208115-200.671369 448.208115-448.208115S759.535723 63.791885 512 63.791885zM512 906.423141c-217.829144 0-394.423141-176.593997-394.423141-394.423141s176.593997-394.423141 394.423141-394.423141 394.423141 176.593997 394.423141 394.423141S729.829144 906.423141 512 906.423141zM368.573403 494.071675c29.707602 0 53.784974-42.005696 53.784974-71.713298s-24.077372-71.713298-53.784974-71.713298c-29.707602 0-53.784974 42.005696-53.784974 71.713298S338.865801 494.071675 368.573403 494.071675zM655.426597 494.071675c29.707602 0 53.784974-42.005696 53.784974-71.713298s-24.077372-71.713298-53.784974-71.713298c-29.707602 0-53.784974 42.005696-53.784974 71.713298S625.718995 494.071675 655.426597 494.071675zM691.283246 619.569948c-8.695033-3.764744-20.904099-4.715395-32.790824-4.427846-32.450063 46.003753-85.912695 76.141144-146.492422 76.141144-61.726853 0-116.139114-31.195489-148.392702-78.669734-10.075473 0.214894-20.779256 1.90028-30.890544 6.956436-11.599176 5.809309-15.633049 13.984503-18.143219 21.029966 41.21775 71.050196 114.113991 122.396631 197.426465 122.396631 84.764546 0 158.737304-53.157687 199.524243-126.143978C706.396455 629.771287 699.906647 623.317295 691.283246 619.569948z"
+              p-id="2356" fill="#888888"></path>
+          </svg>
+          表情
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -234,6 +285,7 @@ export default {
   data () {
     return {
       emoji,
+      extraVisible: false, // 额外功能面板
       emojiPicked: '', // 选中的表情分类
       dragenterClassName: '', // 记录dragenter事件classname
       textAreaInput: '',
@@ -242,8 +294,10 @@ export default {
       uid: window.sessionStorage.getItem('uid'),
       faceListActive: false,
       sendFile: { // 发送文件相关
+        allowImgDot: ['.png', '.jpeg', '.jpg', '.svg', '.ico'], // 允许上传的图片格式
+        allowFileDot: ['.zip', '.tar', '.rar', '.7z', '.mp4', '.mp3', '.txt', '.doc', '.docx', '.pdf', '.mov', '.avi', '.pdf'],
         allowImg: ['png', 'jpeg', 'jpg', 'svg', 'ico'], // 允许上传的图片格式
-        allowFile: ['zip', 'tar', 'rar', '7z', 'mp4', 'mp3', 'txt', 'doc', 'docx', 'pdf', 'mov'],
+        allowFile: ['zip', 'tar', 'rar', '7z', 'mp4', 'mp3', 'txt', 'doc', 'docx', 'pdf', 'mov', 'avi', 'pdf'],
         uploadList: [], // 预览图tabs
         forms: [], // 模拟FormData
         filePreview: { // 预览图相关
@@ -278,6 +332,7 @@ export default {
     },
     /** 发送消息 */
     sendMsg (e) {
+      this.extraVisible = false // 只要发送消息，功能面板就关闭
       this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
       this.faceListActive = false // 点击发送关闭表情包选择面板
       const input = this.textAreaInput.replace(/\n$|\s+/, '') // 匹配结尾的回车符号并替换
@@ -440,6 +495,8 @@ export default {
 
       if (type === 'drop') {
         files = evt.dataTransfer.files
+      } else if (type === 'extra') {
+        files = evt.target.files
       }
 
       if (this.sendFile.uploadList.length + files.length > 10) { // 文件不能超过10个
@@ -636,7 +693,10 @@ export default {
   /*输入栏宽高*/
   --inputContent-height: 80px;
   --inputContent-width: 100%;
-  --transTime: .2s
+  /*气泡动画时间，暂时废弃*/
+  --transTime: .2s;
+  /*功能栏高度*/
+  --mainPanel-extra-height: 80px;
 }
 
 .mainPanel_name {
@@ -845,15 +905,38 @@ export default {
   cursor: pointer;
 }
 
-.textBoxContent .face {
-  bottom: calc(var(--inputContent-height) * 0.2);
-  background: url("../assets/img/face.png") no-repeat 50%;
-  background-size: 90%;
+.textBoxContent .btnGroup_Extra {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 10px;
+}
+
+.textBoxContent .btnGroup_Extra .el-icon-plus {
+  font-size: 44px;
+  color: #999;
   opacity: .8;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.textBoxContent .btnGroup_Extra > input {
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+  opacity: 0;
+}
+
+.textBoxContent .btnGroup_Extra > input:checked + .el-icon-plus {
+  transform: rotate(135deg);
 }
 
 .textBoxContent .send {
-  bottom: calc(var(--inputContent-height) * 0.2);
   background: #65C564;
 }
 
@@ -867,8 +950,6 @@ export default {
 }
 
 .mainPanel_msgContent {
-  position: absolute;
-  top: var(--nameContent-height);
   height: calc(100% - (var(--inputContent-height) * 1) - var(--nameContent-height));
   width: 100%;
   overflow-y: auto;
@@ -1276,32 +1357,35 @@ export default {
   color: #999;
 }
 
-/*.myfilePreviewIcon {*/
-/*  height: auto !important;*/
-/*  background: none !important;*/
-/*  box-shadow: none;*/
-/*  position: relative !important;*/
-/*  text-align: right !important;*/
-/*}*/
+.mainPanel_Extra {
+  transition: all .3s;
+  height: 80px;
+  height: var(--mainPanel-extra-height);
+  background: #F7F9FA;
+}
 
-/*.youfilePreviewIcon {*/
-/*  height: auto !important;*/
-/*  background: none !important;*/
-/*  box-shadow: none;*/
-/*  position: relative !important;*/
-/*  text-align: left !important;*/
-/*}*/
+.mainPanel_Extra > ul {
+  height: var(--mainPanel-extra-height);
+  width: 100%;
+  display: flex;
+}
 
-/*.myfilePreviewIcon .icon,*/
-/*.youfilePreviewIcon .icon {*/
-/*  margin: 20px 0 0px;*/
-/*}*/
+.mainPanel_Extra > ul > li {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: var(--mainPanel-extra-height);
+  flex: 1;
+  font-size: 12px;
+  color: #888;
+  border-radius: 0px;
+  cursor: pointer;
+  background: #F2F2F2;
+  box-shadow: inset 19px -19px 38px #F7F9FA,
+  inset -19px 19px 38px #ffffff;
+}
 
-/*.myfilePreviewIcon .iconInfo,*/
-/*.youfilePreviewIcon .iconInfo {*/
-/*  display: block;*/
-/*  color: #777;*/
-/*  margin-top: -27px;*/
-/*  font-size: 12px;*/
-/*}*/
+.mainPanel_Extra > ul > li:hover {
+}
 </style>
