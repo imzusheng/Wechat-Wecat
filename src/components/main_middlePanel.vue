@@ -1,6 +1,7 @@
 <template>
+  <!--  (TODO) 希望图片不需要分片上传，只有大文件才需要 -->
   <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
-  <!-- (TODO) 添加一个按钮上传文件 -->
+  <!--  (TODO) 如果同时上传两个同名的文件，且服务器不存在时。会报错-->
   <div class="mainPanel_wrap"
        :disabled="loading"
        v-loading="loading"
@@ -82,8 +83,7 @@
            @click="faceListActive = false"
            @scroll="scrollList($event)"
       >
-        <div class="msgContent" ref="msgContent"
-             :style="{paddingBottom: sendFile.uploadList.length > 0 ? '180px':'100px'}">
+        <div class="msgContent" ref="msgContent">
           <transition-group name="msgFade">
             <div
               v-for="item in $store.state.globe.chat.chatList"
@@ -237,7 +237,7 @@
     </div>
 
     <!--  额外功能面板 main s  -->
-    <div class="mainPanel_Extra" :style="{transform: extraVisible ? 'translate(0, -80px)' : 'translate(0, 0px)'}">
+    <div class="mainPanel_Extra" :style="{transform: extraVisible ? 'translate(0, 0px)' : 'translate(0, 80px)'}">
       <ul>
         <li @click="$refs.uploadFile.click()">
           <input
@@ -291,6 +291,7 @@ export default {
       uid: window.sessionStorage.getItem('uid'),
       faceListActive: false,
       sendFile: { // 发送文件相关
+        sending: false, // 是否正在发送中,发送中不可关闭预览标签
         allowImgDot: ['.png', '.jpeg', '.jpg', '.svg', '.ico'], // 允许上传的图片格式
         allowFileDot: ['.zip', '.tar', '.rar', '.7z', '.mp4', '.mp3', '.txt', '.doc', '.docx', '.pdf', '.mov', '.avi', '.pdf'],
         allowImg: ['png', 'jpeg', 'jpg', 'svg', 'ico'], // 允许上传的图片格式
@@ -319,12 +320,12 @@ export default {
     },
     /** 处理显示文件大小 */
     fileSize (size) {
-      if (size <= 1000 * 1000) {
-        return `${(size / 1000).toFixed(2)} kb`
-      } else if (size <= 1000 * 1000 * 1000) {
-        return `${(size / (1000 * 1000)).toFixed(2)} M`
+      if (size <= 1024 * 1024) {
+        return `${(size / 1024).toFixed(2)} kb`
+      } else if (size <= 1024 * 1024 * 1024) {
+        return `${(size / (1024 * 1024)).toFixed(2)} M`
       } else {
-        return `${(size / (1000 * 1000 * 1000)).toFixed(2)} G`
+        return `${(size / (1024 * 1024 * 1024)).toFixed(2)} G`
       }
     },
     /** 发送消息 */
@@ -336,7 +337,24 @@ export default {
       if (input.length === 0 && this.sendFile.uploadList.length === 0) { // 如果内容全为空格，判定为空
         return this.$message('说点什么吧！')
       }
-      if (this.sendFile.uploadList.length > 0) this.sendFileHandle()
+      if (this.sendFile.uploadList.length > 0) {
+        this.sendFile.uploadList.forEach((file, index) => {
+          // 生成hash
+          file.hash = getHash(file.name + file.size + file.lastModified) // 将hash挂载file上
+        })
+        const unique = {}
+        this.sendFile.uploadList.forEach((file, index) => {
+          unique[file.hash] = file
+        })
+        if ([...Object.values(unique)].length !== this.sendFile.uploadList) {
+          this.$message({
+            type: 'info',
+            message: '检测到重复文件，将合并为一次发送！'
+          })
+        }
+        this.sendFile.uploadList = [...Object.values(unique)]
+        this.sendFileHandle()
+      }
       if (input.length > 0) {
         // 发送消息给对方
         this.$emit('sendMsg', input, this.chatObj, 'chat')
@@ -393,7 +411,9 @@ export default {
     },
     /** 发送图片到服务器 */
     sendFileHandle () {
+      this.sendFile.sending = true
       this.sendFile.uploadList.forEach(async (file, index) => {
+        if (!file) return
         // 生成hash
         file.hash = getHash(file.name + file.size + file.lastModified) // 将hash挂载file上
         // 上传之前先检查服务器是否存在相同文件
@@ -403,7 +423,7 @@ export default {
             file,
             {
               chunkSize: 1024 * 1024, // 1M一个分片
-              oneTime: 10 // 一次性发送几个Post请求
+              oneTime: 10 // 队列中最多存在几个Post请求
             }, Progress => {
               Vue.set(this.sendFile.uploading, index, Progress) // 直接设置进度条不会更新，响应式原理
             }).then(res => { // 不存在相同文件，返回服务器保存后的文件名
@@ -415,6 +435,7 @@ export default {
       })
     },
     closePreview (index, file, res) { // (TODO) 上传完成，这里暂时不能用splice删除掉数组，因为会改变数组长度。后期换成对象就可以
+      this.sendFile.sending = false // 发送完毕
       this.sendFile.uploadList[index] = '' // 上传完成
       this.uploadDone(file, res)
       let flag = true
@@ -463,6 +484,12 @@ export default {
     },
     /** 删除预览图标签 */
     removeFileTab (index) { // 阻止事件冒泡，以免触发previewSwitch()
+      if (this.sendFile.sending) {
+        return this.$message({
+          type: 'error',
+          message: '想停止上传可以刷新浏览器试试，emmm.....'
+        })
+      }
       this.sendFile.filePreview.previewStatus = false
       this.sendFile.uploadList.splice(index, 1)
     },
@@ -580,6 +607,7 @@ export default {
       if (face.target.nodeName.toLowerCase() === 'li') {
         const faceContent = face.target.innerHTML
         this.textAreaInput += faceContent
+        this.$refs.textBox.focus()
         // 将光标移动到末尾
         // const range = document.createRange()
         // range.selectNodeContents(this.$refs.textBox)
@@ -840,10 +868,10 @@ export default {
 
 .chatLengthProgress {
   position: absolute;
-  top: -8px;
+  top: -5px;
   left: 0;
   width: 100%;
-  height: 8px;
+  height: 5px;
   background: #ccc;
   cursor: pointer;
   overflow: hidden;
@@ -966,8 +994,8 @@ export default {
   cursor: pointer;
   position: absolute;
   right: 5%;
-  bottom: 100px;
-  max-width: 80%;
+  bottom: 180px;
+  max-width: 60%;
   z-index: 999;
   background: #F7F9FA;
   border-radius: 10px;
@@ -977,7 +1005,6 @@ export default {
 }
 
 .face-list-tabs {
-  background: linear-gradient(to top, rgba(200, 200, 200, .5), rgba(255, 255, 255, 0));
   box-sizing: border-box;
   padding: 0 5px;
   display: flex;
@@ -1017,7 +1044,7 @@ export default {
 .face-list-content {
   box-sizing: border-box;
   padding: 15px;
-  max-height: 500px;
+  max-height: 50vh;
   width: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1040,7 +1067,7 @@ export default {
   width: 100%;
   border: 1px solid transparent;
   box-sizing: border-box;
-  overflow: hidden;
+  padding-bottom: 180px;
   transition: all .3s;
 }
 
@@ -1175,7 +1202,7 @@ export default {
   height: 40px;
   width: 100%;
   position: absolute;
-  top: -108px;
+  top: -105px;
   left: 0;
   z-index: 3;
 }
@@ -1364,6 +1391,10 @@ export default {
 }
 
 .mainPanel_Extra {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
   height: var(--mainPanel-extra-height);
   transition: all .3s;
   background: #F7F9FA;
