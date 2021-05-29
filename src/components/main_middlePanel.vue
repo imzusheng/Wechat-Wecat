@@ -2,9 +2,9 @@
   <!--  (TODO) 希望图片不需要分片上传，只有大文件才需要 -->
   <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
   <!--  (TODO) 如果同时上传两个同名的文件，且服务器不存在时。会报错-->
-  <div class="mainPanel_wrap"
+  <div v-loading="loading"
        :disabled="loading"
-       v-loading="loading"
+       class="mainPanel_wrap"
        @dragenter="uploadDragenter($event)"
        @dragleave="uploadDragleave($event)"
        @drop.stop.prevent="showPreImg($event, 'drop')"
@@ -18,10 +18,10 @@
     </div>
 
     <!--  拖动文件提示遮罩 position s  -->
-    <div class="mainPanel_mask" v-show="$store.state.globe.mainPanelMask" :contenteditable="true"></div>
+    <div v-show="$store.state.globe.mainPanelMask" :contenteditable="true" class="mainPanel_mask"></div>
 
     <!--  拖动文件提示遮罩(为了隐藏contenteditable="true"时出现的光标，文本需要分开放) position s  -->
-    <div class="mainPanel_mask_text" v-show="$store.state.globe.mainPanelMask">
+    <div v-show="$store.state.globe.mainPanelMask" class="mainPanel_mask_text">
       <i class="el-icon-upload"></i>
       拖动到这里上传！！
     </div>
@@ -29,10 +29,10 @@
     <!--  图片预览 position -->
     <transition name="faceListActive">
       <div
-        class="previewImg"
         v-show="previewStatus"
-        @click="previewStatus = false"
         :style="{transform: `translate(-50%, -50%) scale(${$store.state.globe.userConfig.previewImgHeight/100, $store.state.globe.userConfig.previewImgHeight/100})`}"
+        class="previewImg"
+        @click="previewStatus = false"
       >
         <!--        <div class="title" @click="previewStatus = false">-->
         <!--          {{ sendFile.filePreview.previewName }}-->
@@ -46,15 +46,15 @@
     </transition>
 
     <!--    表情包面板 position s -->
-    <ul class="face-list noSelect" @click="selectFace" v-show="faceListActive">
+    <ul v-show="faceListActive" class="face-list noSelect" @click="selectFace">
       <div class="face-list-content">
         <ul>
-          <li v-for="(item, index) in emoji[emojiPicked]" :title="item.name" :key="index">{{ item.emoji }}</li>
+          <li v-for="(item, index) in emoji[emojiPicked]" :key="index" :title="item.name">{{ item.emoji }}</li>
         </ul>
       </div>
       <ul class="face-list-tabs" @click="switchEmojiTabs">
         <li v-for="(item, index) in Object.keys(emoji)" :key="index">
-          <input type="radio" name="face-list-tabs" :value="item" v-model="emojiPicked"/>
+          <input v-model="emojiPicked" :value="item" name="face-list-tabs" type="radio"/>
           <div class="face-list-tabs-child">{{ item }}</div>
         </li>
       </ul>
@@ -75,20 +75,20 @@
       </div>
     </div>
 
-    <div class="mainPanel_Box" :style="{transform: extraVisible ? 'translate(0, -80px)' : 'translate(0, 0)'}">
+    <div :style="{transform: extraVisible ? 'translate(0, -80px)' : 'translate(0, 0)'}" class="mainPanel_Box">
 
       <!--    聊天记录信息面板 main -->
-      <div class="mainPanel_msgContent"
-           ref="msgContentBox"
+      <div ref="msgContentBox"
+           class="mainPanel_msgContent"
            @click="faceListActive = false"
            @scroll="scrollList($event)"
       >
-        <div class="msgContent" ref="msgContent">
+        <div ref="msgContent" class="msgContent">
           <transition-group name="msgFade">
             <div
               v-for="item in $store.state.globe.chat.chatList"
-              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
               :key="item.msgID"
+              :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
             >
               <!--   正常聊天框 s   -->
               <div
@@ -102,23 +102,16 @@
               >
                 {{ item.msg }}
               </div>
-              <!--   文件聊天框 s  -->
-              <!--            :class="{-->
-              <!--            'myMsgContentFadeIn' : item.say === 'me' && !$store.state.globe.chatObjChangeFlag,-->
-              <!--            'youMsgContentFadeIn' : item.say === 'you' && !$store.state.globe.chatObjChangeFlag,-->
-              <!--            'myMsgContentFadeOut' : item.say === 'me' && $store.state.globe.chatObjChangeFlag,-->
-              <!--            'youMsgContentFadeOut' : item.say === 'you' && $store.state.globe.chatObjChangeFlag-->
-              <!--            }"-->
               <div
                 v-else>
                 <!--     当聊天信息只为一张图片时      -->
                 <img
                   v-if="sendFile.allowImg.includes(item.postfix)"
-                  @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"
-                  style="cursor: pointer; border: 1px solid #ccc; box-shadow: 5px 5px 15px #cecece, 0px 0px 0px #ffffff; max-width: 750px; max-height: 300px"
-                  :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
                   :src="`${server.httpServer}/static?filename=${item.msg}`"
-                  alt=""/>
+                  :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
+                  alt=""
+                  style="cursor: pointer; border: 1px solid #ccc; box-shadow: 5px 5px 15px #cecece, 0px 0px 0px #ffffff; max-width: 750px; max-height: 300px"
+                  @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"/>
                 <!--     当聊天信息是一个文件时      -->
                 <div
                   v-if="sendFile.allowFile.includes(item.postfix)"
@@ -127,15 +120,15 @@
                   <!--  保持文件图片始终靠向中间 s  -->
                   <a
                     v-if="item.say === 'me'"
-                    :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
                     :download="`${item.msg}`"
+                    :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
                   >
                     <div class="filePreview_img">
-                      <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                           xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                      <svg class="icon" height="80" p-id="2889" t="1621934901345"
+                           version="1.1" viewBox="0 0 1024 1024" width="80" xmlns="http://www.w3.org/2000/svg">
                         <path
                           d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
-                          p-id="2890" fill="#65C564"></path>
+                          fill="#65C564" p-id="2890"></path>
                       </svg>
                     </div>
                     <div class="fileInfo">
@@ -145,25 +138,25 @@
                   </a>
                   <a
                     v-else
-                    :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
                     :download="`${item.msg}`"
+                    :href="`${server.httpServer}/static?filename=${item.msg}&raw=${item.rawName}`"
                   >
                     <div class="fileInfo">
                       <div class="filePreview_filename">{{ item.rawName }}</div>
                       <div class="filePreview_filename">大小：{{ fileSize(item.size) }}</div>
                     </div>
                     <div class="filePreview_img">
-                      <svg t="1621934901345" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                           xmlns="http://www.w3.org/2000/svg" p-id="2889" width="80" height="80">
+                      <svg class="icon" height="80" p-id="2889" t="1621934901345"
+                           version="1.1" viewBox="0 0 1024 1024" width="80" xmlns="http://www.w3.org/2000/svg">
                         <path
                           d="M519.283382 163.91421l0 232.024447 232.315066 0L519.283382 163.91421zM490.341213 425.124374 490.341213 163.91421l0 0L257.879813 163.91421l0 696.170556 508.23935 0L766.119163 425.124374 490.341213 425.124374z"
-                          p-id="2890" fill="#65C564"></path>
+                          fill="#65C564" p-id="2890"></path>
                       </svg>
                     </div>
                   </a>
                 </div>
               </div>
-              <div class="msgTime" v-show="$store.state.globe.userConfig.timeSwitch">{{ item.time }}</div>
+              <div v-show="$store.state.globe.userConfig.timeSwitch" class="msgTime">{{ item.time }}</div>
             </div>
           </transition-group>
         </div>
@@ -193,75 +186,73 @@
           </ul>
         </div>
         <!--   输入框和按钮组 s  -->
-        <div class="textBoxContent">
-          <!--   输入长度进度条 s  -->
-          <div class="chatLengthProgress" title="最多可输入1000个字符">
-            <div
-              class="chatLength"
-              :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'"
-              :style="{clipPath: `polygon(0% 100%, ${textAreaInput.length / 10}% 100%, ${textAreaInput.length / 10}% 0%, 0% 0%)`}"
-            >
-            </div>
+        <!--   输入长度进度条 s  -->
+        <div class="chatLengthProgress" title="最多可输入1000个字符">
+          <div
+            class="chatLength"
+            :class="textAreaInput.length > 950 ? (textAreaInput.length >= 1000 ? 'fileStatus_error' : 'fileStatus_yellow') : 'fileStatus_blue'"
+            :style="{clipPath: `polygon(0% 100%, ${textAreaInput.length / 10}% 100%, ${textAreaInput.length / 10}% 0%, 0% 0%)`}"
+          >
           </div>
-          <!--   输入长度进度条 e  -->
-          <div class="textarea_Container">
-            <!--  textBoxSupport用于支撑 textarea 自动换行 s -->
-            <div class="textBoxSupport" v-html="textAreaInput"></div>
-            <!--  textBoxSupport用于支撑 textarea 自动换行 e -->
-            <!-- 输入框本体 s -->
-            <textarea
-              maxlength="1000"
-              :style="{opacity: $store.state.globe.mainPanelMask ? 0 : 1}"
-              class="textBox"
-              ref="textBox"
-              v-model.trim="textAreaInput"
-              @paste="pasteHandle"
-              @click="faceListActive = false"
-              @focus="textBoxFocus"
-              @blur="textBoxBlur"
-              @keydown="keyCodeCheck"
-              @keyup="keyCodeArr = []"/>
-            <!-- 输入框本体 e -->
-          </div>
-          <!--   发送按钮 s  -->
-          <div class="btnGroup">
-            <div class="btnGroup_Extra">
-              <input type="checkbox" name="btnGroup_Extra" v-model="extraVisible"/>
-              <i class="el-icon-plus"></i>
-            </div>
-            <div class="send textBoxBtn" @click="sendMsg"></div>
-          </div>
-          <!--   发送按钮 e  -->
         </div>
+        <!--   输入长度进度条 e  -->
+        <div class="textarea_Container">
+          <!--  textBoxSupport用于支撑 textarea 自动换行 s -->
+          <div class="textBoxSupport" v-html="textAreaInput"></div>
+          <!--  textBoxSupport用于支撑 textarea 自动换行 e -->
+          <!-- 输入框本体 s -->
+          <textarea
+            ref="textBox"
+            v-model.trim="textAreaInput"
+            :style="{opacity: $store.state.globe.mainPanelMask ? 0 : 1}"
+            class="textBox"
+            maxlength="1000"
+            @blur="textBoxBlur"
+            @click="faceListActive = false"
+            @focus="textBoxFocus"
+            @keydown="keyCodeCheck"
+            @keyup="keyCodeArr = []"
+            @paste="pasteHandle"/>
+          <!-- 输入框本体 e -->
+        </div>
+        <!--   发送按钮 s  -->
+        <div class="btnGroup">
+          <div class="btnGroup_Extra">
+            <input v-model="extraVisible" name="btnGroup_Extra" type="checkbox"/>
+            <i class="el-icon-plus"></i>
+          </div>
+          <div class="send textBoxBtn" @click="sendMsg"></div>
+        </div>
+        <!--   发送按钮 e  -->
       </div>
     </div>
 
     <!--  额外功能面板 main s  -->
-    <div class="mainPanel_Extra" :style="{transform: extraVisible ? 'translate(0, 0px)' : 'translate(0, 80px)'}">
+    <div :style="{transform: extraVisible ? 'translate(0, 0px)' : 'translate(0, 80px)'}" class="mainPanel_Extra">
       <ul>
         <li @click="$refs.uploadFile.click()">
           <input
-            multiple
-            :accept="[...sendFile.allowImgDot, ...sendFile.allowFileDot]"
-            @change="showPreImg($event, 'extra')"
-            type="file"
             ref="uploadFile"
+            :accept="[...sendFile.allowImgDot, ...sendFile.allowFileDot]"
+            multiple
             style="position: absolute;
-            visibility: hidden">
-          <svg t="1622278437229" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-               p-id="3316" width="40" height="40">
+            visibility: hidden"
+            type="file"
+            @change="showPreImg($event, 'extra')">
+          <svg class="icon" height="40" p-id="3316" t="1622278437229" version="1.1"
+               viewBox="0 0 1024 1024" width="40" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M843.5 226.2H473.6l-78.4-70.8H139.3l-76.8 70.8v521.3c0 64 51.9 115.9 115.9 115.9h665c64 0 115.9-51.9 115.9-115.9V342.1c0-64-51.8-115.9-115.8-115.9z"
-              p-id="3317" fill="#888888"></path>
+              fill="#888888" p-id="3317"></path>
           </svg>
           文件
         </li>
         <li @click="faceListActive = !faceListActive">
-          <svg t="1622278302076" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-               p-id="2355" width="38" height="38">
+          <svg class="icon" height="38" p-id="2355" t="1622278302076" version="1.1"
+               viewBox="0 0 1024 1024" width="38" xmlns="http://www.w3.org/2000/svg">
             <path
               d="M512 63.791885c-247.536746 0-448.208115 200.671369-448.208115 448.208115s200.671369 448.208115 448.208115 448.208115 448.208115-200.671369 448.208115-448.208115S759.535723 63.791885 512 63.791885zM512 906.423141c-217.829144 0-394.423141-176.593997-394.423141-394.423141s176.593997-394.423141 394.423141-394.423141 394.423141 176.593997 394.423141 394.423141S729.829144 906.423141 512 906.423141zM368.573403 494.071675c29.707602 0 53.784974-42.005696 53.784974-71.713298s-24.077372-71.713298-53.784974-71.713298c-29.707602 0-53.784974 42.005696-53.784974 71.713298S338.865801 494.071675 368.573403 494.071675zM655.426597 494.071675c29.707602 0 53.784974-42.005696 53.784974-71.713298s-24.077372-71.713298-53.784974-71.713298c-29.707602 0-53.784974 42.005696-53.784974 71.713298S625.718995 494.071675 655.426597 494.071675zM691.283246 619.569948c-8.695033-3.764744-20.904099-4.715395-32.790824-4.427846-32.450063 46.003753-85.912695 76.141144-146.492422 76.141144-61.726853 0-116.139114-31.195489-148.392702-78.669734-10.075473 0.214894-20.779256 1.90028-30.890544 6.956436-11.599176 5.809309-15.633049 13.984503-18.143219 21.029966 41.21775 71.050196 114.113991 122.396631 197.426465 122.396631 84.764546 0 158.737304-53.157687 199.524243-126.143978C706.396455 629.771287 699.906647 623.317295 691.283246 619.569948z"
-              p-id="2356" fill="#888888"></path>
+              fill="#888888" p-id="2356"></path>
           </svg>
           表情
         </li>
@@ -787,13 +778,12 @@ export default {
 .mainPanel_inputContent {
   min-height: var(--inputContent-height);
   width: var(--inputContent-width);
-  /*background-color: rgba(255, 255, 255, 1);*/
   background: linear-gradient(to right, #F7F9FA, #ffffff);
   box-shadow: 20px -2px 22px rgba(210, 210, 210, .9),
   20px -2px 22px #ffffff;
   position: relative;
   z-index: 3;
-  /*输入框高度*/
+  display: flex;
 }
 
 .mainPanel_mask {
@@ -829,19 +819,10 @@ export default {
   margin-right: 6px;
 }
 
-.textBoxContent {
-  display: flex;
+.textarea_Container {
   width: 100%;
-  height: 100%;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.textBoxContent .textarea_Container {
+  min-height: var(--inputContent-height);
   position: relative;
-  height: 100%;
-  border: none;
-  flex: 1;
 }
 
 .chatLengthAlert {
@@ -868,11 +849,11 @@ export default {
 
 .chatLengthProgress {
   position: absolute;
-  top: -5px;
+  top: -3px;
   left: 0;
   width: 100%;
-  height: 5px;
-  background: #ccc;
+  height: 3px;
+  background: rgba(230, 230, 230, 1);
   cursor: pointer;
   overflow: hidden;
 }
@@ -897,7 +878,7 @@ export default {
   word-wrap: break-word;
 }
 
-.textarea_Container .textBox {
+.textBox {
   font-size: 18px;
   position: absolute;
   top: 12px;
@@ -918,17 +899,17 @@ export default {
   word-wrap: break-word;
 }
 
-.textarea_Container .textBox::-webkit-scrollbar {
+.textBox::-webkit-scrollbar {
   display: none
 }
 
-.textBoxContent .btnGroup {
-  height: 48px;
-  margin: 0 12px;
+.btnGroup {
+  margin: 0 12px 0;
+  width: 140px;
   display: flex;
-  position: relative;
-  z-index: 6;
   justify-content: space-between;
+  align-items: center;
+  z-index: 6;
 }
 
 .textBoxBtn {
@@ -939,15 +920,12 @@ export default {
   cursor: pointer;
 }
 
-.textBoxContent .btnGroup_Extra {
+.btnGroup_Extra {
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   margin-right: 10px;
 }
 
-.textBoxContent .btnGroup_Extra .el-icon-plus {
+.btnGroup_Extra .el-icon-plus {
   font-size: 44px;
   color: #999;
   opacity: .8;
@@ -955,7 +933,7 @@ export default {
   transition: all .2s;
 }
 
-.textBoxContent .btnGroup_Extra > input {
+.btnGroup_Extra > input {
   cursor: pointer;
   position: absolute;
   top: 0;
@@ -966,15 +944,15 @@ export default {
   opacity: 0;
 }
 
-.textBoxContent .btnGroup_Extra > input:checked + .el-icon-plus {
+.btnGroup_Extra > input:checked + .el-icon-plus {
   transform: rotate(135deg);
 }
 
-.textBoxContent .send {
+.send {
   background: #65C564;
 }
 
-.textBoxContent .send::after {
+.send::after {
   content: '';
   position: absolute;
   height: 48px;
