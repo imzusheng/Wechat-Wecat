@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
-    "chokidar": "^2.1.8",
     "core-js": "^3.6.5",
     "element-ui": "^2.15.1",
     "moment": "^2.29.1",
@@ -37,6 +36,7 @@
     "vue-cli-plugin-element": "^1.0.1",
     "vue-template-compiler": "^2.6.11",
     "webpack": "^4.0.0",
-    "html-webpack-plugin": "^4.5.2"
+    "html-webpack-plugin": "^4.5.2",
+    "chokidar": "^2.1.8"
   }
 }
