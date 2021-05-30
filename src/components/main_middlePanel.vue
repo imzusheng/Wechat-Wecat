@@ -324,7 +324,7 @@ export default {
   beforeUpdate () {
   },
   updated () {
-    if (!this.chatListChange) return  // 当chatList没有发生改变时,直接返回.chatList才是聊天记录数据
+    if (!this.chatListChange) return // 当chatList没有发生改变时,直接返回.chatList才是聊天记录数据
     this.chatListChange = false
     setTimeout(() => { // 解决切换动画 .msgFade-leave-active 期间内导致父层高度变化影响观感的问题
       if (!this.$store.state.globe.userConfig.loadingChat) {
