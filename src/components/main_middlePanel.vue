@@ -92,7 +92,7 @@
               :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
             >
               <!--   正常聊天框 s   -->
-              <div
+              <pre
                 v-if="item.type !== 'file'"
                 :class="{
             'My_Msg' : item.say === 'me',
@@ -100,9 +100,10 @@
             'My_Msg' : item.say === 'me',
             'You_Msg' : item.say === 'you'
           }"
+                v-html="item.msg"
               >
-                {{ item.msg }}
-              </div>
+<!--                {{ item.msg }}-->
+              </pre>
               <!--     不正常      -->
               <div
                 v-else>
@@ -364,7 +365,8 @@ export default {
       this.extraVisible = false // 只要发送消息，功能面板就关闭
       this.$refs.textBox.focus() // 点击发送不让输入框失去焦点
       this.faceListActive = false // 点击发送关闭表情包选择面板
-      const input = this.textAreaInput.replace(/\n$|\s+/, '') // 匹配结尾的回车符号并替换
+      // const input = this.textAreaInput.replace(/\n$|\s+/, '') // 匹配结尾的回车符号并替换
+      const input = this.textAreaInput.replace(/\n/g, '&#13;&#10;')
       if (input.length === 0 && this.sendFile.uploadList.length === 0) { // 如果内容全为空格，判定为空
         return this.$message('说点什么吧！')
       }
@@ -946,6 +948,8 @@ export default {
   z-index: 4;
   word-break: break-all;
   word-wrap: break-word;
+  white-space: pre-line;
+  white-space: pre-wrap;
 }
 
 .textBox::-webkit-scrollbar {
