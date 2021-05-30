@@ -13,15 +13,34 @@ module.exports = {
     const wss = new WebSocket.Server({
       port: port
     })
+
+    console.log(`WebSocketServer listen at ws://localhost:${port}`)
+
+    /** 设置定时器，定时ping服务器 */
+    const isAliveInterval = setInterval(() => {
+      clientsArr = Array.from(wss.clients) /// ///////////////////////////////////// 每次检查的时候，把最新的在线列表推给全局啊！
+      wss.clients.forEach(client => {
+        if (client.isAlive === false) return client.terminate() // 当该客户端已经断开连接则关闭该连接
+        client.isAlive = false // 重置所有客户端存活状态为false
+        client.ping() // ping客户端，马上就会收到客户端发回的pong，如果没则客户端断开连接
+      })
+    }, 15000) // 15秒检测一次客户端是否在线
+
+    /** 连接关闭时激活，一般情况下不会关闭wss */
+    wss.on('close', () => {
+      console.log('wss->close')
+      clearInterval(isAliveInterval)
+    })
+
     wss.on('connection', ws => { // 每当一个客户端新建连接时，激活connection，传入ws对象就是该客户端对象
-      console.log(`WebSocketServer listen at ws://localhost:${port}`)
-      ws.isAlive = true
+      ws.isAlive = true // 给你挂上isAlive标记客户端在线状态
       ws.on('pong', () => {
-        ws.isAlive = true
-      }) // 当收到客户端ping时, 立即回复pong。如果没收到pong则ws.isAlive=false，30秒后被关闭
+        ws.isAlive = true // 当收到客户端ping时, 立即回复pong。如果没收到pong则ws.isAlive=false，**秒后被关闭
+      })
 
       ws.on('message', (message) => { // 收到客户端消息时激活
         const msgObj = JSON.parse(message)
+        console.log(msgObj)
         /** wss.clients为 set集合，转换为数组便于操作 */
         clientsArr = Array.from(wss.clients)
         /** 对于type的不用，执行不同的操作 */
@@ -38,21 +57,6 @@ module.exports = {
         Object.keys(route).forEach(value => routeArr.push(value))
         if (routeArr.includes(msgObj.type)) return route[msgObj.type](msgObj, wss, ws)
       })
-    })
-
-    /** 设置定时器，定时ping服务器 */
-    const isAliveInterval = setInterval(() => {
-      wss.clients.forEach(client => {
-        if (client.isAlive === false) return client.terminate() // 当该客户端已经断开连接则关闭该连接
-        client.isAlive = false // 重置所有客户端存活状态为false
-        client.ping() // ping客户端，马上就会收到客户端发回的pong，如果没则客户端断开连接
-      })
-    }, 15000) // 15秒检测一次客户端是否在线
-
-    /** 连接关闭时激活，一般情况下不会关闭wss */
-    wss.on('close', () => {
-      console.log('wss->close')
-      clearInterval(isAliveInterval)
     })
   }
 }

@@ -1,7 +1,5 @@
 <template>
-  <!--  (TODO) 直接把滚动条去掉,用margintop来调整消息, -->
   <!--  (TODO) 希望图片不需要分片上传，只有大文件才需要 -->
-  <!--  (TODO) 上传多个图片时滚动条不会置底 -->
   <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
   <div v-loading="loading"
        :disabled="loading"
@@ -327,10 +325,10 @@ export default {
     if (!this.chatListChange) return // 当chatList没有发生改变时,直接返回.chatList才是聊天记录数据
     this.chatListChange = false
     setTimeout(() => { // 解决切换动画 .msgFade-leave-active 期间内导致父层高度变化影响观感的问题
-      if (!this.$store.state.globe.userConfig.loadingChat) {
+      if (!this.$store.state.globe.userConfig.loadingChat) { // 当未开启懒加载时，直接把所有聊天记录展示出来
         this.$refs.msgContentBox.scrollTop = this.$refs.msgContent.offsetHeight
-      } else {
-        if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
+      } else { // 以下开启懒加载，聊天记录切割后展示
+        if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) { // 当剩余页数大于1时
           if (this.$store.state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
             if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
               this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight // 保存当前的滚动条总高度
@@ -341,7 +339,7 @@ export default {
             this.$store.state.globe.chat.befScroll = this.$store.state.refs.msgContent.offsetHeight
             this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.refs.msgContent.offsetHeight
           }
-        } else {
+        } else { // 当剩余页数等于1时
           this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight
           this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
         }
@@ -709,7 +707,7 @@ export default {
     },
     inputStatus: { // 输入状态
       get () {
-        return this.$store.state.inputStatus
+        return this.$store.state.globe.inputStatus
       }
     }
   },
@@ -739,7 +737,7 @@ export default {
 }
 
 .msgFade-enter, .msgFade-leave-to {
-  transform: translate3d(0, 80%, 0);
+  transform: translate3d(0, 10%, 0);
   opacity: 0;
 }
 

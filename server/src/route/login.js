@@ -217,6 +217,7 @@ router.get('/wechatAPI/login/checkRepeatLogin', (ctx) => {
     error: flag,
     msg: flag ? '请勿重复登录' : '',
     data: {
+      clients: require('../../src/module/ws').getOnlineClients(),
       email: data.email
     }
   }
@@ -607,17 +608,31 @@ router.get('/wechatAPI/login/userOrigin', async (ctx) => {
   let msg
   if (ctx.request.header.origin || ctx.request.header['x-real-ip']) {
     // const IPAddress = ctx.request.header.origin.slice(ctx.request.header.origin.indexOf('://') + 3, ctx.request.header.origin.lastIndexOf(':'))
-    const result = await getCity(ctx.request.header['x-real-ip'])
-    msg = {
-      data: {
-        IPAddress: ctx.request.header['x-real-ip'],
-        result: result.result
+    getCity(ctx.request.header['x-real-ip']).then(
+      (result) => {
+        msg = {
+          data: {
+            IPAddress: ctx.request.header['x-real-ip'],
+            result: result.result
+          },
+          error: false,
+          msg: '获取成功'
+        }
       },
-      error: false,
-      msg: '获取成功'
-    }
+      (error) => {
+        msg = {
+          data: {
+            IPAddress: '',
+            result: ''
+          },
+          error: true,
+          msg: error
+        }
+      }
+    )
+    ctx.body = msg
   } else {
-    msg = {
+    ctx.body = {
       data: {
         IPAddress: '',
         result: ''
@@ -626,7 +641,6 @@ router.get('/wechatAPI/login/userOrigin', async (ctx) => {
       msg: '获取失败'
     }
   }
-  ctx.body = msg
 })
 
 module.exports = router.routes()

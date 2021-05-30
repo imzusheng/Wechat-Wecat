@@ -11,13 +11,13 @@ export default new Vuex.Store({
   state: () => ({
     wsAddress: process.env.NODE_ENV === 'production' ? 'wss://zusheng.club/wsServerV2' : 'ws://localhost:4800',
     chatObj: '', // 全局聊天对象
-    inputStatus: false, // 好友输入状态
     uid: window.sessionStorage.getItem('uid'), // 用户名
-    refs: {},
+    refs: {}, // $refs
     unReadMsg: {}, // 保存未读消息的数量 {用户名：未读数量}
     ws: {}, // WebSocket 对象
-    maxMsg: 50, // 聊天框显示消息的最大数量
     globe: {
+      inputStatus: false, // 好友输入状态
+      mainPanelMask: false, // 拖动文件进来时触发
       addFriend: { // 添加好友相关
         applyList: [], // 所有好友请求
         friendInfo: '', // 当前将要发送好友请求的那位好友信息
@@ -38,7 +38,6 @@ export default new Vuex.Store({
         },
         groupList: []
       },
-      mainPanelMask: false, // 拖动文件进来时触发
       chat: { // 聊天面板用的
         befScroll: 0,
         curScroll: 0,
@@ -46,7 +45,7 @@ export default new Vuex.Store({
         total: '',
         current: 1// 当前页数
       },
-      userConfig: {
+      userConfig: { // 设置面板
         timeSwitch: true, // 设置面板中显示消息时间开关
         friendInfoPanel: true, // 好友信息面板
         sendKeyCode: false, // 设置菜单 - 使用组合键发送
@@ -150,20 +149,6 @@ export default new Vuex.Store({
       state.unReadMsg = JSON.parse(JSON.stringify(state.unReadMsg)) // 可以触发更新，不然nav_chatHistory中的未读消息数量不会消除
       // Vue.set(state.unReadMsg, chatObj, 0)
     },
-    // 获取服务器聊天记录，并更新store的未读消息列表
-    // chatRecordChange (state, playLoad) {
-    //   playLoad.forEach(value1 => {
-    //     if (value1.chat.length > state.maxMsg) value1.chat.splice(0, value1.chat.length - state.maxMsg)
-    //     const ObjName = value1.chatObj
-    //     // 以下为更新未读消息，遍历chat数组中消息对象的status属性是否为false（false为未读）并计数
-    //     value1.chat.forEach(value2 => {
-    //       if (value2.status === false) {
-    //         state.unReadMsg[ObjName] >= 0 ? state.unReadMsg[ObjName] += 1 : state.unReadMsg[ObjName] = 1
-    //       }
-    //     })
-    //     Vue.set(state.friends, value1.chatObj, value1.chat)
-    //   })
-    // },
     // 更新聊天记录
     chatRecordAdd (state, playLoad) {
       if (playLoad.type === 'send') { // 发送消息
@@ -217,7 +202,7 @@ export default new Vuex.Store({
           break
         /** 输入状态更新 */
         case 'inputStatus':
-          state.inputStatus = msgObj.inputStatus
+          if (state.chatObj === msgObj.from) state.globe.inputStatus = msgObj.inputStatus
           break
         /** 退出登录 */
         case 'exit':

@@ -36,7 +36,7 @@ const moduleLogin = {
       }
 
       if (args.type === 'all') {
-        Object.keys(FunctionRoute).forEach((value, key) => {
+        Object.keys(FunctionRoute).forEach((value) => {
           FunctionRoute[value]()
         })
         return
@@ -87,4 +87,5 @@ const moduleLogin = {
     }
   }
 }
+
 module.exports = moduleLogin
