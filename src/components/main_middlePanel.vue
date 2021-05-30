@@ -161,9 +161,8 @@
                   </a>
                 </div>
               </div>
-              <!--              <div v-show="$store.state.globe.userConfig.timeSwitch" class="msgTime">{{ item.time }}</div>-->
+              <div v-show="$store.state.globe.userConfig.timeSwitch" class="msgTime">{{ item.time }}</div>
             </div>
-            <!--            <div key="zusheng" class="zusheng_support"></div>-->
           </transition-group>
         </div>
       </div>
@@ -289,6 +288,7 @@ export default {
   data () {
     return {
       emoji,
+      chatListChange: false,
       extraVisible: false, // 额外功能面板
       emojiPicked: '', // 选中的表情分类
       dragenterClassName: '', // 记录dragenter事件classname
@@ -324,6 +324,8 @@ export default {
   beforeUpdate () {
   },
   updated () {
+    if (!this.chatListChange) return  // 当chatList没有发生改变时,直接返回.chatList才是聊天记录数据
+    this.chatListChange = false
     setTimeout(() => { // 解决切换动画 .msgFade-leave-active 期间内导致父层高度变化影响观感的问题
       if (!this.$store.state.globe.userConfig.loadingChat) {
         this.$refs.msgContentBox.scrollTop = this.$refs.msgContent.offsetHeight
@@ -344,7 +346,7 @@ export default {
           this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
         }
       }
-    }, 300)
+    }, 200)
   },
   methods: {
     switchEmojiTabs (evt) {
@@ -713,12 +715,7 @@ export default {
   },
   watch: {
     '$store.state.globe.chat.chatList': function () {
-      // setTimeout(() => {
-      //   this.$store.state.refs.msgContentBox.scrollTo({
-      //     top: this.$store.state.refs.msgContent.offsetHeight,
-      //     behavior: 'auto'
-      //   })
-      // }, 0)
+      this.chatListChange = true
     }
   }
 }
@@ -727,13 +724,13 @@ export default {
 <style scoped>
 .msgFade-enter-active {
   will-change: transform;
-  transition: all .3s;
-  transition-delay: .3s;
+  transition: all .2s;
+  transition-delay: .2s;
 }
 
 .msgFade-leave-active {
   will-change: transform;
-  transition: all .3s;
+  transition: all .2s;
 }
 
 .msgFade-enter-to, .msgFade-leave {
@@ -1171,9 +1168,8 @@ export default {
   min-height: 30px;
   font-size: 15px;
   display: flex;
-  -webkit-justify-content: flex-end;
-  justify-content: flex-end;
-  align-items: start;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .You_MsgContent {
@@ -1182,8 +1178,7 @@ export default {
   min-height: 30px;
   font-size: 15px;
   display: flex;
-  -webkit-justify-content: flex-start;
-  justify-content: flex-start;
+  flex-direction: column;
   align-items: start;
 }
 
@@ -1192,17 +1187,13 @@ export default {
 }
 
 .You_MsgContent .msgTime {
-  position: absolute;
-  left: 20px;
-  bottom: -24px;
+  margin: 10px 0 0 25px;
   font-size: 12px;
   color: rgba(100, 100, 100, .8);
 }
 
 .My_MsgContent .msgTime {
-  position: absolute;
-  right: 20px;
-  bottom: -24px;
+  margin: 10px 25px 0 0;
   font-size: 12px;
   color: rgba(100, 100, 100, .8);
 }
