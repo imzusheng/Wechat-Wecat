@@ -88,12 +88,14 @@ router.post('/wechatAPI/upload/chunks', async (ctx) => {
     const file = ctx.request.files.file
     const filePacketName = `${config.staticPath + hash}` // 文件夹名字
     const chunksFileName = path.join(filePacketName, `${chunkIndex}`) // 每个分片的保存路径
-    // 创建可读流
-    const reader = fs.createReadStream(file.path)
-    // 创建可写流
-    const upStream = fs.createWriteStream(chunksFileName)
-    // // 可读流通过管道写入可写流
-    reader.pipe(upStream)
+    const reader = fs.readFileSync(file.path)
+    fs.writeFileSync(chunksFileName, reader)
+    // // 创建可读流
+    // const reader = fs.createReadStream(file.path)
+    // // 创建可写流
+    // const upStream = fs.createWriteStream(chunksFileName)
+    // // // 可读流通过管道写入可写流
+    // reader.pipe(upStream)
     message = '上传成功'
   } catch (e) {
     error = true
