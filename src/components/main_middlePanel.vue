@@ -84,10 +84,12 @@
            @click="faceListActive = false"
            @scroll="scrollList($event)"
       >
-        <div ref="msgContent" class="msgContent">
+        <div
+          ref="msgContent"
+          class="msgContent"
+        >
           <transition-group name="msgFade">
             <div
-              :style="{opacity: loading ? '0' : '1'}"
               v-for="item in $store.state.globe.chat.chatList"
               :key="item.msgID"
               :class="{My_MsgContent : item.say === 'me', You_MsgContent : item.say === 'you'}"
@@ -104,6 +106,7 @@
               >
                 {{ item.msg }}
               </div>
+              <!--     不正常      -->
               <div
                 v-else>
                 <!--     当聊天信息只为一张图片时      -->
@@ -112,7 +115,7 @@
                   :src="`${server.httpServer}/static?filename=${item.msg}`"
                   :style="{margin: item.say === 'me' ? '30px 20px 0 0': '30px 0 0 20px'}"
                   alt=""
-                  style="cursor: pointer; border: 1px solid #ccc; box-shadow: 5px 5px 15px #cecece, 0px 0px 0px #ffffff; max-width: 750px; max-height: 300px"
+                  style="cursor: pointer; border: 1px solid #ccc; box-shadow: 5px 5px 15px #cecece, 0px 0px 0px #ffffff; height: 150px"
                   @click="showPre({postfix: 'jpg', imgSrc: `${server.httpServer}/static?filename=${item.msg}`})"/>
                 <!--     当聊天信息是一个文件时      -->
                 <div
@@ -158,8 +161,9 @@
                   </a>
                 </div>
               </div>
-              <div v-show="$store.state.globe.userConfig.timeSwitch" class="msgTime">{{ item.time }}</div>
+              <!--              <div v-show="$store.state.globe.userConfig.timeSwitch" class="msgTime">{{ item.time }}</div>-->
             </div>
+            <!--            <div key="zusheng" class="zusheng_support"></div>-->
           </transition-group>
         </div>
       </div>
@@ -272,6 +276,16 @@ import emoji from '@/assets/json/data-by-group.json'
 
 export default {
   name: 'mainPanel',
+  // directives: {
+  //   msgUpdate: {
+  //     inserted () {
+  //       console.log('inserted')
+  //     },
+  //     componentUpdated () {
+  //       console.log('componentUpdated')
+  //     }
+  //   }
+  // },
   data () {
     return {
       emoji,
@@ -310,25 +324,27 @@ export default {
   beforeUpdate () {
   },
   updated () {
-    if (!this.$store.state.globe.userConfig.loadingChat) {
-      this.$refs.msgContentBox.scrollTop = this.$refs.msgContent.offsetHeight
-    } else {
-      if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
-        if (this.$store.state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
-          if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
-            this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight // 保存当前的滚动条总高度
-            this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
-            this.$store.state.globe.chat.befScroll = this.$store.state.refs.msgContentBox.scrollHeight // 使用后
-          }
-        } else { // 当前页数在第一页时，作特殊处理
-          this.$store.state.globe.chat.befScroll = this.$store.state.refs.msgContent.offsetHeight
-          this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.refs.msgContent.offsetHeight
-        }
+    setTimeout(() => { // 解决切换动画 .msgFade-leave-active 期间内导致父层高度变化影响观感的问题
+      if (!this.$store.state.globe.userConfig.loadingChat) {
+        this.$refs.msgContentBox.scrollTop = this.$refs.msgContent.offsetHeight
       } else {
-        this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight
-        this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
+        if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
+          if (this.$store.state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
+            if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
+              this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight // 保存当前的滚动条总高度
+              this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
+              this.$store.state.globe.chat.befScroll = this.$store.state.refs.msgContentBox.scrollHeight // 使用后
+            }
+          } else { // 当前页数在第一页时，作特殊处理
+            this.$store.state.globe.chat.befScroll = this.$store.state.refs.msgContent.offsetHeight
+            this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.refs.msgContent.offsetHeight
+          }
+        } else {
+          this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight
+          this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
+        }
       }
-    }
+    }, 300)
   },
   methods: {
     switchEmojiTabs (evt) {
@@ -710,12 +726,19 @@ export default {
 
 <style scoped>
 .msgFade-enter-active {
+  will-change: transform;
   transition: all .3s;
-  /*transition-delay: .1s;*/
+  transition-delay: .3s;
 }
 
 .msgFade-leave-active {
-  transition: all 0s;
+  will-change: transform;
+  transition: all .3s;
+}
+
+.msgFade-enter-to, .msgFade-leave {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
 }
 
 .msgFade-enter, .msgFade-leave-to {
@@ -1143,7 +1166,6 @@ export default {
 }
 
 .My_MsgContent {
-  position: absolute;
   width: 100%;
   margin-top: 42px;
   min-height: 30px;
@@ -1152,7 +1174,6 @@ export default {
   -webkit-justify-content: flex-end;
   justify-content: flex-end;
   align-items: start;
-  position: relative;
 }
 
 .You_MsgContent {
@@ -1164,7 +1185,10 @@ export default {
   -webkit-justify-content: flex-start;
   justify-content: flex-start;
   align-items: start;
-  position: relative;
+}
+
+.msgContent > span {
+  display: block;
 }
 
 .You_MsgContent .msgTime {
