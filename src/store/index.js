@@ -101,6 +101,7 @@ export default new Vuex.Store({
     loadChat (state, chatObj) {
       if (!state.chatObj) { // 这时候刚上线还没有主动点击聊天对象,收到消息时触发chanObj为空,因此直接return
         return
+        // 以下是收到消息自动展开面板
         // state.chatObj = chatObj
         // state.globe.navigation.historyList.picked = chatObj
       }
@@ -200,10 +201,19 @@ export default new Vuex.Store({
           break
         /** 退出登录 */
         case 'exit':
-          return this.$message({
-            type: 'success',
-            message: '退出登录'
+          Message({
+            type: 'info',
+            message: '即将返回登录页，正在保存数据...'
           })
+          window.sessionStorage.removeItem('token')
+          window.sessionStorage.removeItem('nickName')
+          window.sessionStorage.removeItem('email')
+          window.sessionStorage.removeItem('avatar')
+          window.sessionStorage.removeItem('uid')
+          setTimeout(() => {
+            window.location.reload()
+          }, 3000)
+          break
         /** 添加好友 */
         case 'addFriend':
           /** 好友请求发送成功后 */

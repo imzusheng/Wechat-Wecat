@@ -9,7 +9,7 @@
 
           <li class="info_item">个人信息</li>
 
-          <li class="info_item">
+          <li class="info_item" @click="$store.state.chatObj=''">
             <router-link to="admin" class="admin_item">管理员</router-link>
           </li>
 
@@ -62,7 +62,7 @@
             <el-slider
               style="background: transparent"
               v-model="$store.state.globe.userConfig.previewImgHeight"
-              :step="50"
+              :step="5"
               :min="50"
               :max="300"
               :show-tooltip="false"
@@ -211,15 +211,11 @@ export default {
     /** 退出登录 */
     exit () {
       this.$store.state.ws.sendMsg({
-        uid: this.$store.state.uid,
+        from: window.sessionStorage.getItem('uid'),
         type: 'exit'
-      }, this.wsMsgGHandler)
-      window.sessionStorage.removeItem('token')
-      window.sessionStorage.removeItem('nickName')
-      window.sessionStorage.removeItem('email')
-      window.sessionStorage.removeItem('avatar')
-      window.sessionStorage.removeItem('uid')
-      window.location.reload()
+      }, data => {
+        this.$store.commit('wsMsgGHandler', data)
+      })
       // this.$router.replace('login')
     },
     /** 搜索好友 */
@@ -370,7 +366,7 @@ export default {
   overflow-y: auto;
 }
 
-.settingItems{
+.settingItems {
   padding-bottom: 140px;
 }
 

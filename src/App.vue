@@ -36,7 +36,8 @@ export default {
   margin: 0;
   list-style: none;
   text-decoration: none;
-  scrollbar-width: thin !important;
+  /* 火狐可以隐藏滚动条 */
+  scrollbar-width: none !important;
 }
 
 html, body {

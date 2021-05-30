@@ -110,14 +110,14 @@ function online (msgObj, wss, ws) {
 function exit (msgObj, wss, ws) {
   wss.clients.forEach((client, key) => {
     if (client.userID === msgObj.from) {
-      client.userID = ''
-      client.isAlive = false
-      clientsArr.splice(key, 1) // 从在线客户端列表中删除客户端
       ws.send(JSON.stringify({
         error: false,
         msg: '退出登录',
         type: 'exit'
       }))
+      client.userID = ''
+      client.isAlive = false
+      clientsArr.splice(key, 1) // 从在线客户端列表中删除客户端
     }
   })
 }

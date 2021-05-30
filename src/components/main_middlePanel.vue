@@ -331,7 +331,7 @@ export default {
           if (this.$store.state.globe.chat.current >= 2) { // 当前页数在第二页及以上时
             if (this.$store.state.globe.chat.total > this.$store.state.globe.userConfig.pageSize * this.$store.state.globe.chat.current) {
               this.$store.state.globe.chat.curScroll = this.$store.state.refs.msgContentBox.scrollHeight // 保存当前的滚动条总高度
-              this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll // 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
+              this.$store.state.refs.msgContentBox.scrollTop = this.$store.state.globe.chat.curScroll - this.$store.state.globe.chat.befScroll// 利用计算后的滚动条高度差，使更新后用户界面仍在原来位置
               this.$store.state.globe.chat.befScroll = this.$store.state.refs.msgContentBox.scrollHeight // 使用后
             }
           } else { // 当前页数在第一页时，作特殊处理

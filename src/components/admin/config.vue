@@ -1,11 +1,13 @@
 <template>
   <div class="config">
-<!--    将于2021-5-20开放-->
-    <el-form :model="editForm" >
+    <!--    将于2021-5-20开放-->
+    <el-form :model="editForm">
       <el-row :gutter="20">
         <el-col :span="14">
           <el-form-item label="WebSocket 服务器（本地）" :label-width="'220px'">
-            <el-input v-model="editForm.local.wsServer" autocomplete="off" :disabled="!serverSwitch"></el-input>
+            <el-input v-model="editForm.local.wsServer" autocomplete="off" :disabled="!serverSwitch">
+              <template slot="prepend">{{ editForm.local.wsServerProtocol }}</template>
+            </el-input>
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -15,7 +17,9 @@
         </el-col>
         <el-col :span="14">
           <el-form-item label="业务服务器（本地）" :label-width="'220px'">
-            <el-input v-model="editForm.local.httpServer" autocomplete="off" :disabled="!serverSwitch"></el-input>
+            <el-input v-model="editForm.local.httpServer" autocomplete="off" :disabled="!serverSwitch">
+              <template slot="prepend">{{ editForm.local.httpServerProtocol }}</template>
+            </el-input>
           </el-form-item>
         </el-col>
         <el-col :span="6">
@@ -25,33 +29,33 @@
         </el-col>
       </el-row>
 
-      <br />
+      <br/>
 
       <el-row :gutter="20">
         <el-col :span="14">
           <el-form-item label="WebSocket 服务器（远程）" :label-width="'220px'">
-            <el-input v-model="editForm.server.wsServer" autocomplete="off" :disabled="serverSwitch"></el-input>
+            <el-input v-model="editForm.server.wsServer" autocomplete="off" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="端口" :label-width="'100px'">
-            <el-input v-model="editForm.server.wsServerPort" autocomplete="off" :disabled="serverSwitch"></el-input>
+            <el-input v-model="editForm.server.wsServerPort" autocomplete="off" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="14">
           <el-form-item label="业务服务器（远程）" :label-width="'220px'">
-            <el-input v-model="editForm.server.httpServer" autocomplete="off" :disabled="serverSwitch"></el-input>
+            <el-input v-model="editForm.server.httpServer" autocomplete="off" disabled></el-input>
           </el-form-item>
         </el-col>
         <el-col :span="6">
           <el-form-item label="端口" :label-width="'100px'">
-            <el-input v-model="editForm.server.httpPort" autocomplete="off" :disabled="serverSwitch"></el-input>
+            <el-input v-model="editForm.server.httpPort" autocomplete="off" disabled></el-input>
           </el-form-item>
         </el-col>
       </el-row>
     </el-form>
 
-    <br />
+    <br/>
 
     <div class="serverSwitch">
       使用远程
@@ -73,13 +77,15 @@ export default {
   data () {
     return {
       loading: false,
-      serverSwitch: false,
+      serverSwitch: true,
       editForm: {
         local: {
-          httpServer: config.local.httpServer,
-          httpPort: config.local.httpPort,
-          wsServer: config.local.wsServer,
-          wsServerPort: config.local.wsServerPort
+          httpServerProtocol: config.admin.httpServerProtocol,
+          httpServer: config.admin.httpServer,
+          httpPort: config.admin.httpPort,
+          wsServerProtocol: config.admin.wsServerProtocol,
+          wsServer: config.admin.wsServer,
+          wsServerPort: config.admin.wsServerPort
         },
         server: {
           httpServer: config.server.httpServer,
@@ -97,7 +103,7 @@ export default {
 </script>
 
 <style scoped>
-.serverSwitch{
+.serverSwitch {
   width: 120px;
   display: flex;
   justify-items: center;
