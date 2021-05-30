@@ -22,7 +22,7 @@ export default {
         this.chatObj = e.target.innerHTML
         this.$store.commit('chatObjChange', this.chatObj)
         // 选中该好友时，清除该好友的未读消息列表
-        if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
+        if (this.$store.state.globe.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
       }
     }
   }

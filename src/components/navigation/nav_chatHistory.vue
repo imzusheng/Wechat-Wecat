@@ -9,7 +9,7 @@
             :src="$store.state.globe.navigation.historyList.nameList[item].friendInfo.avatar"
             draggable="false"
             alt=""/>
-          <span class="unReadMsg" v-if="$store.state.unReadMsg[item] > 0">{{ $store.state.unReadMsg[item] }}</span>
+          <span class="unReadMsg" v-if="$store.state.globe.unReadMsg[item] > 0">{{ $store.state.globe.unReadMsg[item] }}</span>
         </figure>
         <div class="group">
           <div class="friName">{{ $store.state.globe.navigation.historyList.nameList[item].friendInfo.email }}</div>
@@ -39,7 +39,7 @@ export default {
         this.chatObj = e.target.attributes['data-friend-name'].value
         // this.$store.state.globe.chat.chatList = []
         this.$store.commit('chatObjChange', this.chatObj)
-        if (this.$store.state.unReadMsg[this.chatObj] > 0) {
+        if (this.$store.state.globe.unReadMsg[this.chatObj] > 0) {
           // 选中该好友时，清除该好友的未读消息列表
           this.$store.commit('clearUnRead', this.chatObj)
           // 清除服务器未读消息列表

@@ -40,7 +40,6 @@ module.exports = {
 
       ws.on('message', (message) => { // 收到客户端消息时激活
         const msgObj = JSON.parse(message)
-        console.log(msgObj)
         /** wss.clients为 set集合，转换为数组便于操作 */
         clientsArr = Array.from(wss.clients)
         /** 对于type的不用，执行不同的操作 */

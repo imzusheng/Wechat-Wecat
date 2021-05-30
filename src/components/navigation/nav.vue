@@ -268,7 +268,7 @@ export default {
           this.chatObj = e.target.dataset.email
           this.$store.commit('chatObjChange', this.chatObj)
           // 选中该好友时，清除该好友的未读消息列表
-          if (this.$store.state.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
+          if (this.$store.state.globe.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
         } else if (!Object.keys(this.$store.state.globe.navigation.contactList.nameList).includes(e.target.dataset.email)) {
           // 当点击的对象不属于好友时，发送好友请求
           this.$store.state.globe.addFriend.friendInfo = { // 先设置好友信息

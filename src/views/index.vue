@@ -73,7 +73,7 @@ export default {
     apiService.getData(API_COMMON.GET_COMMON_UNREAD_MESSAGE, {
       uid: this.uid
     }).then(res => {
-      this.$store.state.unReadMsg = res.data.unReadMessage
+      this.$store.state.globe.unReadMsg = res.data.unReadMessage
     })
     /** 获取未读消息列表 */
     apiService.getData(API_COMMON.GET_COMMON_FRIEND_APPLY, {
@@ -100,12 +100,18 @@ export default {
   },
   watch: {
     /** 监听未读消息列表，再显示到网站标题 */
-    '$store.state.unReadMsg': function () {
-      let unReadMsgCounts = 0
-      Object.values(this.$store.state.unReadMsg).forEach(value => {
-        unReadMsgCounts += value
-      })
-      if (unReadMsgCounts) document.title = `WeCat - ${unReadMsgCounts}条未读消息`
+    '$store.state.globe.unReadMsg': {
+      handler () {
+        let unReadMsgCounts = 0
+        // 监听未读消息列表，再显示到网站标题
+        Object.values(this.$store.state.globe.unReadMsg).forEach(value => {
+          unReadMsgCounts += value
+        })
+        if (unReadMsgCounts > 0) {
+          document.title = `WeCat - ${unReadMsgCounts}条未读消息`
+        } else if (unReadMsgCounts === 0) document.title = 'WeCat - 开始聊天吧！'
+      },
+      deep: true
     }
   }
 }

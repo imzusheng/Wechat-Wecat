@@ -1,6 +1,5 @@
 <template>
   <!--  (TODO) 希望图片不需要分片上传，只有大文件才需要 -->
-  <!--  (TODO) 对方正在输入也是全局的！需要修改为每个对象一个-->
   <div v-loading="loading"
        :disabled="loading"
        class="mainPanel_wrap"
