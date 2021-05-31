@@ -477,15 +477,15 @@ router.post('/wechatAPI/sign/success', async (ctx) => {
  */
 router.post('/wechatAPI/login/forget', async (ctx) => {
   ctx.status = 200
-  const flag = false
+  let flag = false
   const data = ctx.request.body
   const code = moment(new Date()).format('ssHHmm')
   const result = await db.query('user', { email: data.email }) // 查询数据
   if (result.length !== 0) {
-    /*    flag = await commonFunction.sendEmail({
+    flag = await commonFunction.sendEmail({
       obj: data.email,
       code: code
-    }) */
+    })
     ctx.body = {
       error: flag,
       code: code,

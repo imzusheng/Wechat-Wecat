@@ -17,9 +17,9 @@ module.exports = (data) => {
     })
 
     transporter.sendMail({
-      from: '"Wecat👻" <imzusheng@163.com>',
+      from: `WeCat👻 <${Config.email.user}>`,
       to: data.obj,
-      subject: `${data.code} 是您的 Wecat 验证码`,
+      subject: `${data.code} 是您的 WeCat 验证码`,
       text: '验证码',
       html: `
       <table border="0" style="border: none; padding: 20px 30px; margin: auto; height: 400px; width: 470px">
@@ -35,8 +35,8 @@ module.exports = (data) => {
       `
     }, (error) => {
       if (error) {
-        console.error(error)
-        reject(false)
+        console.error('发送邮件出现错误', error)
+        resolve(false)
       } else {
         resolve(true)
       }

@@ -9,7 +9,7 @@ module.exports = {
     user: 'imzusheng@163.com',
     pass: 'HNPJUKBWLOXHVQMT',
     port: process.env.NODE_ENV === 'development' ? 25 : 465,
-    secure: process.env.NODE_ENV === 'development'
+    secure: process.env.NODE_ENV !== 'development'
   },
   staticPath: './upload/', // 静态资源路径
   koaOptions: { // 用koaBody接收文件，koa-multer我有洁癖受不了
