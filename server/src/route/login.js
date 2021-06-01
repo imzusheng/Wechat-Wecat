@@ -281,167 +281,6 @@ router.put('/wechatAPI/login/update', async (ctx) => {
   }
 })
 /**
- * @api {Post} /wechatAPI/sign/verify 注册前验证
- * @apiName 1
- * @apiVersion 1.0.0
- * @apiGroup 注册
- *
- * @apiParam (请求参数) {String} email 用户名
- * @apiParam (请求参数) {String} nickName 昵称
- * @apiParamExample 请求示例:
- * {
- *   "email": "imzusheng@163.com",
- *   "nickName": ""
- * }
- *
- * @apiSuccess (成功响应参数) {Number} data.code 验证码
- * @apiSuccess (成功响应参数) {Number} data.msg 错误信息
- * @apiSuccess (成功响应参数) {String} data.email.value 邮箱
- * @apiSuccess (成功响应参数) {Boolean} data.email.error 错误
- * @apiSuccess (成功响应参数) {String} data.email.msg 错误信息
- * @apiSuccess (成功响应参数) {String} data.nickName.value 昵称
- * @apiSuccess (成功响应参数) {Boolean} data.nickName.error 错误
- * @apiSuccess (成功响应参数) {String} data.nickName.msg 错误信息
- * @apiSuccessExample 成功响应示例:
- * {
- *   data: {
- *      email: {
- *        "value": "imzusheng@163.com",
- *        "error": false,
- *        "msg": "success"
- *      },
- *      nickName: {
- *        "value": 'test',
- *        "error": false,
- *        "msg": "success"
- *      },
- *      msg: "验证码发送成功"
- *      code: 123456
- *   }
- * }
- *
- * @apiError (失败响应参数) {Number} data.code 验证码
- * @apiError (失败响应参数) {Number} data.msg 错误信息
- * @apiError (失败响应参数) {String} data.email.value 邮箱
- * @apiError (失败响应参数) {Boolean} data.email.error 错误
- * @apiError (失败响应参数) {String} data.email.msg 错误信息
- * @apiError (失败响应参数) {String} data.nickName.value 昵称
- * @apiError (失败响应参数) {Boolean} data.nickName.error 错误
- * @apiError (失败响应参数) {String} data.nickName.msg 错误信息
- * @apiErrorExample 失败响应示例:
- * {
- *   data: {
- *      email: {
- *        "value": 'imzusheng@163.com',
- *        "error": true,
- *        "msg": '该邮箱已被注册'
- *      },
- *      nickName: {
- *        "value": '',
- *        "error": true,
- *        "msg": '该昵称已被注册'
- *      },
- *      "msg": "验证码发送失败"
- *      code: 123445
- *   }
- * }
- *
- */
-router.post('/wechatAPI/sign/verify', async (ctx) => {
-  ctx.status = 200
-  let flag = false// 用户是否符合注册条件
-  const data = ctx.request.body
-  const code = moment(new Date()).format('ssHHmm')
-  const emailResult = await db.query('user', { email: data.email }) // 查询数据
-  const nickNameResult = await db.query('user', { nickName: data.nickName }) // 查询数据
-  if (emailResult.length === 0 && nickNameResult.length === 0) { // 用户符合注册条件时，发送邮箱验证码
-    flag = await commonFunction.sendEmail({
-      obj: data.email,
-      code: code
-    })
-  }
-  ctx.body = {
-    data: {
-      email: {
-        value: data.email,
-        error: emailResult.length !== 0,
-        msg: emailResult.length === 0 ? 'success' : '该邮箱已被注册'
-      },
-      nickName: {
-        value: data.nickName,
-        error: nickNameResult.length !== 0,
-        msg: nickNameResult.length === 0 ? 'success' : '该昵称已被注册'
-      },
-      code: flag ? code : '',
-      msg: flag ? '验证码发送成功' : '验证码发送失败'
-    }
-  }
-})
-/**
- * @api {Post} /wechatAPI/sign/success 注册成功
- * @apiName 2
- * @apiVersion 1.0.0
- * @apiGroup 注册
- *
- * @apiParam (请求参数) {String} email 用户名
- * @apiParam (请求参数) {String} nickName 昵称
- * @apiParam (请求参数) {String} trueName 真实名字
- * @apiParam (请求参数) {String} pwd 密码
- * @apiParam (请求参数) {String} avatar 头像链接
- * @apiParamExample 请求示例:
- * {
- *   "email": "imzusheng@163.com",
- *   "nickName": ""
- *   "trueName": ""
- *   "pwd": ""
- *   "avatar": ""
- * }
- *
- * @apiSuccess (成功响应参数) {String} msg 消息
- * @apiSuccess (成功响应参数) {Boolean} error 错误
- * @apiSuccessExample 成功响应示例:
- * {
- *   msg: "注册成功",
- *   error: false
- * }
- *
- * @apiError (失败响应参数) {String} msg 消息
- * @apiError (失败响应参数) {Boolean} error 错误
- * @apiErrorExample 失败响应示例:
- * {
- *   msg: "注册失败",
- *   error: true
- * }
- *
- *
- */
-router.post('/wechatAPI/sign/success', async (ctx) => {
-  ctx.status = 200
-  const userInfo = ctx.request.body
-  let flag = true
-  Object.keys(userInfo).forEach(value => {
-    if (!userInfo[value]) flag = false
-  })
-
-  if (flag) {
-    const time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
-    userInfo.access = 'user'
-    userInfo.time = time
-    // 用户信息写入
-    await db.insertOneData('user', userInfo)
-    const result = await db.query('user', userInfo) // 查询数据
-    ctx.body = {
-      msg: result.length !== 0 ? '注册成功' : '注册失败',
-      error: result.length === 0
-    }
-  } else {
-    ctx.body = {
-      msg: '注册失败，你自己心里有数',
-      error: true
-    }
-  }
-})
-/**
  * @api {Post} /wechatAPI/login/forget 忘记密码
  * @apiName 5
  * @apiVersion 1.0.0
@@ -482,12 +321,13 @@ router.post('/wechatAPI/login/forget', async (ctx) => {
   const code = moment(new Date()).format('ssHHmm')
   const result = await db.query('user', { email: data.email }) // 查询数据
   if (result.length !== 0) {
+    // flag = true 发送成功，反之失败
     flag = await commonFunction.sendEmail({
       obj: data.email,
       code: code
     })
     ctx.body = {
-      error: flag,
+      error: !flag,
       code: code,
       msg: flag ? '验证码发送成功' : '验证码发送失败'
     }
@@ -629,6 +469,168 @@ router.get('/wechatAPI/login/userOrigin', async (ctx) => {
     }
   }
   ctx.body = msg
+})
+
+/**
+ * @api {Post} /wechatAPI/sign/verify 注册前验证
+ * @apiName 1
+ * @apiVersion 1.0.0
+ * @apiGroup 注册
+ *
+ * @apiParam (请求参数) {String} email 用户名
+ * @apiParam (请求参数) {String} nickName 昵称
+ * @apiParamExample 请求示例:
+ * {
+ *   "email": "imzusheng@163.com",
+ *   "nickName": ""
+ * }
+ *
+ * @apiSuccess (成功响应参数) {Number} data.code 验证码
+ * @apiSuccess (成功响应参数) {Number} data.msg 错误信息
+ * @apiSuccess (成功响应参数) {String} data.email.value 邮箱
+ * @apiSuccess (成功响应参数) {Boolean} data.email.error 错误
+ * @apiSuccess (成功响应参数) {String} data.email.msg 错误信息
+ * @apiSuccess (成功响应参数) {String} data.nickName.value 昵称
+ * @apiSuccess (成功响应参数) {Boolean} data.nickName.error 错误
+ * @apiSuccess (成功响应参数) {String} data.nickName.msg 错误信息
+ * @apiSuccessExample 成功响应示例:
+ * {
+ *   data: {
+ *      email: {
+ *        "value": "imzusheng@163.com",
+ *        "error": false,
+ *        "msg": "success"
+ *      },
+ *      nickName: {
+ *        "value": 'test',
+ *        "error": false,
+ *        "msg": "success"
+ *      },
+ *      msg: "验证码发送成功"
+ *      code: 123456
+ *   }
+ * }
+ *
+ * @apiError (失败响应参数) {Number} data.code 验证码
+ * @apiError (失败响应参数) {Number} data.msg 错误信息
+ * @apiError (失败响应参数) {String} data.email.value 邮箱
+ * @apiError (失败响应参数) {Boolean} data.email.error 错误
+ * @apiError (失败响应参数) {String} data.email.msg 错误信息
+ * @apiError (失败响应参数) {String} data.nickName.value 昵称
+ * @apiError (失败响应参数) {Boolean} data.nickName.error 错误
+ * @apiError (失败响应参数) {String} data.nickName.msg 错误信息
+ * @apiErrorExample 失败响应示例:
+ * {
+ *   data: {
+ *      email: {
+ *        "value": 'imzusheng@163.com',
+ *        "error": true,
+ *        "msg": '该邮箱已被注册'
+ *      },
+ *      nickName: {
+ *        "value": '',
+ *        "error": true,
+ *        "msg": '该昵称已被注册'
+ *      },
+ *      "msg": "验证码发送失败"
+ *      code: 123445
+ *   }
+ * }
+ *
+ */
+router.post('/wechatAPI/sign/verify', async (ctx) => {
+  ctx.status = 200
+  let flag = false// 用户是否符合注册条件
+  const data = ctx.request.body
+  const code = moment(new Date()).format('ssHHmm')
+  const emailResult = await db.query('user', { email: data.email }) // 查询数据
+  const nickNameResult = await db.query('user', { nickName: data.nickName }) // 查询数据
+  if (emailResult.length === 0 && nickNameResult.length === 0) { // 用户符合注册条件时，发送邮箱验证码
+    flag = await commonFunction.sendEmail({
+      obj: data.email,
+      code: code
+    })
+  }
+  ctx.body = {
+    data: {
+      email: {
+        value: data.email,
+        error: emailResult.length !== 0,
+        msg: emailResult.length === 0 ? 'success' : '该邮箱已被注册'
+      },
+      nickName: {
+        value: data.nickName,
+        error: nickNameResult.length !== 0,
+        msg: nickNameResult.length === 0 ? 'success' : '该昵称已被注册'
+      },
+      code: flag ? code : '',
+      msg: flag && nickNameResult.length !== 0 && emailResult.length !== 0 ? '验证码发送成功' : '验证码发送失败'
+    }
+  }
+})
+/**
+ * @api {Post} /wechatAPI/sign/success 注册成功
+ * @apiName 2
+ * @apiVersion 1.0.0
+ * @apiGroup 注册
+ *
+ * @apiParam (请求参数) {String} email 用户名
+ * @apiParam (请求参数) {String} nickName 昵称
+ * @apiParam (请求参数) {String} trueName 真实名字
+ * @apiParam (请求参数) {String} pwd 密码
+ * @apiParam (请求参数) {String} avatar 头像链接
+ * @apiParamExample 请求示例:
+ * {
+ *   "email": "imzusheng@163.com",
+ *   "nickName": ""
+ *   "trueName": ""
+ *   "pwd": ""
+ *   "avatar": ""
+ * }
+ *
+ * @apiSuccess (成功响应参数) {String} msg 消息
+ * @apiSuccess (成功响应参数) {Boolean} error 错误
+ * @apiSuccessExample 成功响应示例:
+ * {
+ *   msg: "注册成功",
+ *   error: false
+ * }
+ *
+ * @apiError (失败响应参数) {String} msg 消息
+ * @apiError (失败响应参数) {Boolean} error 错误
+ * @apiErrorExample 失败响应示例:
+ * {
+ *   msg: "注册失败",
+ *   error: true
+ * }
+ *
+ *
+ */
+router.post('/wechatAPI/sign/success', async (ctx) => {
+  ctx.status = 200
+  const userInfo = ctx.request.body
+  let flag = true
+  Object.keys(userInfo).forEach(value => {
+    if (!userInfo[value]) flag = false
+  })
+
+  if (flag) {
+    const time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+    userInfo.access = 'user'
+    userInfo.time = time
+    // 用户信息写入
+    await db.insertOneData('user', userInfo)
+    const result = await db.query('user', userInfo) // 查询数据
+    ctx.body = {
+      msg: result.length !== 0 ? '注册成功' : '注册失败',
+      error: result.length === 0
+    }
+  } else {
+    ctx.body = {
+      msg: '注册失败，你自己心里有数',
+      error: true
+    }
+  }
 })
 
 module.exports = router.routes()
