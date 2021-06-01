@@ -38,5 +38,7 @@ export const API_COMMON = {
   /** 获取未读消息 */
   GET_COMMON_UNREAD_MESSAGE: '/common/unRead',
   /** 获取好友请求消息 */
-  GET_COMMON_FRIEND_APPLY: '/common/friendApply'
+  GET_COMMON_FRIEND_APPLY: '/common/friendApply',
+  /** 修改用户信息 */
+  PUT_COMMON_USER_INFO: '/common/userInfo/put'
 }

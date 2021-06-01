@@ -138,9 +138,12 @@
 * **WebSocket**
 * **ws**
 
-👉 [关于我](https://zusheng.club)  
-👉 [github](https://github.com/imzusheng/Wecat)  
-👉 [gitee](https://gitee.com/imzusheng/Wecat)
+###关于
+* 👉 **邮箱 imzusheng@163.com**
+* 👉 [项目地址](https://zusheng.club/chatV2)  
+* 👉 [关于我](https://zusheng.club)
+* 👉 [github](https://github.com/imzusheng/Wecat)  
+* 👉 [gitee](https://gitee.com/imzusheng/Wecat)
 
 
 

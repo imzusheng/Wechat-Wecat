@@ -240,8 +240,9 @@ export default {
               this.$store.commit('wsMsgGHandler', data)
             })
             // 更新用户信息，登录时间之类的
-            if (process.env.NODE_ENV === 'production') this.updateUserInfo() // 生产环境下才更新
+            if (process.env.NODE_ENV === 'production') this.updateUserInfo()// 生产环境下才更新
             const resData = res.data.data
+            sessionStorage.setItem('userInfo', JSON.stringify(resData))
             sessionStorage.setItem('token', res.data.token)
             sessionStorage.setItem('nickName', resData.nickName)
             sessionStorage.setItem('email', resData.email)

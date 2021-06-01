@@ -140,25 +140,31 @@ router.post('/wechatAPI/login/userID', async (ctx) => {
 router.post('/wechatAPI/login/pwd', async (ctx) => {
   ctx.status = 200
   const data = ctx.request.body
-  const queryParams = {
-    email: data.email,
-    pwd: data.pwd
+
+  const queryMatch = {
+    $match: {
+      email: data.email,
+      pwd: data.pwd
+    }
   }
-  const result = await db.query('user', queryParams) // 查询数据
+
+  const queryProject = {
+    $project: {
+      _id: 0,
+      pwd: 0,
+      access: 0
+    }
+  }
+
+  const result = await db.aggregate('user', [queryMatch, queryProject])
   let res
   if (result.length > 0) {
     const token = jwt.getToken(ctx.email) // 当密码验证成功时，返回token给客户端
     res = {
-      msg: `登录成功，${result[0].email}`,
+      msg: '登录成功',
       error: false,
-      token: token,
-      data: {
-        email: result[0].email,
-        nickName: result[0].nickName,
-        trueName: result[0].trueName,
-        access: result[0].access,
-        avatar: result[0].avatar
-      }
+      token,
+      data: result[0]
     }
   } else {
     res = {
@@ -446,6 +452,7 @@ router.put('/wechatAPI/login/modifyPwd', async (ctx) => {
 router.get('/wechatAPI/login/userOrigin', async (ctx) => {
   ctx.status = 200
   let msg
+  console.log(ctx.request)
   if (ctx.request.header.origin || ctx.request.header['x-real-ip']) {
     // const IPAddress = ctx.request.header.origin.slice(ctx.request.header.origin.indexOf('://') + 3, ctx.request.header.origin.lastIndexOf(':'))
     const result = await getCity(ctx.request.header['x-real-ip'])

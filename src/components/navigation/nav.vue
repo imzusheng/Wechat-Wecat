@@ -1,164 +1,86 @@
 <template>
   <div class="nav">
     <!--  设置页面  s -->
-    <div class="navSetting"
-         :style="{transform: navSettingActive ? 'translateY(0%)' : 'translateY(-100%)', opacity: navSettingActive ? 1 : 0.2}">
-      <div class="settingTitle">设置</div>
-      <div class="settingContainer">
-        <ul class="settingItems">
-
-          <li class="info_item">个人信息</li>
-
-          <li class="info_item" @click="$store.state.chatObj=''">
-            <router-link to="admin" class="admin_item">管理员</router-link>
-          </li>
-
-          <li @click="setting('timeSwitch')">
-            显示消息时间
-            <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.timeSwitch}">
-              <div class="switchBtn"></div>
-            </div>
-          </li>
-
-          <li @click="setting('friendInfoPanel')">
-            好友信息面板
-            <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.friendInfoPanel}">
-              <div class="switchBtn"></div>
-            </div>
-          </li>
-
-          <li @click="setting('sendKeyCode')" title="Ctrl + Enter">
-            使用组合键发送
-            <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.sendKeyCode}">
-              <div class="switchBtn"></div>
-            </div>
-          </li>
-
-          <li @click="setting('loadingChat')">
-            聊天记录懒加载 模拟
-            <div class="timeSwitch" :class="{SwitchOn : $store.state.globe.userConfig.loadingChat}">
-              <div class="switchBtn"></div>
-            </div>
-          </li>
-
-          <el-tooltip :disabled="$store.state.globe.userConfig.loadingChat" class="item" effect="dark"
-                      content="聊天记录懒加载关闭时，该选项不可用" placement="top">
-            <li class="message_Loading_Slider" disabled>
-              聊天记录加载一次新增： {{ $store.state.globe.userConfig.pageSize }} 条
-              <el-slider
-                :disabled="!$store.state.globe.userConfig.loadingChat"
-                style="background: transparent"
-                v-model="$store.state.globe.userConfig.pageSize"
-                :step="5"
-                :min="5"
-                :max="50"
-                :show-tooltip="false"
-              ></el-slider>
-            </li>
-          </el-tooltip>
-
-          <li class="message_Loading_Slider">
-            预览图片尺寸： {{ $store.state.globe.userConfig.previewImgHeight }} %
-            <el-slider
-              style="background: transparent"
-              v-model="$store.state.globe.userConfig.previewImgHeight"
-              :step="5"
-              :min="50"
-              :max="300"
-              :show-tooltip="false"
-            ></el-slider>
-          </li>
-
-          <li>
-            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;" @click="clearChatRecord">
-              清空所有用户聊天记录 Beta</a>
-          </li>
-
-          <li>
-            <a style="color: #444444; height: 100%; width: 100%; display: inline-block;"
-               href="https://zusheng.club/apidoc/index.html" target="_blank">API Doc</a>
-          </li>
-
-          <li class="exitContainer">
-            <div class="exit" @click="exit()">退出登录</div>
-          </li>
-        </ul>
-      </div>
-    </div>
+    <setting
+      class="noSelect"
+      :style="{transform: navSettingActive ? 'translateY(0%)' : 'translateY(-100%)', opacity: navSettingActive ? 1 : 0.2}"
+    />
     <!--  设置页面  e -->
-    <div class="top_bar">
-      <div class="logo">
-        <figure></figure>
+    <div class="nav_main">
+      <div class="top_bar">
+        <div class="logo">
+          <figure></figure>
+        </div>
+        <button class="addFriend" :class="{'addFriendActive': btnActive}"
+                @click="btnActive = !btnActive; navSettingActive = !navSettingActive">
+          <span class="add_1"></span>
+          <span class="add_2"></span>
+          <span class="add_3"></span>
+        </button>
       </div>
-      <button class="addFriend" :class="{'addFriendActive': btnActive}"
-              @click="btnActive = !btnActive; navSettingActive = !navSettingActive">
-        <span class="add_1"></span>
-        <span class="add_2"></span>
-        <span class="add_3"></span>
-      </button>
-    </div>
-    <!--  搜索栏  s -->
-    <div class="search">
-      <span class="search_bt"></span>
-      <input type="text"
-             name="search"
-             autocomplete="off"
-             placeholder="搜索"
-             @keyup="searchChange"
-             @focus="searchActive = true"
-             @blur="!searchContent ? searchActive = false : searchActive = true;"
-             v-model="searchContent">
-      <el-popover
-        placement="bottom"
-        width="200"
-        trigger="manual"
-        content="只允许输入数字、字母、字符@，不允许输入特殊字符。"
-        v-if="popoverVisible">
-      </el-popover>
-      <div class="search_list" v-if="searchActive">
-        {{ searchTips }}
-        <ul class="searchResult" @click="addFriend">
-          <li class="result_Title">全网搜索</li>
-          <li v-for="(item, i) in $store.state.globe.navigation.searchResult" :key="i">
-            <div class="searchResultMask" :data-email="item.email" :data-nickname="item.nickName"
-                 :data-avatar="item.avatar"></div>
-            <figure><img :src="item.avatar" alt=""></figure>
-            <div class="resultName">
-              <div>{{ item.nickName }}</div>
-              <div>{{ item.email }}</div>
-            </div>
-          </li>
-        </ul>
+      <!--  搜索栏  s -->
+      <div class="search">
+        <span class="search_bt"></span>
+        <input type="text"
+               name="search"
+               autocomplete="off"
+               placeholder="搜索"
+               @keyup="searchChange"
+               @focus="searchActive = true"
+               @blur="!searchContent ? searchActive = false : searchActive = true;"
+               v-model="searchContent">
+        <el-popover
+          placement="bottom"
+          width="200"
+          trigger="manual"
+          content="只允许输入数字、字母、字符@，不允许输入特殊字符。"
+          v-if="popoverVisible">
+        </el-popover>
+        <div class="search_list" v-if="searchActive">
+          {{ searchTips }}
+          <ul class="searchResult" @click="addFriend">
+            <li class="result_Title">全网搜索</li>
+            <li v-for="(item, i) in $store.state.globe.navigation.searchResult" :key="i">
+              <div class="searchResultMask" :data-email="item.email" :data-nickname="item.nickName"
+                   :data-avatar="item.avatar"></div>
+              <figure><img :src="item.avatar" alt=""></figure>
+              <div class="resultName">
+                <div>{{ item.nickName }}</div>
+                <div>{{ item.email }}</div>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
-    <ul class="class_list" @click="switchClass" v-if="!searchActive">
-      <li>
-        <input type="radio"
-               class="classList_btn"
-               name="classList"
-               data-link="chatHistory"
-               checked/>
-        <span class="classList_btn"></span>
-      </li>
-      <li>
-        <input type="radio"
-               class="classList_btn"
-               name="classList"
-               data-link="contacts"/>
-        <span class="classList_btn"></span>
-      </li>
-      <li>
-        <input type="radio"
-               class="classList_btn"
-               name="classList"
-               data-link="group"/>
-        <span class="classList_btn"></span>
-      </li>
-    </ul>
-    <div class="list_container" ref="listContainer" v-if="!searchActive">
-      <chatHistory class="list_container_chatHistory noSelect"/>
-      <contact class="list_container_contact noSelect"/>
-      <group class="list_container_group noSelect"/>
+      <ul class="class_list" @click="switchClass" v-if="!searchActive">
+        <li>
+          <input type="radio"
+                 class="classList_btn"
+                 name="classList"
+                 data-link="chatHistory"
+                 checked/>
+          <span class="classList_btn"></span>
+        </li>
+        <li>
+          <input type="radio"
+                 class="classList_btn"
+                 name="classList"
+                 data-link="contacts"/>
+          <span class="classList_btn"></span>
+        </li>
+        <li>
+          <input type="radio"
+                 class="classList_btn"
+                 name="classList"
+                 data-link="group"/>
+          <span class="classList_btn"></span>
+        </li>
+      </ul>
+      <div class="list_container" ref="listContainer" v-if="!searchActive">
+        <chatHistory class="list_container_chatHistory noSelect"/>
+        <contact class="list_container_contact noSelect"/>
+        <group class="list_container_group noSelect"/>
+      </div>
     </div>
   </div>
 </template>
@@ -167,7 +89,7 @@
 import chatHistory from './nav_chatHistory'
 import contact from './nav_contact'
 import group from './nav_group'
-import Vue from 'vue'
+import setting from './nav_setting'
 import { apiService } from '@/assets/js/Functions'
 import { API_COMMON } from '@/assets/js/api'
 
@@ -176,7 +98,8 @@ export default {
   components: {
     chatHistory,
     contact,
-    group
+    group,
+    setting
   },
   data () {
     return {
@@ -202,22 +125,6 @@ export default {
     })
   },
   methods: {
-    setting (type) {
-      Vue.set(this.$store.state.globe.userConfig, type, !this.$store.state.globe.userConfig[type])
-    },
-    clearChatRecord () {
-      apiService.getData(API_COMMON.GET_COMMON_DELETE_CHAT_RECORD, {}).then()
-    },
-    /** 退出登录 */
-    exit () {
-      this.$store.state.ws.sendMsg({
-        from: window.sessionStorage.getItem('uid'),
-        type: 'exit'
-      }, data => {
-        this.$store.commit('wsMsgGHandler', data)
-      })
-      // this.$router.replace('login')
-    },
     /** 搜索好友 */
     searchChange () {
       clearTimeout(this.timer)
@@ -285,25 +192,6 @@ export default {
       } else {
         this.searchTips = '查找好友开始聊天吧'
       }
-    },
-    '$store.state.globe.userConfig.sendKeyCode': (evt) => {
-      require('element-ui').Message.success({
-        message: evt ? '当前使用 Ctrl + Enter 组合键发送消息' : '当前使用 Enter 键发送消息'
-      })
-    },
-    /** 监听配置文件修改，1秒钟无修改则提交到服务器 */
-    '$store.state.globe.userConfig': {
-      handler (evt) {
-        let timer = ''
-        clearTimeout(timer)
-        timer = setTimeout(() => {
-          apiService.updateData(API_COMMON.PUT_COMMON_USER_CONFIG, {
-            uid: this.uid,
-            config: evt
-          })
-        }, 1000)
-      },
-      deep: true // 深度监听
     }
   }
 }
@@ -315,164 +203,16 @@ export default {
   width: calc(22% - var(--common-margin));
   height: calc(100% - var(--common-margin) * 2);
   margin: var(--common-margin) 0 var(--common-margin) var(--common-margin);
-  position: relative;
   z-index: var(--mainNav-Zindex);
   border-radius: var(--common-radius);
-  background: rgba(180, 190, 200, .3);
   overflow: hidden;
 }
 
-.navSetting {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  left: 0;
-  background: #F7F9FA;
-  z-index: 1000;
-  opacity: 1;
-  transform: translateY(-100%);
-  transition: all .4s;
-}
-
-.settingTitle {
-  position: absolute;
-  height: 90px;
-  width: calc(100% - 10px);
-  line-height: 90px;
-  box-sizing: border-box;
-  padding-left: 30px;
-  font-size: 24px;
-  z-index: 2;
-  background: #F7F9FA;
-  /*background: linear-gradient(to top, rgba(255, 255, 255, .1), rgba(255, 255, 255, 1));*/
-}
-
-.settingTitle::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  height: 0;
-  width: 90%;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.settingContainer {
-  height: 100%;
-  padding-top: 90px;
-  padding-bottom: 140px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
-
-.settingItems {
-  padding-bottom: 140px;
-}
-
-.settingItems li:not(:last-child) {
-  width: 100%;
-  height: 50px;
-  line-height: 50px;
-  font-size: 14px;
-  color: #444444;
+.nav_main {
+  background: rgba(180, 190, 200, .3);
   position: relative;
-  padding: 0 30px;
-  box-sizing: border-box;
-}
-
-.settingItems li {
-  cursor: pointer;
-  position: relative;
-}
-
-.settingItems li:not(:last-child):after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 80%;
-  transform: translateX(-50%);
-  border-bottom: 1px solid rgba(100, 100, 100, .2);
-}
-
-.settingItems li:not(:last-child):hover {
-  background: rgba(180, 180, 180, .1);
-}
-
-.info_item:before {
-  content: '';
-  position: absolute;
-  right: 40px;
-  top: 50%;
-  transform: rotate(45deg) translate(0, -50%);
-  height: 8px;
-  width: 8px;
-  border-right: 2px solid rgba(100, 100, 100, .2);
-  border-top: 2px solid rgba(100, 100, 100, .2);
-}
-
-.admin_item {
-  display: block;
-  width: 100%;
   height: 100%;
-  color: #444444;
-}
-
-.timeSwitch {
-  height: 22px;
-  width: 40px;
-  position: absolute;
-  right: 40px;
-  top: 50%;
-  transform: translate(0, -50%);
-  background: #CCCCCC;
-  border-radius: 100px;
-  transition: all .2s;
-}
-
-.SwitchOn {
-  background: #65C564;
-}
-
-.SwitchOn .switchBtn {
-  transform: translateX(100%);
-}
-
-.switchBtn {
-  transition: all .2s;
-  width: 18px;
-  height: 18px;
-  margin: 2px 0 0 2px;
-  background: #FFFFFF;
-  border-radius: 50%;
-}
-
-.exitContainer {
-  cursor: auto !important;
-  position: absolute !important;
-  width: calc(100% - 12px);
-  height: 140px;
-  background: linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, .1));
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.exit {
-  cursor: pointer !important;
-  width: 60%;
-  bottom: 30px;
-  left: 50%;
-  text-align: center;
-  background: rgba(221, 0, 27, .7);
-  box-sizing: border-box;
-  padding: 10px 0;
-  color: #ffffff;
-  border-radius: 5px;
-  transform: translateX(-50%);
-  z-index: 1000;
-  position: absolute !important;
+  width: 100%;
 }
 
 .top_bar {
@@ -497,7 +237,7 @@ export default {
   background-size: 100%;
 }
 
-.top_bar .addFriend {
+.addFriend {
   height: 20px;
   width: 30px;
   border-radius: 50%;
@@ -774,7 +514,4 @@ export default {
   z-index: 9999;
 }
 
-.message_Loading_Slider {
-  height: 100px !important;
-}
 </style>

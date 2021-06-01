@@ -399,6 +399,42 @@ router.get('/wechatAPI/common/friendApply', async (ctx) => {
     friendApply
   }
 })
+/**
+ * @api {Put} /wechatAPI/common/userInfo/put 修改用户信息
+ * @apiName 10
+ * @apiVersion 1.0.0
+ * @apiGroup 通用
+ * @apiSampleRequest off
+ *
+ * @apiExample 请求示例:
+ * {
+ *   "uid": "imzusheng@163.com",
+ *   "nickName": "",
+ *   "Individuality": ""
+ * }
+ */
+router.put('/wechatAPI/common/userInfo/put', async (ctx) => {
+  const {
+    uid,
+    nickName,
+    Individuality
+  } = ctx.request.body
+  const result = await db.updateOne(
+    'user',
+    { email: uid },
+    {
+      $set: {
+        nickName,
+        Individuality
+      }
+    },
+    { upsert: true }).then()
+  if (!result) console.error('更新用户信息失败 -> router.put -> common/userInfo')
+  ctx.body = {
+    error: false,
+    msg: '修改成功'
+  }
+})
 
 module
   .exports = router.routes()
