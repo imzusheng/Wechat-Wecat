@@ -138,7 +138,15 @@
 * **WebSocket**
 * **ws**
 
+### 笔记与总结
+
+* [多文件分片上传](https://zusheng.club/index.php/2021/06/02/%e5%a4%a7%e6%96%87%e4%bb%b6%e5%88%86%e7%89%87%e4%b8%8a%e4%bc%a0/)
+* [Vue Router History模式下在网站非根目录部署](https://zusheng.club/index.php/2021/04/17/vue-router-history%e6%a8%a1%e5%bc%8f%e4%b8%8b%e5%9c%a8%e7%bd%91%e7%ab%99%e9%9d%9e%e6%a0%b9%e7%9b%ae%e5%bd%95%e9%83%a8%e7%bd%b2/)
+* [js 键盘监听 实现 ctrl + enter 组合键发送消息](https://zusheng.club/index.php/2020/06/15/js-%e9%94%ae%e7%9b%98%e7%9b%91%e5%90%ac-%e5%ae%9e%e7%8e%b0-ctrl-enter-%e7%bb%84%e5%90%88%e9%94%ae%e5%8f%91%e9%80%81%e6%b6%88%e6%81%af/)
+* [利用 ES6 Module 封装一个自己的Websocket服务](https://zusheng.club/index.php/2021/06/02/%e5%a4%a7%e6%96%87%e4%bb%b6%e5%88%86%e7%89%87%e4%b8%8a%e4%bc%a0/)
+
 ###关于
+
 * 👉 **邮箱 imzusheng@163.com**
 * 👉 [项目地址](https://zusheng.club/chatV2)  
 * 👉 [关于我](https://zusheng.club)
