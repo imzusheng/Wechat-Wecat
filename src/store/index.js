@@ -15,6 +15,11 @@ export default new Vuex.Store({
     refs: {}, // $refs
     ws: {}, // WebSocket 对象
     globe: {
+      user: { // 需要更新的用户信息
+        avatarUrl: ''
+      },
+      bgFade: false, // 背景是否虚化
+      avatarCropperVisible: false, // 是否显示头像编辑面板
       unReadMsg: {}, // 保存未读消息的数量 {用户名：未读数量}
       inputStatus: false, // 好友输入状态
       mainPanelMask: false, // 拖动文件进来时触发

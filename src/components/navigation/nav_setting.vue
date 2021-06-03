@@ -79,15 +79,15 @@
         <div class="settingUserInfo">
           <ul class="user-info-main">
             <li class="user-info-main-back" @click="userInfoActivity = false">返回设置</li>
-            <li>
-              <figure>
+            <li class="user-info-avatar">
+              <figure @click="$store.state.globe.avatarCropperVisible = true" title="点击更换头像">
                 <!--    (TODO)  头像要可以修改           -->
-                <img src="../../assets/ginger-cat/ginger-cat-712.png" alt="">
+                <img class="noSelect" :src="$store.state.globe.user.avatarUrl" alt="">
               </figure>
             </li>
             <li>
               <textarea
-                style="font-size: 36px; height: 54px"
+                style="font-size: 36px; height: 54px; width: 100%"
                 v-model="userInfo.nickName"
                 maxlength="6"
                 class="infoEditInput"
@@ -119,7 +119,7 @@
                 <span>最近登录：</span>
               </div>
               <div class="info_position">
-                {{ userInfo.RecentlyTime }}
+                {{ userInfo.RecentlyTime ? userInfo.RecentlyTime : '暂无' }}
               </div>
             </li>
             <li>
@@ -128,7 +128,9 @@
                 <span>登录地址：</span>
               </div>
               <div class="info_phone">
-                {{ userInfo.address.Country + '-' + userInfo.address.Province + '-' + userInfo.address.City }}
+                {{
+                  userInfo.address ? userInfo.address.Country + '-' + userInfo.address.Province + '-' + userInfo.address.City : '暂无'
+                }}
               </div>
             </li>
             <li>
@@ -161,12 +163,14 @@ export default {
       userInfoActivity: false, // 是否切换到个人信息页
       userInfo: {},
       warningActivity: false,
-      warningActivityTimer: ''
+      warningActivityTimer: '',
+      avatarUrl: '' // 头像url
     }
   },
   created () {
     this.userInfo = JSON.parse(window.sessionStorage.getItem('userInfo'))
     if (!this.userInfo.Individuality) this.userInfo.Individuality = '你抡我啊'
+    this.$store.state.globe.user.avatarUrl = window.sessionStorage.getItem('avatar')
   },
   methods: {
     editWarning (msg) {
@@ -315,6 +319,7 @@ export default {
 
 .settingUserInfo {
   width: 50%;
+  overflow: hidden;
 }
 
 .settingUserInfo .user-info-main {
@@ -472,7 +477,7 @@ export default {
   outline-color: #F60;
 }
 
-.settingUserInfo .user-info-main li:nth-of-type(2) {
+.settingUserInfo .user-info-main .user-info-avatar {
   width: 100%;
   height: 150px;
   display: flex;
@@ -481,14 +486,19 @@ export default {
   margin: 24px 0 24px;
 }
 
-.settingUserInfo .user-info-main li:nth-of-type(2) > figure {
+.settingUserInfo .user-info-main .user-info-avatar > figure:hover {
+  will-change: auto;
+}
+
+.settingUserInfo .user-info-main .user-info-avatar > figure {
   overflow: hidden;
   border: 1px solid #ccc;
   border-radius: 50%;
+  cursor: pointer;
 }
 
-.settingUserInfo .user-info-main li:nth-of-type(2) > figure,
-.settingUserInfo .user-info-main li:nth-of-type(2) > figure > img {
+.settingUserInfo .user-info-main .user-info-avatar > figure,
+.settingUserInfo .user-info-main .user-info-avatar > figure > img {
   height: 150px;
   width: 150px;
 }

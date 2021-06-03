@@ -1,11 +1,21 @@
 <template>
   <div id="root">
     <router-view></router-view>
+    <!--  背景  s -->
+    <staticBg :bgFade="$store.state.globe.bgFade"/>
+    <!--    <catsBg :bgFade="bgFade"/>-->
+    <!--  背景  e -->
   </div>
 </template>
 
 <script>
+import staticBg from '@/components/login/staticBg'
+
 export default {
+  name: 'Root',
+  components: {
+    staticBg
+  },
   mounted () {
     // window.onfocus = function () {
     //   document.title = 'WeCat - 开始聊天把！'
@@ -26,8 +36,11 @@ export default {
   --mainFriInfo-Zindex: 2;
   --friendApply-Zindex: 3;
   --handledApply-Zindex: 3;
-  --staticBg-Zindex: 1;
-  --catsBg-Zindex: 1;
+  /*全局遮罩*/
+  --g-mask-Zindex: 10;
+  /*背景*/
+  --staticBg-Zindex: -1;
+  --catsBg-Zindex: -1;
 }
 
 * {
@@ -52,6 +65,7 @@ html, body {
   -moz-user-select: none; /* Firefox */
   -ms-user-select: none; /* IE/Edge */
   user-select: none;
+  -webkit-user-drag: none;
 }
 
 .fade-enter-active {

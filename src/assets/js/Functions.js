@@ -2,7 +2,11 @@ import axios from 'axios'
 import { API_UPLOAD } from '@/assets/js/api'
 import SparkMD5 from 'spark-md5'
 
-export const apiService = { // 请求方式封装
+/**
+ * axios 请求方式封装
+ * @type {{deleteData: (function(*=, *=): AxiosPromise<any>), upload: (function(*=, *=, *): AxiosPromise<any>), updateData: (function(*=, *=): AxiosPromise<any>), postData: (function(*=, *=): AxiosPromise<any>), getData: (function(*=, *=): AxiosPromise<any>)}}
+ */
+export const apiService = {
   getData: (url, params) => {
     return axios({
       method: 'get',
@@ -34,10 +38,7 @@ export const apiService = { // 请求方式封装
       url: url,
       data: params
     })
-  }
-}
-
-export const apiUpload = {
+  },
   upload: (url, params, cb) => {
     return axios({
       method: 'post',
@@ -47,6 +48,53 @@ export const apiUpload = {
       onUploadProgress: function (progressEvent) {
         cb(progressEvent)
       }
+    })
+  }
+}
+
+export const apiUpload = {
+  /**
+   * 上传文件入口
+   * @param file            文件对象
+   * @param options         配置
+   *     chunk              Boolean 是否使用分片发送
+   * @param cb              回调函数
+   * @returns function      根据chunk执行对应方法
+   */
+  async upload (file, options, cb) {
+    // 获取hash
+    file.hash = this.getHash(file.name + file.size + file.lastModified)
+    // 取文件后缀,如 png
+    file.postfix = file.name.slice(file.name.indexOf('.') + 1, file.name.length)
+    // 合并参数
+    const params = Object.assign(file, options)
+    // 上传前查询服务器是否存在该文件
+    const res = await this.beforeUpload(params)
+    // exist = true则存在重复文件，返回文件名
+    if (res.data.exist) {
+      return res
+    } else {
+      // chunk 为true则采用分片发送，反之一次性发送
+      return options.chunk ? await this.uploadPartition(file, options, cb) : await this.uploadOnce(file, options, cb)
+    }
+  },
+  /**
+   * 单次上传
+   * @param file          文件对象
+   * @param options       配置
+   * @param cb            回调上传进度
+   * @returns Promise
+   */
+  uploadOnce (file, options, cb) {
+    return new Promise(resolve => {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('name', file.name)
+      formData.append('hash', file.hash)
+      formData.append('postfix', file.postfix)
+      apiService.upload(API_UPLOAD.POST_COMMON_UPLOAD, formData, (progress) => cb(progress)).then(res => {
+        resolve(res)
+      })
     })
   },
   /**
@@ -137,21 +185,32 @@ export const apiUpload = {
       run() // 启动！
     })
   },
-  // 上传前检查
-  beforeUpload: (file) => {
+  /** 上传前检查服务器是否存在文件 */
+  beforeUpload: (params) => {
     const {
       postfix,
-      hash
-    } = file
+      hash,
+      chunk
+    } = params
     return new Promise(resolve => {
       apiService.postData(API_UPLOAD.POST_COMMON_BEFORE_UPLOAD, {
         postfix,
-        hash
+        hash,
+        chunk
       }).then(res => {
         resolve(res)
       })
     })
+  },
+  getHash: (str) => {
+    if (typeof str !== 'string') {
+      return console.error('请导入字符串')
+    }
+    const spark = new SparkMD5()
+    spark.append(str)
+    return spark.end()
   }
+
 }
 
 export const getHash = (str) => {
@@ -161,4 +220,42 @@ export const getHash = (str) => {
   const spark = new SparkMD5()
   spark.append(str)
   return spark.end()
+}
+
+/** 文件处理处理相关 */
+export const fileHandle = {
+  /**
+   * 略缩图处理，file转换为URL
+   * @param file
+   * @returns Promise->base64Url
+   */
+  readFileAsync (file) {
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      // onload是指readAsDataURL处理完后
+      reader.onload = evt => resolve(evt.target.result)
+      reader.readAsDataURL(file)
+    })
+  },
+
+  /** 将base64转换成file文件对象 */
+  /**
+   * @param dataUrl base64
+   * @returns {File} 文件对象
+   */
+  dataURLtoFile (dataUrl) {
+    // 获取到base64编码
+    const arr = dataUrl.split(',')
+    // 将base64编码转为字符串
+    const bstr = window.atob(arr[1])
+    let n = bstr.length
+    const u8arr = new Uint8Array(n) // 创建初始化为0的，包含length个元素的无符号整型数组
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n)
+    }
+    return new File(
+      [u8arr],
+      `${Date.now()}.${arr[0].replace(new RegExp(/data:image\/|base64/g), '')}`,
+      { type: arr[0].replace(new RegExp(/data:|base64/g), '') })
+  }
 }

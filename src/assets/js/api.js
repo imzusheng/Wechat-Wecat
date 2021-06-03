@@ -14,8 +14,13 @@ export const API_SIGN = {
 }
 
 export const API_UPLOAD = {
-  POST_COMMON_BEFORE_UPLOAD: '/upload/beforeUpload', // 上传前检查
+  /** 单次上传文件 */
+  POST_COMMON_UPLOAD: '/upload/once',
+  /** 上传前检查文件是否存在 */
+  POST_COMMON_BEFORE_UPLOAD: '/upload/beforeUpload',
+  /** 分片上传 */
   POST_COMMON_UPLOAD_V2: '/upload/chunks',
+  /** 分片合并 */
   POST_COMMON_UPLOAD_MERGE: '/upload/merge'
 }
 
@@ -40,5 +45,7 @@ export const API_COMMON = {
   /** 获取好友请求消息 */
   GET_COMMON_FRIEND_APPLY: '/common/friendApply',
   /** 修改用户信息 */
-  PUT_COMMON_USER_INFO: '/common/userInfo/put'
+  PUT_COMMON_USER_INFO: '/common/userInfo/put',
+  /** 修改用户头像 */
+  PUT_COMMON_USER_AVATAR: '/common/userInfo/avatar/put'
 }

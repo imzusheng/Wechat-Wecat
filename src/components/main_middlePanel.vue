@@ -102,7 +102,7 @@
           }"
                 v-html="item.msg"
               >
-<!--                {{ item.msg }}-->
+              <!--  {{ item.msg }}-->
               </pre>
               <!--     不正常      -->
               <div
@@ -266,10 +266,10 @@
 
 <script>
 import moment from 'moment'
-import Vue from 'vue'
-import { apiUpload, getHash } from '@/assets/js/Functions'
+import { apiUpload, fileHandle, getHash } from '@/assets/js/Functions'
 import config from '@/assets/js/config'
 import emoji from '@/assets/json/data-by-group.json'
+import Vue from 'vue'
 
 export default {
   name: 'mainPanel',
@@ -347,6 +347,7 @@ export default {
     }, 200)
   },
   methods: {
+    /** 表情包面板，切换表情分类 */
     switchEmojiTabs (evt) {
       this.emojiPicked = evt.target.value
     },
@@ -405,7 +406,7 @@ export default {
         this.textAreaInput = ''
       }
     },
-    /** 文件上传完成后处理 */
+    /** 文件上传完成后处理，添加到聊天记录展示 */
     uploadDone (file, res) {
       this.$store.commit('chatRecordAdd', {
         chat: {
@@ -444,30 +445,40 @@ export default {
       this.sendFile.sending = true
       this.sendFile.uploadList.forEach(async (file, index) => {
         if (!file) return
-        // 生成hash
-        file.hash = getHash(file.name + file.size + file.lastModified) // 将hash挂载file上
-        // 上传之前先检查服务器是否存在相同文件
-        const res = await apiUpload.beforeUpload(file)
-        if (!res.data.exist) { // 不存在相同文件，开始上传
-          apiUpload.uploadPartition(
-            file,
-            {
-              chunkSize: 1024 * 1024, // 1M一个分片
-              oneTime: 10 // 队列中最多存在几个Post请求
-            }, Progress => {
-              Vue.set(this.sendFile.uploading, index, Progress) // 直接设置进度条不会更新，响应式原理
-            }).then(res => { // 不存在相同文件，返回服务器保存后的文件名
-            this.closePreview(index, file, res)
-          })
-        } else { // 存在相同文件，直接返回服务器文件名
-          this.closePreview(index, file, res)
-        }
+
+        apiUpload.upload(file, {
+          chunk: true, // 是否分片
+          chunkSize: 1024 * 1024, // 1M一个分片
+          oneTime: 10 // 队列中最多存在几个Post请求
+        }, Progress => {
+          Vue.set(this.sendFile.uploading, index, Progress) // 直接设置进度条不会更新，响应式原理
+        }).then(res => {
+          this.closePreview(index, file)
+          this.uploadDone(file, res)
+        })
+
+        // // 上传之前先检查服务器是否存在相同文件
+        // const res = await apiUpload.beforeUpload(file)
+        // if (!res.data.exist) { // 不存在相同文件，开始上传
+        //   apiUpload.uploadPartition(
+        //     file,
+        //     {
+        //       chunkSize: 1024 * 1024, // 1M一个分片
+        //       oneTime: 10 // 队列中最多存在几个Post请求
+        //     }, Progress => {
+        //       Vue.set(this.sendFile.uploading, index, Progress) // 直接设置进度条不会更新，响应式原理
+        //     }).then(res => { // 不存在相同文件，返回服务器保存后的文件名
+        //     this.closePreview(index, file, res)
+        //   })
+        // } else { // 存在相同文件，直接返回服务器文件名
+        //   this.closePreview(index, file, res)
+        // }
       })
     },
-    closePreview (index, file, res) { // (TODO) 上传完成，这里暂时不能用splice删除掉数组，因为会改变数组长度。后期换成对象就可以
+    /** 上传文件完成后的处理 */
+    closePreview (index, file) {
       this.sendFile.sending = false // 发送完毕
       this.sendFile.uploadList[index] = '' // 上传完成
-      this.uploadDone(file, res)
       let flag = true
       this.sendFile.uploadList.forEach(item => {
         if (item) flag = false
@@ -532,7 +543,7 @@ export default {
       })
       if (fileFlag) { // 粘贴内容是文件时，加载略缩图
         paste.files.forEach(file => {
-          this.readFileAsync(file).then(fileUrl => {
+          fileHandle.readFileAsync(file).then(fileUrl => {
             file.imgSrc = fileUrl
             file.postfix = 'png'
             this.sendFile.uploadList.push(file)
@@ -587,7 +598,7 @@ export default {
 
       for (let i = 0; i < files.length; i++) {
         if (this.sendFile.allowImg.includes(files[i].postfix)) { // 图片才需要转换成base64
-          this.readFileAsync(files[i]).then(fileUrl => {
+          fileHandle.readFileAsync(files[i]).then(fileUrl => {
             files[i].imgSrc = fileUrl
             this.sendFile.uploadList.push(files[i])
           })
@@ -595,29 +606,6 @@ export default {
           this.sendFile.uploadList.push(files[i])
         }
       }
-    },
-    readFileAsync (file) { // 略缩图处理，转换为URL
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = evt => resolve(evt.target.result) // onload是指readAsDataURL处理完后
-        reader.readAsDataURL(file)
-      })
-    },
-    /** 将base64转换成file文件对象 */
-    dataURLtoFile (dataurl) {
-      // 获取到base64编码
-      const arr = dataurl.split(',')
-      // 将base64编码转为字符串
-      const bstr = window.atob(arr[1])
-      let n = bstr.length
-      const u8arr = new Uint8Array(n) // 创建初始化为0的，包含length个元素的无符号整型数组
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n)
-      }
-      return new File(
-        [u8arr],
-        `${Date.now()}.${arr[0].replace(new RegExp(/data:image\/|base64/g), '')}`,
-        { type: arr[0].replace(new RegExp(/data:|base64/g), '') })
     },
     /** 模拟懒加载 */
     scrollList (evt) {

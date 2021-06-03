@@ -190,7 +190,7 @@ router.put('/wechatAPI/common/userConfig/put', async (ctx) => {
   }
 })
 /**
- * @api {Get} /wechatAPI/common/static 静态服务-需要权限
+ * @api {Get} /wechatAPI/static 静态服务-需要权限
  * @apiName 5
  * @apiVersion 1.0.0
  * @apiGroup 通用
@@ -433,6 +433,48 @@ router.put('/wechatAPI/common/userInfo/put', async (ctx) => {
   ctx.body = {
     error: false,
     msg: '修改成功'
+  }
+})
+/**
+ * @api {Put} /wechatAPI/common/userInfo/avatar/put 修改用户头像
+ * @apiName 11
+ * @apiVersion 1.0.0
+ * @apiGroup 通用
+ * @apiSampleRequest off
+ *
+ * @apiExample 请求示例:
+ * {
+ *   "uid": "imzusheng@163.com",
+ *   “avatar”: ""
+ * }
+ */
+router.put('/wechatAPI/common/userInfo/avatar/put', async (ctx) => {
+  const {
+    uid,
+    avatar
+  } = ctx.request.body
+  const result = await db.updateOne(
+    'user',
+    { email: uid },
+    {
+      $set: {
+        avatar
+      }
+    },
+    { upsert: true }).then()
+  if (!result) console.error('更新用户信息失败 -> router.put -> common/userInfo')
+  ctx.body = {
+    error: false,
+    msg: '修改成功'
+  }
+})
+router.put('/wechatAPI/common/userConfig/put', async (ctx) => {
+  const data = ctx.request.body
+  const result = await db.updateOne('userConfig', { uid: data.uid }, { $set: { config: data.config } }, { upsert: true }).then()
+  if (!result) console.error('更新用户配置失败 -> router.put -> common/userConfig')
+  ctx.body = {
+    error: false,
+    msg: '查找成功'
   }
 })
 

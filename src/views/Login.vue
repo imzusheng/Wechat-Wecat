@@ -91,23 +91,21 @@
       </div>
     </transition>
     <!--    <catsBg/>-->
-    <staticBg/>
   </div>
 </template>
 
 <script>
 import LoadingLine from '../components/login/login_loading_line'
 // import catsBg from '../components/login/login_cats_bg'
-import staticBg from '@/components/login/staticBg'
 import catTitle from '../components/login/login_cat_title'
 import moment from 'moment'
 import { apiService } from '@/assets/js/Functions'
 import { API_LOGIN } from '@/assets/js/api'
+import config from '@/assets/js/config'
 
 export default {
   name: 'login',
   components: {
-    staticBg,
     LoadingLine, // 加载动画模板
     // catsBg, // 背景
     catTitle // 标题logo
@@ -242,6 +240,9 @@ export default {
             // 更新用户信息，登录时间之类的
             if (process.env.NODE_ENV === 'production') this.updateUserInfo()// 生产环境下才更新
             const resData = res.data.data
+            if (new RegExp(/avatar/g).test(resData.avatar)) {
+              resData.avatar = `${config.server.httpServer}/static?filename=${resData.avatar}`
+            }
             sessionStorage.setItem('userInfo', JSON.stringify(resData))
             sessionStorage.setItem('token', res.data.token)
             sessionStorage.setItem('nickName', resData.nickName)
@@ -315,7 +316,6 @@ input:hover {
 #login {
   height: 100vh;
   width: 100vw;
-  background: #ffffff;
   display: flex;
   justify-content: center;
   align-items: center;

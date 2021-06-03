@@ -7,65 +7,65 @@
       <handleApply v-show="$store.state.globe.addFriend.applyList.length"/>
     </transition>
 
-    <!--  左侧菜单  s -->
-    <indexNav class="wrap_slide_left" v-if="navFade"/>
-    <!--  左侧菜单  e -->
-    <!--  中间聊天面板  s -->
-    <mainPanel
-      v-show="$store.state.chatObj"
-      class="mainPanel"
-      :style="{width: $store.state.globe.userConfig.friendInfoPanel ? '100%' :'78%'}"
-      :class="{'wrap_scale': $store.state.chatObj}"
-      @sendMsg="sendMsg"
-    />
-    <!--  中间聊天面板  e -->
-    <!--  好友信息面板  s -->
-    <friendInfo
-      v-show="$store.state.chatObj && $store.state.globe.userConfig.friendInfoPanel"
-      class="friendInfo"
-      :class="{'wrap_slide_left': $store.state.chatObj}"
-    />
-    <!--  好友信息面板  e -->
-    <!--  背景  s -->
-    <staticBg :bgFade="bgFade"/>
-    <!--    <catsBg :bgFade="bgFade"/>-->
-    <!--  背景  e -->
+    <avatarCropper v-if="$store.state.globe.avatarCropperVisible"/>
+
+    <div class="GFilter"
+         :style="{filter: $store.state.globe.avatarCropperVisible ? 'blur(6px)' : 'none'}">
+      <!--  左侧菜单  s -->
+      <indexNav class="wrap_slide_left" v-if="navFade"/>
+      <!--  左侧菜单  e -->
+      <!--  中间聊天面板  s -->
+      <mainPanel
+        v-show="$store.state.chatObj"
+        class="mainPanel"
+        :style="{width: $store.state.globe.userConfig.friendInfoPanel ? '100%' :'78%'}"
+        :class="{'wrap_scale': $store.state.chatObj}"
+        @sendMsg="sendMsg"
+      />
+      <!--  中间聊天面板  e -->
+      <!--  好友信息面板  s -->
+      <friendInfo
+        v-show="$store.state.chatObj && $store.state.globe.userConfig.friendInfoPanel"
+        class="friendInfo"
+        :class="{'wrap_slide_left': $store.state.chatObj}"
+      />
+      <!--  好友信息面板  e -->
+    </div>
   </div>
 </template>
 
 <script>
-import staticBg from '@/components/login/staticBg'
 // import catsBg from '../components/login/login_cats_bg'
 import indexNav from '../components/navigation/nav'
 import mainPanel from '../components/main_middlePanel'
 import friendInfo from '../components/main_friendInfo'
 import friendApply from '../components/globe/friend_apply'
 import handleApply from '../components/globe/handle_apply'
-import moment from 'moment'
+import avatarCropper from '../components/globe/avatar_cropper'
 import { apiService } from '@/assets/js/Functions'
 import { API_COMMON } from '@/assets/js/api'
+import moment from 'moment'
 
 export default {
   name: 'home',
   components: {
     // catsBg,
-    staticBg,
     mainPanel,
     friendInfo,
     indexNav,
     friendApply,
-    handleApply
+    handleApply,
+    avatarCropper
   },
   data () {
     return {
       uid: '',
-      navFade: false,
-      bgFade: false
+      navFade: false
     }
   },
   mounted () {
     this.uid = window.sessionStorage.getItem('uid') || this.$store.state.uid
-    this.bgFade = true
+    this.$store.state.globe.bgFade = true
     setTimeout(() => {
       this.navFade = true
     }, 300)
@@ -122,8 +122,8 @@ export default {
   min-height: 480px;
   height: 100vh;
   width: 100vw;
-  position: relative;
   display: flex;
+  position: relative;
   /*overflow: auto;*/
   /*边框高度*/
   --common-margin: 0px;
@@ -133,6 +133,14 @@ export default {
   --classIcon-height: 40px;
   /*主面板圆角*/
   --common-radius: 0px;
+}
+
+.GFilter {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition: filter .2s;
 }
 
 .wrap_scale {
