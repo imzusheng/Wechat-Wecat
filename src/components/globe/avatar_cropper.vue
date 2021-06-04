@@ -87,10 +87,11 @@ export default {
     }
   },
   mounted () {
-    const that = this
+    // const that = this
     /** [掘金教程](https://juejin.cn/post/6844903955915341831) */
     this.cropper = new Cropper(this.$refs.avatar, {
       dragMode: 'move',
+      zoomable: false, // 鼠标不允许缩放图像
       aspectRatio: 1, // 宽高比
       minContainerWidth: 400, // 容器最小的宽度
       minContainerHeight: 400, // 容器最小的高度
@@ -101,11 +102,12 @@ export default {
         this.$refs.avatarCropperPreviewSquare
       ],
       zoom (event) {
-        that.scale = parseFloat((event.detail.ratio + 1).toFixed(2))
-        if ((event.detail.ratio + 1).toFixed(1) > 3) {
-          that.scale = 3
-          event.preventDefault()
-        }
+        console.log(event.detail.ratio)
+        // that.zoom = parseFloat((event.detail.ratio + 1).toFixed(2))
+        // if ((event.detail.ratio + 1).toFixed(1) > 3) {
+        //   that.zoom = 3
+        //   event.preventDefault()
+        // }
       },
       crop (event) {
         this.rotate = event.detail.rotate
@@ -160,7 +162,8 @@ export default {
         formData.append('croppedImage', blob, 'avatar.png')
         const file = formData.get('croppedImage') // 转换为file对象
         apiUpload.upload(file, {
-          chunk: false // 是否分片
+          chunk: false, // 是否分片
+          flag: 'avatar'
         }, Progress => {
           console.log(Progress)
         }).then(res => {

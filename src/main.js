@@ -5,10 +5,11 @@ import store from './store'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import axios from 'axios'
+import config from '@/assets/js/config'
 
 Vue.use(ElementUI)
 
-axios.defaults.baseURL = process.env.NODE_ENV === 'production' ? 'https://zusheng.club/wechatAPI' : 'http://localhost:3800/wechatAPI'
+axios.defaults.baseURL = config.server.httpServer
 axios.defaults.headers['Content-Type'] = 'application/json'
 // 请求拦截器
 axios.interceptors.request.use(config => {

@@ -12,5 +12,7 @@ export default {
     wsServerProtocol: 'ws://',
     wsServer: 'localhost:4800',
     wsServerPort: '4800'
-  }
+  },
+  publicPath: '/chatV2/'
+  // staticPath: `${config.server.httpServer + this.publicPath}static?filename=`
 }

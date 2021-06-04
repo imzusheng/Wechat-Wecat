@@ -4,12 +4,14 @@ import { WsServer } from '../assets/js/wsServer'
 import { Message, Notification } from 'element-ui'
 import { apiService } from '@/assets/js/Functions'
 import { API_COMMON } from '@/assets/js/api'
+import config from '@/assets/js/config'
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: () => ({
-    wsAddress: process.env.NODE_ENV === 'production' ? 'wss://zusheng.club/wsServerV2' : 'ws://localhost:4800',
+    staticPath: `${config.server.httpServer}/static?filename=`,
+    wsAddress: config.server.wsServer,
     chatObj: '', // 全局聊天对象
     uid: window.sessionStorage.getItem('uid'), // 用户名
     refs: {}, // $refs

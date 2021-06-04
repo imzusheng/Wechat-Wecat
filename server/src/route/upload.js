@@ -107,51 +107,6 @@ router.post('/wechatAPI/upload/chunks', async (ctx) => {
   }
 })
 /**
- * @api {Post} /wechatAPI/upload/once 上传文件 单次
- * @apiName 4
- * @apiVersion 1.0.0
- * @apiGroup 上传文件
- * @apiSampleRequest off
- *
- * @apiParam FormData 包含的额外数据
- * @apiParam FormData.hash hash
- * @apiParam FormData.postfix 文件后缀，如'png'
- *
- * @apiSuccessExample 成功响应示例
- * {
- *   "error": false,
- *   "filePath": "", // 服务器文件名
- *   "name": "", // 文件名
- *   "message": ""
- * }
- */
-router.post('/wechatAPI/upload/once', async (ctx) => {
-  const {
-    name,
-    hash, // 文件hash值
-    postfix
-  } = ctx.request.body
-  let error = false
-  let message
-  const file = ctx.request.files.file
-  const fileName = `avatar_${hash}.${postfix}` // 文件名字
-  const filePath = path.join(config.staticPath, fileName)
-  try {
-    const reader = fs.readFileSync(file.path)
-    fs.writeFileSync(filePath, reader)
-    message = '上传成功'
-  } catch (e) {
-    error = true
-    message = e
-  }
-  ctx.body = {
-    name,
-    fileName,
-    error,
-    message
-  }
-})
-/**
  * @api {Post} /wechatAPI/upload/merge 上传文件结束，合并分片
  * @apiName 3
  * @apiVersion 1.0.0
@@ -190,6 +145,51 @@ router.post('/wechatAPI/upload/merge', async (ctx) => {
     name
   }
 })
+/**
+ * @api {Post} /wechatAPI/upload/once 上传文件 单次
+ * @apiName 4
+ * @apiVersion 1.0.0
+ * @apiGroup 上传文件
+ * @apiSampleRequest off
+ *
+ * @apiParam FormData 包含的额外数据
+ * @apiParam FormData.hash hash
+ * @apiParam FormData.postfix 文件后缀，如'png'
+ *
+ * @apiSuccessExample 成功响应示例
+ * {
+ *   "error": false,
+ *   "filePath": "", // 服务器文件名
+ *   "name": "", // 文件名
+ *   "message": ""
+ * }
+ */
+router.post('/wechatAPI/upload/once', async (ctx) => {
+  const {
+    name, // 文件名
+    hash, // 文件hash值
+    postfix, // 文件后缀
+    flag // 文件名标识，如avatar为头像
+  } = ctx.request.body
+  let error = false
+  let message
+  const file = ctx.request.files.file
+  const fileName = `${flag}_${hash}.${postfix}` // 文件名字
+  const filePath = path.join(config.staticPath, fileName)
+  try {
+    const reader = fs.readFileSync(file.path)
+    fs.writeFileSync(filePath, reader)
+    message = '上传成功'
+  } catch (e) {
+    error = true
+    message = e
+  }
+  ctx.body = {
+    name,
+    fileName,
+    error,
+    message
+  }
+})
 
-module
-  .exports = router.routes()
+module.exports = router.routes()

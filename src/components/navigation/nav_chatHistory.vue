@@ -6,7 +6,7 @@
       <div class="chatListContent">
         <figure>
           <img
-            :src="$store.state.globe.navigation.historyList.nameList[item].friendInfo.avatar"
+            :src="`${$store.state.staticPath + $store.state.globe.navigation.historyList.nameList[item].friendInfo.avatar}`"
             draggable="false"
             alt=""/>
           <span class="unReadMsg" v-if="$store.state.globe.unReadMsg[item] > 0">{{ $store.state.globe.unReadMsg[item] }}</span>

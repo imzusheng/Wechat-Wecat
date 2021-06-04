@@ -101,7 +101,6 @@ import catTitle from '../components/login/login_cat_title'
 import moment from 'moment'
 import { apiService } from '@/assets/js/Functions'
 import { API_LOGIN } from '@/assets/js/api'
-import config from '@/assets/js/config'
 
 export default {
   name: 'login',
@@ -240,9 +239,7 @@ export default {
             // 更新用户信息，登录时间之类的
             if (process.env.NODE_ENV === 'production') this.updateUserInfo()// 生产环境下才更新
             const resData = res.data.data
-            if (new RegExp(/avatar/g).test(resData.avatar)) {
-              resData.avatar = `${config.server.httpServer}/static?filename=${resData.avatar}`
-            }
+            resData.avatar = `${this.$store.state.staticPath + resData.avatar}`
             sessionStorage.setItem('userInfo', JSON.stringify(resData))
             sessionStorage.setItem('token', res.data.token)
             sessionStorage.setItem('nickName', resData.nickName)

@@ -89,6 +89,7 @@ export const apiUpload = {
     return new Promise(resolve => {
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('flag', options.flag)
       formData.append('name', file.name)
       formData.append('hash', file.hash)
       formData.append('postfix', file.postfix)
