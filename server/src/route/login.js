@@ -549,7 +549,7 @@ router.post('/wechatAPI/sign/verify', async (ctx) => {
   ctx.status = 200
   let flag = false// 用户是否符合注册条件
   const data = ctx.request.body
-  const code = moment(new Date()).format('ssHHmm')
+  const code = moment(new Date()).format('ssHHmm') // 获取验证码
   const emailResult = await db.query('user', { email: data.email }) // 查询数据
   const nickNameResult = await db.query('user', { nickName: data.nickName }) // 查询数据
   if (emailResult.length === 0 && nickNameResult.length === 0) { // 用户符合注册条件时，发送邮箱验证码
@@ -558,6 +558,7 @@ router.post('/wechatAPI/sign/verify', async (ctx) => {
       code: code
     })
   }
+
   ctx.body = {
     data: {
       email: {
@@ -571,7 +572,7 @@ router.post('/wechatAPI/sign/verify', async (ctx) => {
         msg: nickNameResult.length === 0 ? 'success' : '该昵称已被注册'
       },
       code: flag ? code : '',
-      msg: flag && nickNameResult.length !== 0 && emailResult.length !== 0 ? '验证码发送成功' : '验证码发送失败'
+      msg: flag && nickNameResult.length === 0 && emailResult.length === 0 ? '验证码发送成功' : '验证码发送失败'
     }
   }
 })

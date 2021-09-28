@@ -5,12 +5,12 @@ const moduleLogin = {
       lastName: '',
       email: '',
       pwd: '',
-      enter: ''
+      enter: '',
+      emailCheck: '' // 用户输入的验证码
     },
     checkSuc: false, // 验证码是否验证成功,跳转到选择头像
     avatarSrc: '', // 头像链接
     emailCode: '', // 邮箱验证码
-    emailCheck: '', // 用户输入的验证码
     emailCheckErrInfo: '',
     firstNameErrInfo: '',
     lastNameErrInfo: '',
@@ -45,10 +45,11 @@ const moduleLogin = {
       FunctionRoute[args.type]()
 
       function emailCheck () {
-        state.checkSuc = true
-        if (state.emailCode === state.emailCheck && state.emailCheck) {
+        if (state.emailCode === state.data.emailCheck && state.data.emailCheck) {
+          state.checkSuc = true
           state.emailCheckErrInfo = ''
         } else {
+          state.checkSuc = false
           state.emailCheckErrInfo = '验证码错误'
         }
       }
