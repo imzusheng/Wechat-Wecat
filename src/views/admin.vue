@@ -77,6 +77,10 @@ export default {
 </script>
 
 <style>
+.admin-container {
+  background: #fff;
+}
+
 .el-menu-item:focus {
   background: #fff !important;
 }
@@ -130,12 +134,12 @@ export default {
   transform: translate(-50%, 0);
   display: block;
   background: rgba(221, 0, 27, .4);
-  color: #ffffff!important;
+  color: #ffffff !important;
   border-radius: 5px;
   padding: 0;
 }
 
-.goBack:hover{
-  background: rgba(221, 0, 27, .7)!important;
+.goBack:hover {
+  background: rgba(221, 0, 27, .7) !important;
 }
 </style>

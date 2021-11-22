@@ -61,7 +61,7 @@
     <!--  聊天对象名字 main -->
     <div class="mainPanel_name" @click="faceListActive = false">
       <figure v-if="this.chatObj.length > 0">
-        <img :src="$store.state.globe.navigation.contactList.nameList[this.chatObj].friendInfo.avatar" alt="">
+        <img :src="avatarSrc(this.chatObj)" alt="">
       </figure>
       <div class="chatObj">
         <div class="chatObjName">{{ chatObj }}
@@ -675,6 +675,11 @@ export default {
     }
   },
   computed: {
+    avatarSrc () {
+      return function (params) {
+        return `${config.server.httpServer}/static?filename=${this.$store.state.globe.navigation.contactList.nameList[params].friendInfo.avatar}`
+      }
+    },
     server: {
       get () {
         return config.server

@@ -3,24 +3,8 @@ const MongoDB = require('../../src/module/mongodb')
 const db = new MongoDB()
 const JsonWebToken = require('../../src/module/jwt')
 const jwt = new JsonWebToken()
-const commonFunction = require('../../src/module/commonFunction')
 const moment = require('moment')
-const request = require('request')
-const querystring = require('querystring')
-
-function getCity (IPAddress) {
-  return new Promise((resolve, reject) => {
-    const queryData = querystring.stringify({
-      ip: IPAddress,
-      key: '3fc70466cf3f14c1908d58252f8c9f3c' // 申请的接口请求key
-    })
-    const queryUrl = 'http://apis.juhe.cn/ip/ipNew?' + queryData
-    request(queryUrl, (error, response, body) => {
-      if (error) return reject(error)
-      resolve(JSON.parse(body))
-    })
-  })
-}
+const axios = require('axios')
 
 /**
  * @api {Post} /wechatAPI/login/userID 验证用户名
@@ -91,6 +75,7 @@ router.post('/wechatAPI/login/userID', async (ctx) => {
   }
   ctx.body = res
 })
+
 /**
  * @api {Post} /wechatAPI/login/pwd 验证密码
  * @apiName 2
@@ -175,6 +160,7 @@ router.post('/wechatAPI/login/pwd', async (ctx) => {
   }
   ctx.body = res
 })
+
 /**
  * @api {Get} /wechatAPI/login/checkRepeatLogin 验证是否重复登录
  * @apiName 3
@@ -228,6 +214,7 @@ router.get('/wechatAPI/login/checkRepeatLogin', (ctx) => {
     }
   }
 })
+
 /**
  * @api {Put} /wechatAPI/login/update 登录后更新用户信息
  * @apiName 4
@@ -286,6 +273,7 @@ router.put('/wechatAPI/login/update', async (ctx) => {
     msg: result ? '更新成功' : '更新失败'
   }
 })
+
 /**
  * @api {Post} /wechatAPI/login/forget 忘记密码
  * @apiName 5
@@ -322,20 +310,23 @@ router.put('/wechatAPI/login/update', async (ctx) => {
  */
 router.post('/wechatAPI/login/forget', async (ctx) => {
   ctx.status = 200
-  let flag = false
   const data = ctx.request.body
-  const code = moment(new Date()).format('ssHHmm')
   const result = await db.query('user', { email: data.email }) // 查询数据
   if (result.length !== 0) {
-    // flag = true 发送成功，反之失败
-    flag = await commonFunction.sendEmail({
-      obj: data.email,
-      code: code
+    const code = Math.floor(Math.random() * (998369 - 136963)) + 136963
+    const {
+      data: {
+        error
+      }
+    } = await axios({
+      url: 'https://zusheng.club/api/mailHook',
+      method: 'get',
+      params: { code }
     })
     ctx.body = {
-      error: !flag,
+      error,
       code: code,
-      msg: flag ? '验证码发送成功' : '验证码发送失败'
+      msg: !error ? '验证码发送成功' : '验证码发送失败'
     }
   } else {
     ctx.body = {
@@ -345,6 +336,7 @@ router.post('/wechatAPI/login/forget', async (ctx) => {
     }
   }
 })
+
 /**
  * @api {Put} /wechatAPI/login/modifyPwd 修改密码
  * @apiName 6
@@ -405,6 +397,7 @@ router.put('/wechatAPI/login/modifyPwd', async (ctx) => {
     }
   }
 })
+
 /**
  * @api {Get} /wechatAPI/login/userOrigin 获取用户真实IP
  * @apiName 7
@@ -452,11 +445,22 @@ router.put('/wechatAPI/login/modifyPwd', async (ctx) => {
 router.get('/wechatAPI/login/userOrigin', async (ctx) => {
   ctx.status = 200
   let msg
-  console.log(ctx.request)
   if (ctx.request.header.origin || ctx.request.header['x-real-ip']) {
-    // const IPAddress = ctx.request.header.origin.slice(ctx.request.header.origin.indexOf('://') + 3, ctx.request.header.origin.lastIndexOf(':'))
-    const result = await getCity(ctx.request.header['x-real-ip'])
-    console.log(result)
+    const IPAddress =
+      ctx.request.header['x-real-ip'] ||
+      ctx.request.header.origin.slice(
+        ctx.request.header.origin.indexOf('://') + 3,
+        ctx.request.header.origin.lastIndexOf(':')
+      )
+    const {
+      data: {
+        result
+      }
+    } = await axios({
+      url: 'https://zusheng.club/api/mailHook',
+      method: 'get',
+      params: IPAddress
+    })
     msg = {
       data: {
         IPAddress: ctx.request.header['x-real-ip'],
@@ -553,10 +557,21 @@ router.post('/wechatAPI/sign/verify', async (ctx) => {
   const emailResult = await db.query('user', { email: data.email }) // 查询数据
   const nickNameResult = await db.query('user', { nickName: data.nickName }) // 查询数据
   if (emailResult.length === 0 && nickNameResult.length === 0) { // 用户符合注册条件时，发送邮箱验证码
-    flag = await commonFunction.sendEmail({
-      obj: data.email,
-      code: code
+    // flag = await commonFunction.sendEmail({
+    //   obj: data.email,
+    //   code: code
+    // })
+    const code = Math.floor(Math.random() * (998369 - 136963)) + 136963
+    const {
+      data: {
+        error
+      }
+    } = await axios({
+      url: 'https://zusheng.club/api/mailHook',
+      method: 'get',
+      params: { code }
     })
+    flag = !error
   }
 
   ctx.body = {
@@ -576,6 +591,7 @@ router.post('/wechatAPI/sign/verify', async (ctx) => {
     }
   }
 })
+
 /**
  * @api {Post} /wechatAPI/sign/success 注册成功
  * @apiName 2

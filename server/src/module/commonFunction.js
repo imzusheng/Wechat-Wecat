@@ -1,13 +1,6 @@
-const EmailServer = require('../module/EmailServer')
 const JsonWebToken = require('../module/jwt')
 const jwt = new JsonWebToken()
 module.exports = {
-  /**
-   * 发送验证码邮件，return Promise
-   */
-  sendEmail: async (params) => {
-    return await EmailServer(params)
-  },
   /**
    * 验证token
    */

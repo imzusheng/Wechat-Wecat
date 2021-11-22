@@ -1,13 +1,15 @@
 <template>
   <ul class="list" @click="selectFriend">
     <li v-for="(item, i) in $store.state.globe.navigation.contactList.nameList" :key="i">
-      <figure><img :src="item.friendInfo.avatar" alt="" draggable="false"/></figure>
+      <figure><img :src="avatarSrc(item)" alt="" draggable="false"/></figure>
       <div class="friName">{{ item.Friend }}</div>
     </li>
   </ul>
 </template>
 
 <script>
+
+import config from '@/assets/js/config'
 
 export default {
   name: 'contacts',
@@ -23,6 +25,13 @@ export default {
         this.$store.commit('chatObjChange', this.chatObj)
         // 选中该好友时，清除该好友的未读消息列表
         if (this.$store.state.globe.unReadMsg[this.chatObj] > 0) this.$store.commit('clearUnRead', this.chatObj)
+      }
+    }
+  },
+  computed: {
+    avatarSrc () {
+      return function (params) {
+        return `${config.server.httpServer}/static?filename=${params.friendInfo.avatar}`
       }
     }
   }

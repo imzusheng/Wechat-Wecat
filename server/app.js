@@ -6,7 +6,6 @@ const router = require('./src/route/router')
 const commonFunction = require('./src/module/commonFunction')
 const Config = require('./config')
 require('./src/module/ws').link(Config.wsServerPort) /// ///////////////////// ws服务器跑起来
-
 app
   .use(koaBody(Config.koaOptions)) /// /////////////////////////////////// 接收文件配置
   .use(cors()) /// /////////////////////////////////////////////////////// 处理跨域

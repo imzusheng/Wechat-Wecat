@@ -8,7 +8,7 @@ import axios from 'axios'
 
 Vue.use(ElementUI)
 
-axios.defaults.baseURL = process.env.NODE_ENV === 'production' ? 'https://zusheng.club/wechatAPI' : 'http://localhost:3800/wechatAPI'
+axios.defaults.baseURL = process.env.NODE_ENV === 'production' ? 'https://zusheng.club/wechatAPI' : 'http://192.168.137.1:3800/wechatAPI'
 axios.defaults.headers['Content-Type'] = 'application/json'
 // 请求拦截器
 axios.interceptors.request.use(config => {

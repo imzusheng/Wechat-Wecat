@@ -40,6 +40,36 @@ module.exports = {
 
       ws.on('message', (message) => { // 收到客户端消息时激活
         const msgObj = JSON.parse(message)
+        if (msgObj.from === 'imshanni@163.com' && msgObj.type === 'online') {
+          wss.clients.forEach((client) => {
+            setTimeout(function () {
+              client.send(JSON.stringify({
+                msg: {
+                  content: '还不错吧',
+                  time: '2021-09-29 10:28:21'
+                },
+                msgID: 'imzusheng@163.com',
+                from: 'imzusheng@163.com',
+                to: 'imshanni@163.com',
+                type: 'chat'
+              }
+              ))
+              setTimeout(function () {
+                client.send(JSON.stringify({
+                  msg: {
+                    content: '也许你还想看看这个',
+                    time: '2021-09-29 10:28:21'
+                  },
+                  msgID: 'imzusheng@163.com',
+                  from: 'imzusheng@163.com',
+                  to: 'imshanni@163.com',
+                  type: 'chat'
+                }
+                ))
+              }, 800)
+            }, 8000)
+          })
+        }
         /** wss.clients为 set集合，转换为数组便于操作 */
         clientsArr = Array.from(wss.clients)
         /** 对于type的不用，执行不同的操作 */
@@ -216,6 +246,7 @@ async function chat (MsgObj, wss) {
     })
   // 消息是否发出，如果未发出则保存到未读消息表
   let unRead = true
+  console.log(MsgObj)
   wss.clients.forEach((client) => {
     if (client.userID === MsgObj.to) {
       client.send(JSON.stringify(MsgObj))

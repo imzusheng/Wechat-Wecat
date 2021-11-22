@@ -2,6 +2,7 @@ const router = require('@koa/router')()
 const config = require('../../config')
 const fs = require('fs')
 const path = require('path')
+
 /**
  * @api {Post} /wechatAPI/upload/beforeUpload 上传前文件查重
  * @apiName 1
@@ -57,6 +58,7 @@ router.post('/wechatAPI/upload/beforeUpload', async (ctx) => {
     error: false
   }
 })
+
 /**
  * @api {Post} /wechatAPI/upload/chunks 上传文件 分片
  * @apiName 2
@@ -106,6 +108,7 @@ router.post('/wechatAPI/upload/chunks', async (ctx) => {
     message
   }
 })
+
 /**
  * @api {Post} /wechatAPI/upload/once 上传文件 单次
  * @apiName 4
@@ -151,6 +154,7 @@ router.post('/wechatAPI/upload/once', async (ctx) => {
     message
   }
 })
+
 /**
  * @api {Post} /wechatAPI/upload/merge 上传文件结束，合并分片
  * @apiName 3
@@ -178,7 +182,7 @@ router.post('/wechatAPI/upload/merge', async (ctx) => {
 
   const filePath = path.join(config.staticPath, `${hash + '.' + postfix}`)
   const filePacketPath = path.join(config.staticPath, hash)
-  const chunks = fs.readdirSync(filePacketPath)
+  const chunks = fs.readdirSync(filePacketPath) // 将返回一个包含“指定目录下所有文件名称”的数组对象
   chunks.forEach((chunk, i) => {
     fs.appendFileSync(filePath, fs.readFileSync(path.join(filePacketPath, `${i + 1}`)))
     fs.unlinkSync(path.join(filePacketPath, `${i + 1}`))

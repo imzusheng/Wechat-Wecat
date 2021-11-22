@@ -85,6 +85,7 @@ router.get('/wechatAPI/common/chatHistory', async (ctx) => {
     msg: '获取聊天记录成功'
   }
 })
+
 /**
  * @api {Get} /wechatAPI/common/navSearch 全局搜索用户
  * @apiName 2
@@ -101,6 +102,7 @@ router.get('/wechatAPI/common/navSearch', async (ctx) => {
         { email: { $regex: new RegExp(data.email) } },
         { nickName: { $regex: new RegExp(data.nickName) } }
       ],
+      // $in 表示包含的多个值
       email: { $nin: [data.userID] } // 搜索当然要不包括自己啦
     }
   }
@@ -122,6 +124,7 @@ router.get('/wechatAPI/common/navSearch', async (ctx) => {
     result
   }
 })
+
 /**
  * @api {Get} /wechatAPI/common/userConfig 获取用户配置
  * @apiName 3
@@ -167,6 +170,7 @@ router.get('/wechatAPI/common/userConfig', async (ctx) => {
     }
   }
 })
+
 /**
  * @api {Put} /wechatAPI/common/userConfig/put 修改用户配置
  * @apiName 4
@@ -189,6 +193,7 @@ router.put('/wechatAPI/common/userConfig/put', async (ctx) => {
     msg: '查找成功'
   }
 })
+
 /**
  * @api {Get} /wechatAPI/static 静态服务-需要权限
  * @apiName 5
@@ -212,6 +217,7 @@ router.get('/wechatAPI/static', async (ctx) => {
   }
   ctx.body = data
 })
+
 /**
  * @api {Get} /wechatAPI/common/contact 获取好友列表
  * @apiName 6
@@ -286,6 +292,7 @@ router.get('/wechatAPI/common/contact', async (ctx) => {
     msg: 'success'
   }
 })
+
 /**
  * @api {Get} /wechatAPI/common/deleteAllRecord 删除所有聊天记录
  * @apiName 7
@@ -321,6 +328,7 @@ router.get('/wechatAPI/common/deleteAllRecord', async (ctx) => {
     msg: 'success'
   }
 })
+
 /**
  * @api {Get} /wechatAPI/common/unRead 获取未读消息记录
  * @apiName 8
@@ -361,6 +369,7 @@ router.get('/wechatAPI/common/unRead', async (ctx) => {
     unReadMessage: unReadMessageObj
   }
 })
+
 /**
  * @api {Get} /wechatAPI/common/friendApply 获取好友请求
  * @apiName 9
@@ -399,6 +408,7 @@ router.get('/wechatAPI/common/friendApply', async (ctx) => {
     friendApply
   }
 })
+
 /**
  * @api {Put} /wechatAPI/common/userInfo/put 修改用户信息
  * @apiName 10
@@ -435,6 +445,7 @@ router.put('/wechatAPI/common/userInfo/put', async (ctx) => {
     msg: '修改成功'
   }
 })
+
 /**
  * @api {Put} /wechatAPI/common/userInfo/avatar/put 修改用户头像
  * @apiName 11
@@ -468,6 +479,7 @@ router.put('/wechatAPI/common/userInfo/avatar/put', async (ctx) => {
     msg: '修改成功'
   }
 })
+
 router.put('/wechatAPI/common/userConfig/put', async (ctx) => {
   const data = ctx.request.body
   const result = await db.updateOne('userConfig', { uid: data.uid }, { $set: { config: data.config } }, { upsert: true }).then()

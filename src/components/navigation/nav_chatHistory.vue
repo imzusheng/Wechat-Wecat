@@ -6,10 +6,12 @@
       <div class="chatListContent">
         <figure>
           <img
-            :src="$store.state.globe.navigation.historyList.nameList[item].friendInfo.avatar"
+            :src="avatarSrc(item)"
             draggable="false"
             alt=""/>
-          <span class="unReadMsg" v-if="$store.state.globe.unReadMsg[item] > 0">{{ $store.state.globe.unReadMsg[item] }}</span>
+          <span class="unReadMsg" v-if="$store.state.globe.unReadMsg[item] > 0">{{
+              $store.state.globe.unReadMsg[item]
+            }}</span>
         </figure>
         <div class="group">
           <div class="friName">{{ $store.state.globe.navigation.historyList.nameList[item].friendInfo.email }}</div>
@@ -21,6 +23,7 @@
 </template>
 
 <script>
+import config from '@/assets/js/config'
 
 export default {
   name: 'chatHistory',
@@ -64,10 +67,16 @@ export default {
       return chat[chat.length - 1].type === 'file' ? '[文件]' : chat[chat.length - 1].msg
     }
   },
-  computed: {},
-  watch: {
-    '$store.state.unReadMsg': () => {
+  computed: {
+    avatarSrc () {
+      return function (params) {
+        return `${config.server.httpServer}/static?filename=${this.$store.state.globe.navigation.historyList.nameList[params].friendInfo.avatar}`
+      }
     }
+  },
+  watch: {
+    // '$store.state.unReadMsg': () => {
+    // }
   }
 }
 </script>

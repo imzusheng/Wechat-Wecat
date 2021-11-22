@@ -1,11 +1,11 @@
 <h1 align="center">WeCat</h1>
 
 <p align="center">
-    <a href="https://zusheng.club/chatV2">
-        <img src="https://img.shields.io/badge/项目地址-zusheng.club/chatV2-green.svg?style=flat-square" alt="项目地址">
+    <a href="https://chat.zusheng.club">
+        <img src="https://img.shields.io/badge/项目地址-chat.zusheng.club-green.svg?style=flat-square" alt="项目地址">
     </a>
     <a href="https://zusheng.club">
-        <img src="https://img.shields.io/badge/博客-zusheng-blue.svg?style=flat-square" alt="博客地址">
+        <img src="https://img.shields.io/badge/主页-home-blue.svg?style=flat-square" alt="博客地址">
     </a>
 </p>
 
@@ -148,7 +148,7 @@
 ###关于
 
 * 👉 **邮箱 imzusheng@163.com**
-* 👉 [项目地址](https://zusheng.club/chatV2)  
+* 👉 [项目地址](https://chat.chatzusheng.club)  
 * 👉 [关于我](https://zusheng.club)
 * 👉 [github](https://github.com/imzusheng/Wecat)  
 * 👉 [gitee](https://gitee.com/imzusheng/Wecat)

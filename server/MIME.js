@@ -1,4 +1,5 @@
 module.exports = {
+  '.webm': 'text/plain; charset=utf-8',
   '.323': 'text/h323',
   '.3gp': 'video/3gpp',
   '.aab': 'application/x-authoware-bin',

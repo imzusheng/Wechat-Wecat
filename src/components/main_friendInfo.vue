@@ -2,7 +2,7 @@
   <div>
     <div class="Avatar_container" v-if="$store.state.chatObj.length > 0">
       <figure>
-        <img :src=$store.state.globe.navigation.contactList.nameList[$store.state.chatObj].friendInfo.avatar alt=""
+        <img :src="avatarSrc($store.state.chatObj)" alt=""
              draggable="false"/>
       </figure>
     </div>
@@ -45,6 +45,8 @@
 </template>
 
 <script>
+import config from '@/assets/js/config'
+
 export default {
   name: 'friendInfo',
   data () {
@@ -54,6 +56,11 @@ export default {
   },
   methods: {},
   computed: {
+    avatarSrc () {
+      return function (params) {
+        return `${config.server.httpServer}/static?filename=${this.$store.state.globe.navigation.contactList.nameList[params].friendInfo.avatar}`
+      }
+    },
     currentChat () {
       let chat = ''
       if (this.$store.state.globe.navigation.historyList.nameList[this.$store.state.chatObj]) {
