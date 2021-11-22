@@ -9,7 +9,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: () => ({
-    wsAddress: process.env.NODE_ENV === 'production' ? 'wss://zusheng.club/wsServerV2' : 'ws://localhost:4800',
+    wsAddress: process.env.NODE_ENV === 'production' ? 'wss://chat.zusheng.club/wsServer' : 'ws://localhost:4800',
     chatObj: '', // 全局聊天对象
     uid: window.sessionStorage.getItem('uid'), // 用户名
     refs: {}, // $refs

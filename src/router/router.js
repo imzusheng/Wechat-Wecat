@@ -83,7 +83,7 @@ const routes = [
 
 const router = new VueRouter({
   mode: 'history',
-  base: '/chatV2',
+  base: '/',
   routes
 })
 
