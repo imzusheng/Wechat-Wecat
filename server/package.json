@@ -19,12 +19,12 @@
     "moment": "^2.29.1",
     "mongodb": "^3.5.9",
     "multer": "^1.4.2",
-    "ws": "^7.4.6"
+    "ws": "^7.4.6",
+    "cross-env": "^7.0.3"
   },
   "author": "zusheng",
   "license": "ISC",
   "devDependencies": {
-    "cross-env": "^7.0.3",
     "nodemon": "^2.0.7"
   }
 }
