@@ -452,19 +452,15 @@ router.get('/wechatAPI/login/userOrigin', async (ctx) => {
         ctx.request.header.origin.indexOf('://') + 3,
         ctx.request.header.origin.lastIndexOf(':')
       )
-    const {
-      data: {
-        result
-      }
-    } = await axios({
-      url: 'https://zusheng.club/api/mailHook',
+    const { data: result } = await axios({
+      url: 'https://zusheng.club/api/userOrigin',
       method: 'get',
       params: IPAddress
     })
     msg = {
       data: {
-        IPAddress: ctx.request.header['x-real-ip'],
-        result: result.result
+        IPAddress,
+        position: result ? result.result : null
       },
       error: false,
       msg: '获取成功'
