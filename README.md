@@ -12,7 +12,7 @@
 ### 介绍
 
 * 基于Vue.js全家桶 + WebSocket + Node.js + Koa2 + MongoDB的即时聊天项目
-* 这是我的毕设项目，功能部分参考微信，附加上一些有意思的功能。项目代码注释非常详细，是学习Vue、Node.js、koa一个不错的全栈入门项目。  
+* 功能部分参考微信，附加上一些有意思的功能。项目代码注释非常详细，是学习Vue、Node.js、koa一个不错的全栈入门项目。  
 * 项目前后端和部署独立完成，各种交互以及各种业务逻辑功能上有不完善的地方欢迎提出😄
 
 ### 项目展示
@@ -145,7 +145,7 @@
 * [js 键盘监听 实现 ctrl + enter 组合键发送消息](https://zusheng.club/index.php/2020/06/15/js-%e9%94%ae%e7%9b%98%e7%9b%91%e5%90%ac-%e5%ae%9e%e7%8e%b0-ctrl-enter-%e7%bb%84%e5%90%88%e9%94%ae%e5%8f%91%e9%80%81%e6%b6%88%e6%81%af/)
 * [利用 ES6 Module 封装一个自己的Websocket服务](https://zusheng.club/index.php/2021/06/02/%e5%a4%a7%e6%96%87%e4%bb%b6%e5%88%86%e7%89%87%e4%b8%8a%e4%bc%a0/)
 
-###关于
+### 关于
 
 * 👉 **邮箱 imzusheng@163.com**
 * 👉 [项目地址](https://chat.chatzusheng.club)  
